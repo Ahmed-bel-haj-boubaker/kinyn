@@ -17,24 +17,30 @@ const COLLECTIONS: Collection[] = [
   {
     id: 1,
     title: "Homme",
-    description: "Des pièces essentielles pensées pour l'homme moderne, entre élégance et confort au quotidien.",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80",
+    description:
+      "Des pièces essentielles pensées pour l'homme moderne, entre élégance et confort au quotidien.",
+    image:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80",
     href: "/homme",
     cta: "Découvrir",
   },
   {
     id: 2,
     title: "Femme",
-    description: "Une collection raffinée qui sublime chaque silhouette avec des coupes intemporelles.",
-    image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&q=80",
+    description:
+      "Une collection raffinée qui sublime chaque silhouette avec des coupes intemporelles.",
+    image:
+      "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&q=80",
     href: "/femme",
     cta: "Découvrir",
   },
   {
     id: 3,
     title: "Enfant",
-    description: "Du style et du confort pour les petits, des tenues qui accompagnent chaque aventure.",
-    image: "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=800&q=80",
+    description:
+      "Du style et du confort pour les petits, des tenues qui accompagnent chaque aventure.",
+    image:
+      "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=800&q=80",
     href: "/enfant",
     cta: "Découvrir",
   },
@@ -78,7 +84,8 @@ export default function FeaturedCollection() {
             Nos Univers
           </h2>
           <p className="mx-auto mt-4 max-w-lg font-poppins text-[0.88rem] leading-relaxed text-dark/55">
-            Explorez nos collections soigneusement conçues pour chaque style et chaque moment.
+            Explorez nos collections soigneusement conçues pour chaque style et
+            chaque moment.
           </p>
         </div>
 
@@ -88,9 +95,13 @@ export default function FeaturedCollection() {
             <div
               key={col.id}
               className={`transition-all duration-700 ease-out ${
-                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+                isVisible
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-10"
               }`}
-              style={{ transitionDelay: isVisible ? `${150 + idx * 120}ms` : "0ms" }}
+              style={{
+                transitionDelay: isVisible ? `${150 + idx * 120}ms` : "0ms",
+              }}
             >
               <div className="group relative overflow-hidden rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-transform duration-200 ease-out hover:scale-[1.03]">
                 {/* Image */}

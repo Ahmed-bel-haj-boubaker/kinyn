@@ -4,6 +4,7 @@ import { useState } from "react";
 import TopBanner from "./component/shared/TopBanner";
 import Navbar from "./component/shared/Navbar";
 import CartDrawer from "./component/shared/CartDrawer";
+import Footer from "./component/shared/Footer";
 
 export default function ClientLayout({
   children,
@@ -19,6 +20,7 @@ export default function ClientLayout({
         <Navbar onCartClick={() => setCartOpen(true)} />
       </div>
       <main className="flex-1">{children}</main>
+      <Footer />
       <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
   );

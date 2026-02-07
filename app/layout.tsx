@@ -10,8 +10,10 @@ const poppins = Poppins({
 });
 
 const erotique = localFont({
-  src: "../public/fonts/ErotiqueTrial-Bold.ttf",
+  src: "./fonts/ErotiqueTrial-Bold.ttf",
   variable: "--font-erotique",
+  weight: "700",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -26,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${poppins.variable} ${erotique.variable} antialiased`}>
+      <body className={`${poppins.variable} ${erotique.variable}     antialiased`}>
         {children}
       </body>
     </html>

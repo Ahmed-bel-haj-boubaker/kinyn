@@ -27,7 +27,7 @@ export default function HeroSection() {
             Nouvelle Collection 2026
           </p>
 
-          <h1 className="font-erotique text-4xl leading-tight text-background sm:text-5xl md:text-6xl lg:text-7xl">
+          <h1 className="font-poppins text-4xl leading-tight text-background sm:text-5xl md:text-6xl lg:text-7xl">
             L&apos;Élégance Redéfinie
           </h1>
 

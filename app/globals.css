@@ -11,6 +11,16 @@
   --animate-marquee: marquee 25s linear infinite;
 }
 
+@layer utilities {
+  .font-poppins {
+    font-family: var(--font-poppins), sans-serif;
+  }
+  
+  .font-erotique {
+    font-family: var(--font-erotique), serif;
+  }
+}
+
 @keyframes marquee {
   0% {
     transform: translateX(100vw);

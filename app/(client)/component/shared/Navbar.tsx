@@ -324,7 +324,7 @@ export default function Navbar({ onCartClick }: NavbarProps) {
               </div>
 
               {/* ────────── Right: Actions ────────── */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 font-poppins ">
                 {/* Se connecter */}
                 <Link
                   href="/login"
@@ -352,7 +352,7 @@ export default function Navbar({ onCartClick }: NavbarProps) {
                 <button
                   type="button"
                   onClick={onCartClick}
-                  className="relative flex items-center justify-center h-10 w-10 rounded-full text-dark transition-colors duration-200 hover:text-primary"
+                  className="relative font-poppins flex items-center justify-center h-10 w-10 rounded-full text-dark transition-colors duration-200 hover:text-primary"
                   aria-label={`Panier${CART_COUNT > 0 ? `, ${CART_COUNT} articles` : ""}`}
                 >
                   <ShoppingBag className="h-5 w-5" strokeWidth={1.8} />

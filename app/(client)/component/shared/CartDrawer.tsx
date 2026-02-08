@@ -101,7 +101,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 z-60 bg-dark/40 backdrop-blur-[2px] transition-opacity duration-300 ease-out ${
+        className={`fixed font-poppins   inset-0 z-60 bg-dark/40 backdrop-blur-[2px] transition-opacity duration-300 ease-out ${
           isOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
@@ -116,14 +116,14 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         role="dialog"
         aria-modal="true"
         aria-label="Panier"
-        className={`fixed top-0 right-0 z-70 flex h-screen w-full flex-col bg-background shadow-[-8px_0_30px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-out md:w-100 ${
+        className={`fixed font-poppins   top-0 right-0 z-70 flex h-screen w-full flex-col bg-background shadow-[-8px_0_30px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-out md:w-100 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* ─── Header ─── */}
         <div className="flex items-center justify-between border-b border-dark/10 px-6 py-5">
           <div className="flex items-baseline gap-2.5">
-            <h2 className="font-erotique text-[1.3rem] font-bold uppercase tracking-[0.08em] text-dark">
+            <h2 className="text-[1.3rem] font-bold uppercase tracking-[0.08em] text-dark">
               Panier
             </h2>
             <span className="text-[0.75rem] font-medium text-dark/40">

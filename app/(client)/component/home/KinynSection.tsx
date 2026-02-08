@@ -134,7 +134,7 @@ export default function KinynSection() {
                 { value: "100%", label: "Qualité" },
               ].map((stat) => (
                 <div key={stat.label} className="text-center lg:text-left">
-                  <span className="block font-erotique text-primary text-2xl sm:text-3xl">
+                  <span className="block font-poppins text-primary text-2xl sm:text-3xl">
                     {stat.value}
                   </span>
                   <span className="font-poppins text-dark/50 text-xs sm:text-sm">

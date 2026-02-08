@@ -27,41 +27,6 @@ interface NavCategory {
 
 const NAV_CATEGORIES: NavCategory[] = [
   {
-    label: "Homme",
-    href: "/homme",
-    columns: [
-      {
-        heading: "Homme",
-        subcategories: [
-          {
-            title: "Hauts",
-            items: [
-              "T-shirt",
-              "Chemise",
-              "Pull / Sweater",
-              "Sweat à capuche (Hoodie)",
-              "Gilet",
-              "Débardeur",
-              "Polo",
-              "Veste légère",
-              "Manteau / Parka",
-            ],
-          },
-          {
-            title: "Bas",
-            items: [
-              "Pantalon",
-              "Jean",
-              "Short",
-              "Chino",
-              "Pantalon de jogging",
-            ],
-          },
-        ],
-      },
-    ],
-  },
-  {
     label: "Femme",
     href: "/femme",
     columns: [

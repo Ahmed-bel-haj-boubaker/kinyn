@@ -6,42 +6,31 @@ import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 
 /* ════════════════════════════════════════════════════════════════
-   Sign-Up Page — KINYN Luxury Fashion
-   Route: /auth/sign-up
+   Sign-In Page — KINYN Luxury Fashion
+   Route: /auth/sign-in
    ════════════════════════════════════════════════════════════════ */
 
 interface FormState {
-  firstName: string;
-  lastName: string;
   email: string;
   password: string;
-  confirmPassword: string;
-  acceptTerms: boolean;
+  rememberMe: boolean;
 }
 
 interface FormErrors {
-  firstName?: string;
-  lastName?: string;
   email?: string;
   password?: string;
-  confirmPassword?: string;
-  acceptTerms?: string;
 }
 
 const initialForm: FormState = {
-  firstName: "",
-  lastName: "",
   email: "",
   password: "",
-  confirmPassword: "",
-  acceptTerms: false,
+  rememberMe: false,
 };
 
-export default function SignUpPage() {
+export default function SignInPage() {
   const [form, setForm] = useState<FormState>(initialForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   /* ── Field change handler ── */
@@ -59,9 +48,6 @@ export default function SignUpPage() {
   const validate = useCallback((): FormErrors => {
     const e: FormErrors = {};
 
-    if (!form.firstName.trim()) e.firstName = "Le prénom est requis.";
-    if (!form.lastName.trim()) e.lastName = "Le nom est requis.";
-
     if (!form.email.trim()) {
       e.email = "L'email est requis.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
@@ -70,18 +56,6 @@ export default function SignUpPage() {
 
     if (!form.password) {
       e.password = "Le mot de passe est requis.";
-    } else if (form.password.length < 8) {
-      e.password = "Le mot de passe doit contenir au moins 8 caractères.";
-    }
-
-    if (!form.confirmPassword) {
-      e.confirmPassword = "Veuillez confirmer votre mot de passe.";
-    } else if (form.confirmPassword !== form.password) {
-      e.confirmPassword = "Les mots de passe ne correspondent pas.";
-    }
-
-    if (!form.acceptTerms) {
-      e.acceptTerms = "Vous devez accepter les conditions d'utilisation.";
     }
 
     return e;
@@ -115,7 +89,7 @@ export default function SignUpPage() {
       {/* ───────── Left — Brand Image (desktop only) ───────── */}
       <div className="relative hidden w-1/2 lg:block">
         <Image
-          src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1200&q=80"
+          src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&q=80"
           alt="KINYN — Mode de luxe"
           width={1000}
           height={1000}
@@ -124,7 +98,7 @@ export default function SignUpPage() {
         {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-dark/70 via-dark/30 to-transparent" />
 
-        {/* Brand text over image */}
+        {/* Brand logo over image */}
         <div className="absolute inset-0 flex flex-col items-center justify-center px-12 text-center">
           <Link href="/" aria-label="Retour à l'accueil">
             <Image
@@ -136,13 +110,13 @@ export default function SignUpPage() {
             />
           </Link>
           <p className="mt-4 max-w-md font-poppins text-sm leading-relaxed text-white/80">
-            Créez votre compte et découvrez une mode pensée pour sublimer chaque
-            moment de votre quotidien.
+            Connectez-vous pour accéder à votre espace personnel et découvrir
+            nos collections exclusives.
           </p>
         </div>
       </div>
 
-      {/* ───────── Right — Sign-up Form ───────── */}
+      {/* ───────── Right — Sign-in Form ───────── */}
       <div className="flex w-full items-center justify-center px-6 py-12 lg:w-1/2 lg:px-16 xl:px-24">
         <div className="w-full max-w-md">
           {/* Mobile brand */}
@@ -160,11 +134,9 @@ export default function SignUpPage() {
 
           {/* Card */}
           <div className="rounded-2xl bg-white/50 px-8 py-10 shadow-lg shadow-dark/5 backdrop-blur-sm sm:px-10">
-            <h1 className="font-erotique text-3xl text-dark">
-              Créer un compte
-            </h1>
+            <h1 className="font-erotique text-3xl text-dark">Connexion</h1>
             <p className="mt-2 font-poppins text-sm text-dark/60">
-              Rejoignez l&apos;univers KINYN
+              Bienvenue dans l&apos;univers KINYN
             </p>
 
             {/* Success state */}
@@ -186,13 +158,13 @@ export default function SignUpPage() {
                   </svg>
                 </div>
                 <p className="font-poppins text-sm font-medium text-green-800">
-                  Votre compte a été créé avec succès !
+                  Connexion réussie !
                 </p>
                 <Link
-                  href="/auth/sign-in"
+                  href="/"
                   className="mt-4 inline-block font-poppins text-sm font-semibold text-primary underline-offset-2 transition-colors hover:underline"
                 >
-                  Se connecter
+                  Retour à l&apos;accueil
                 </Link>
               </div>
             ) : (
@@ -201,77 +173,6 @@ export default function SignUpPage() {
                 noValidate
                 className="mt-8 space-y-5"
               >
-                {/* Name row */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {/* Prénom */}
-                  <div>
-                    <label
-                      htmlFor="firstName"
-                      className="mb-1.5 block font-poppins text-xs font-medium tracking-wide text-dark/70"
-                    >
-                      Prénom <span className="text-primary">*</span>
-                    </label>
-                    <input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      autoComplete="given-name"
-                      aria-required="true"
-                      aria-invalid={!!errors.firstName}
-                      aria-describedby={
-                        errors.firstName ? "err-firstName" : undefined
-                      }
-                      placeholder="Votre prénom"
-                      value={form.firstName}
-                      onChange={handleChange}
-                      className={inputClasses("firstName")}
-                    />
-                    {errors.firstName && (
-                      <p
-                        id="err-firstName"
-                        role="alert"
-                        className="mt-1 font-poppins text-xs text-primary"
-                      >
-                        {errors.firstName}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Nom */}
-                  <div>
-                    <label
-                      htmlFor="lastName"
-                      className="mb-1.5 block font-poppins text-xs font-medium tracking-wide text-dark/70"
-                    >
-                      Nom <span className="text-primary">*</span>
-                    </label>
-                    <input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      autoComplete="family-name"
-                      aria-required="true"
-                      aria-invalid={!!errors.lastName}
-                      aria-describedby={
-                        errors.lastName ? "err-lastName" : undefined
-                      }
-                      placeholder="Votre nom"
-                      value={form.lastName}
-                      onChange={handleChange}
-                      className={inputClasses("lastName")}
-                    />
-                    {errors.lastName && (
-                      <p
-                        id="err-lastName"
-                        role="alert"
-                        className="mt-1 font-poppins text-xs text-primary"
-                      >
-                        {errors.lastName}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
                 {/* Email */}
                 <div>
                   <label
@@ -317,13 +218,13 @@ export default function SignUpPage() {
                       id="password"
                       name="password"
                       type={showPassword ? "text" : "password"}
-                      autoComplete="new-password"
+                      autoComplete="current-password"
                       aria-required="true"
                       aria-invalid={!!errors.password}
                       aria-describedby={
                         errors.password ? "err-password" : undefined
                       }
-                      placeholder="Min. 8 caractères"
+                      placeholder="Votre mot de passe"
                       value={form.password}
                       onChange={handleChange}
                       className={inputClasses("password")}
@@ -356,101 +257,26 @@ export default function SignUpPage() {
                   )}
                 </div>
 
-                {/* Confirm Password */}
-                <div>
-                  <label
-                    htmlFor="confirmPassword"
-                    className="mb-1.5 block font-poppins text-xs font-medium tracking-wide text-dark/70"
-                  >
-                    Confirmer le mot de passe{" "}
-                    <span className="text-primary">*</span>
-                  </label>
-                  <div className="relative">
+                {/* Remember me & Forgot password */}
+                <div className="flex items-center justify-between">
+                  <label className="flex cursor-pointer items-center gap-2">
                     <input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type={showConfirm ? "text" : "password"}
-                      autoComplete="new-password"
-                      aria-required="true"
-                      aria-invalid={!!errors.confirmPassword}
-                      aria-describedby={
-                        errors.confirmPassword
-                          ? "err-confirmPassword"
-                          : undefined
-                      }
-                      placeholder="Retapez votre mot de passe"
-                      value={form.confirmPassword}
-                      onChange={handleChange}
-                      className={inputClasses("confirmPassword")}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirm((p) => !p)}
-                      aria-label={
-                        showConfirm
-                          ? "Masquer la confirmation"
-                          : "Afficher la confirmation"
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-dark/40 transition-colors hover:text-dark/70"
-                    >
-                      {showConfirm ? (
-                        <EyeOff size={18} strokeWidth={1.5} />
-                      ) : (
-                        <Eye size={18} strokeWidth={1.5} />
-                      )}
-                    </button>
-                  </div>
-                  {errors.confirmPassword && (
-                    <p
-                      id="err-confirmPassword"
-                      role="alert"
-                      className="mt-1 font-poppins text-xs text-primary"
-                    >
-                      {errors.confirmPassword}
-                    </p>
-                  )}
-                </div>
-
-                {/* Terms checkbox */}
-                <div>
-                  <label className="flex cursor-pointer items-start gap-3">
-                    <input
-                      name="acceptTerms"
+                      name="rememberMe"
                       type="checkbox"
-                      checked={form.acceptTerms}
+                      checked={form.rememberMe}
                       onChange={handleChange}
-                      aria-invalid={!!errors.acceptTerms}
-                      aria-describedby={
-                        errors.acceptTerms ? "err-acceptTerms" : undefined
-                      }
-                      className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-dark/20 accent-primary"
+                      className="h-4 w-4 cursor-pointer rounded border-dark/20 accent-primary"
                     />
-                    <span className="font-poppins text-xs leading-relaxed text-dark/60">
-                      J&apos;accepte les{" "}
-                      <Link
-                        href="/conditions"
-                        className="font-medium text-dark underline underline-offset-2 transition-colors hover:text-primary"
-                      >
-                        conditions d&apos;utilisation
-                      </Link>{" "}
-                      et la{" "}
-                      <Link
-                        href="/confidentialite"
-                        className="font-medium text-dark underline underline-offset-2 transition-colors hover:text-primary"
-                      >
-                        politique de confidentialité
-                      </Link>
+                    <span className="font-poppins text-xs text-dark/60">
+                      Se souvenir de moi
                     </span>
                   </label>
-                  {errors.acceptTerms && (
-                    <p
-                      id="err-acceptTerms"
-                      role="alert"
-                      className="mt-1 font-poppins text-xs text-primary"
-                    >
-                      {errors.acceptTerms}
-                    </p>
-                  )}
+                  <Link
+                    href="/auth/forget-password"
+                    className="font-poppins text-xs font-medium text-primary underline-offset-2 transition-colors hover:underline"
+                  >
+                    Mot de passe oublié ?
+                  </Link>
                 </div>
 
                 {/* Submit */}
@@ -458,7 +284,7 @@ export default function SignUpPage() {
                   type="submit"
                   className="w-full rounded-lg bg-primary py-3.5 font-poppins text-sm font-semibold tracking-wide text-white transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 active:scale-[0.98]"
                 >
-                  Créer un compte
+                  Se connecter
                 </button>
 
                 {/* Divider */}
@@ -498,15 +324,15 @@ export default function SignUpPage() {
               </form>
             )}
 
-            {/* Link to sign-in */}
+            {/* Link to sign-up */}
             {!submitted && (
               <p className="mt-8 text-center font-poppins text-sm text-dark/60">
-                Vous avez déjà un compte ?{" "}
+                Vous n&apos;avez pas de compte ?{" "}
                 <Link
-                  href="/auth/sign-in"
+                  href="/auth/sign-up"
                   className="font-semibold text-primary underline-offset-2 transition-colors hover:underline"
                 >
-                  Se connecter
+                  Créer un compte
                 </Link>
               </p>
             )}

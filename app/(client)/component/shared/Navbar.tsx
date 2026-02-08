@@ -327,7 +327,7 @@ export default function Navbar({ onCartClick }: NavbarProps) {
               <div className="flex items-center gap-3 font-poppins ">
                 {/* Se connecter */}
                 <Link
-                  href="/login"
+                  href="/auth/sign-in"
                   className="hidden lg:flex items-center gap-2 rounded-full border border-dark/20 px-5 py-2 text-[0.78rem] font-medium tracking-wide text-dark transition-all duration-200 hover:border-primary hover:text-primary"
                 >
                   <User className="h-4 w-4" strokeWidth={1.8} />
@@ -554,7 +554,7 @@ export default function Navbar({ onCartClick }: NavbarProps) {
             {/* Mobile actions */}
             <div className="border-t border-dark/10 px-6 py-6 space-y-3">
               <Link
-                href="/login"
+                href="/auth/sign-in"
                 onClick={() => setMobileOpen(false)}
                 className="flex items-center justify-center gap-2 rounded-full border border-dark/20 py-3 text-[0.82rem] font-medium tracking-wide text-dark transition-all duration-200 hover:border-primary hover:text-primary"
               >

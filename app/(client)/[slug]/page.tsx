@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
 import { useState } from "react";
 
 import { getCategoryBySlug, generateProducts } from "@/lib/categories";
@@ -13,8 +13,13 @@ export default function CategoryPage() {
   const slug = params.slug as string;
 
   const category = getCategoryBySlug(slug);
-  const label = category?.label ?? slug;
-  const description = category?.description ?? "Découvrez notre sélection.";
+
+  if (!category) {
+    notFound();
+  }
+
+  const label = category.label;
+  const description = category.description;
 
   /* Generate products once — all subcategories for this parent. */
   const [products] = useState(() => generateProducts(slug));
@@ -25,7 +30,7 @@ export default function CategoryPage() {
       title={label}
       subtitle={description}
       breadcrumbs={[{ label: "Accueil", href: "/" }, { label: label }]}
-      subcategories={category?.subcategories ?? []}
+      subcategories={category.subcategories}
       products={products}
     />
   );

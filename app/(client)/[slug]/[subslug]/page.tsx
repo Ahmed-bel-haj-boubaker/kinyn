@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ChevronLeft,
@@ -66,7 +66,12 @@ export default function SubSlugPage() {
     );
   }
 
-  /* 3️⃣ Fallback → product detail */
+  /* 3️⃣ Check parent category exists, otherwise 404 */
+  if (!category) {
+    notFound();
+  }
+
+  /* 4️⃣ Fallback → product detail */
   return <ProductDetailPage slug={slug} subslug={subslug} />;
 }
 

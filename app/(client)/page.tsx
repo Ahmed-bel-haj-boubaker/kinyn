@@ -4,8 +4,9 @@ import FeaturedCollection from "./component/home/FeaturedCollection";
 import Testimonials from "./component/home/Testimonials";
 import Newsletter from "./component/home/Newsletter";
 import KinynSection from "./component/home/KinynSection";
-import FAQSection from "./component/home/FAQSection";
+// import FAQSection from "./component/home/FAQSection";
 import LogoMarquee from "./component/home/LogoMarquee";
+import ContactSection from "./component/home/ContactSection";
 
 export default function Page() {
   return (
@@ -19,7 +20,8 @@ export default function Page() {
 
       <Testimonials />
       <Newsletter />
-      <FAQSection />
+      <ContactSection />
+      {/* <FAQSection /> */}
     </>
   );
 }

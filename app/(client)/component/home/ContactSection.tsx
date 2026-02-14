@@ -1,7 +1,14 @@
 "use client";
 
 import { FormEvent, useCallback, useState } from "react";
-import { Mail, Phone, MapPin, Instagram, Facebook, Twitter } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Instagram,
+  Facebook,
+  Twitter,
+} from "lucide-react";
 
 const INQUIRY_TYPES = [
   "Service client",
@@ -33,7 +40,8 @@ export default function ContactSection() {
         e: React.ChangeEvent<
           HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
         >,
-      ) => setForm((prev) => ({ ...prev, [field]: e.target.value })),
+      ) =>
+        setForm((prev) => ({ ...prev, [field]: e.target.value })),
     [],
   );
 
@@ -156,10 +164,7 @@ export default function ContactSection() {
               <div className="flex min-h-105 items-center justify-center rounded-2xl border border-dark/5 bg-white px-8 py-16">
                 <div className="text-center">
                   <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-                    <Mail
-                      className="h-6 w-6 text-primary"
-                      strokeWidth={1.5}
-                    />
+                    <Mail className="h-6 w-6 text-primary" strokeWidth={1.5} />
                   </div>
                   <h3 className="font-erotique text-2xl text-dark">
                     Message envoyé

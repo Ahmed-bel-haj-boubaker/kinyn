@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, User, ShoppingBag, Menu, X, ChevronDown } from "lucide-react";
+import { Search, ShoppingBag, Menu, X, ChevronDown } from "lucide-react";
+import UserDropdown from "./UserDropdown";
 
 /* ─────────────────────── Navigation Data ─────────────────────── */
 
@@ -33,37 +34,37 @@ const femmeCategories: Category[] = [
   {
     label: "Hauts",
     items: [
-      { label: "T-shirt", href: "/femme/hauts/t-shirt" },
-      { label: "Chemise", href: "/femme/hauts/chemise" },
-      { label: "Blouse", href: "/femme/hauts/blouse" },
-      { label: "Pull / Sweater", href: "/femme/hauts/pull-sweater" },
-      { label: "Sweat à capuche", href: "/femme/hauts/hoodie" },
-      { label: "Gilet", href: "/femme/hauts/gilet" },
-      { label: "Débardeur", href: "/femme/hauts/debardeur" },
-      { label: "Polo", href: "/femme/hauts/polo" },
-      { label: "Veste légère", href: "/femme/hauts/veste-legere" },
-      { label: "Manteau / Parka", href: "/femme/hauts/manteau-parka" },
+      { label: "T-shirt", href: "/femme/t-shirt" },
+      { label: "Chemise", href: "/femme/chemise" },
+      { label: "Blouse", href: "/femme/blouse" },
+      { label: "Pull / Sweater", href: "/femme/pull-sweater" },
+      { label: "Sweat à capuche", href: "/femme/sweat-a-capuche-hoodie" },
+      { label: "Gilet", href: "/femme/gilet" },
+      { label: "Débardeur", href: "/femme/debardeur" },
+      { label: "Polo", href: "/femme/polo" },
+      { label: "Veste légère", href: "/femme/veste-legere" },
+      { label: "Manteau / Parka", href: "/femme/manteau-parka" },
     ],
   },
   {
     label: "Bas",
     items: [
-      { label: "Pantalon", href: "/femme/bas/pantalon" },
-      { label: "Jean", href: "/femme/bas/jean" },
-      { label: "Short", href: "/femme/bas/short" },
-      { label: "Jupe", href: "/femme/bas/jupe" },
-      { label: "Legging", href: "/femme/bas/legging" },
-      { label: "Chino", href: "/femme/bas/chino" },
-      { label: "Pantalon de jogging", href: "/femme/bas/jogging" },
+      { label: "Pantalon", href: "/femme/pantalon" },
+      { label: "Jean", href: "/femme/jean" },
+      { label: "Short", href: "/femme/short" },
+      { label: "Jupe", href: "/femme/jupe" },
+      { label: "Legging", href: "/femme/legging" },
+      { label: "Chino", href: "/femme/chino" },
+      { label: "Pantalon de jogging", href: "/femme/pantalon-de-jogging" },
     ],
   },
   {
     label: "Robes",
     items: [
-      { label: "Robe courte", href: "/femme/robes/robe-courte" },
-      { label: "Robe longue", href: "/femme/robes/robe-longue" },
-      { label: "Robe de soirée", href: "/femme/robes/robe-soiree" },
-      { label: "Robe de cocktail", href: "/femme/robes/robe-cocktail" },
+      { label: "Robe courte", href: "/femme/robe-courte" },
+      { label: "Robe longue", href: "/femme/robe-longue" },
+      { label: "Robe de soirée", href: "/femme/robe-de-soiree" },
+      { label: "Robe de cocktail", href: "/femme/robe-de-cocktail" },
     ],
   },
 ];
@@ -75,35 +76,26 @@ const enfantChildGroups: ChildGroup[] = [
       {
         label: "Hauts",
         items: [
-          { label: "T-shirt", href: "/enfant/bebe-fille/hauts/t-shirt" },
-          {
-            label: "Pull / Sweater",
-            href: "/enfant/bebe-fille/hauts/pull-sweater",
-          },
-          { label: "Sweat à capuche", href: "/enfant/bebe-fille/hauts/hoodie" },
-          { label: "Gilet", href: "/enfant/bebe-fille/hauts/gilet" },
+          { label: "T-shirt", href: "/enfant/t-shirt" },
+          { label: "Pull / Sweater", href: "/enfant/pull-sweater" },
+          { label: "Sweat à capuche", href: "/enfant/sweat-a-capuche" },
+          { label: "Gilet", href: "/enfant/gilet" },
         ],
       },
       {
         label: "Bas",
         items: [
-          { label: "Pantalon", href: "/enfant/bebe-fille/bas/pantalon" },
-          { label: "Legging", href: "/enfant/bebe-fille/bas/legging" },
-          { label: "Jean", href: "/enfant/bebe-fille/bas/jean" },
-          { label: "Short", href: "/enfant/bebe-fille/bas/short" },
+          { label: "Pantalon", href: "/enfant/pantalon" },
+          { label: "Legging", href: "/enfant/legging" },
+          { label: "Jean", href: "/enfant/jean" },
+          { label: "Short", href: "/enfant/short" },
         ],
       },
       {
         label: "Robes",
         items: [
-          {
-            label: "Robe courte",
-            href: "/enfant/bebe-fille/robes/robe-courte",
-          },
-          {
-            label: "Robe longue",
-            href: "/enfant/bebe-fille/robes/robe-longue",
-          },
+          { label: "Robe courte", href: "/enfant/robe-courte" },
+          { label: "Robe longue", href: "/enfant/robe-longue" },
         ],
       },
     ],
@@ -114,28 +106,19 @@ const enfantChildGroups: ChildGroup[] = [
       {
         label: "Hauts",
         items: [
-          { label: "T-shirt", href: "/enfant/bebe-garcon/hauts/t-shirt" },
-          {
-            label: "Pull / Sweater",
-            href: "/enfant/bebe-garcon/hauts/pull-sweater",
-          },
-          {
-            label: "Sweat à capuche",
-            href: "/enfant/bebe-garcon/hauts/hoodie",
-          },
-          { label: "Gilet", href: "/enfant/bebe-garcon/hauts/gilet" },
+          { label: "T-shirt", href: "/enfant/t-shirt" },
+          { label: "Pull / Sweater", href: "/enfant/pull-sweater" },
+          { label: "Sweat à capuche", href: "/enfant/sweat-a-capuche" },
+          { label: "Gilet", href: "/enfant/gilet" },
         ],
       },
       {
         label: "Bas",
         items: [
-          { label: "Pantalon", href: "/enfant/bebe-garcon/bas/pantalon" },
-          { label: "Jean", href: "/enfant/bebe-garcon/bas/jean" },
-          { label: "Short", href: "/enfant/bebe-garcon/bas/short" },
-          {
-            label: "Pantalon de jogging",
-            href: "/enfant/bebe-garcon/bas/jogging",
-          },
+          { label: "Pantalon", href: "/enfant/pantalon" },
+          { label: "Jean", href: "/enfant/jean" },
+          { label: "Short", href: "/enfant/short" },
+          { label: "Pantalon de jogging", href: "/enfant/pantalon-de-jogging" },
         ],
       },
     ],
@@ -146,42 +129,35 @@ const enfantChildGroups: ChildGroup[] = [
       {
         label: "Hauts",
         items: [
-          { label: "T-shirt", href: "/enfant/fille/hauts/t-shirt" },
-          { label: "Chemise", href: "/enfant/fille/hauts/chemise" },
-          { label: "Blouse", href: "/enfant/fille/hauts/blouse" },
-          { label: "Pull / Sweater", href: "/enfant/fille/hauts/pull-sweater" },
-          { label: "Sweat à capuche", href: "/enfant/fille/hauts/hoodie" },
-          { label: "Gilet", href: "/enfant/fille/hauts/gilet" },
-          { label: "Débardeur", href: "/enfant/fille/hauts/debardeur" },
-          { label: "Veste légère", href: "/enfant/fille/hauts/veste-legere" },
-          {
-            label: "Manteau / Parka",
-            href: "/enfant/fille/hauts/manteau-parka",
-          },
+          { label: "T-shirt", href: "/enfant/t-shirt" },
+          { label: "Chemise", href: "/enfant/chemise" },
+          { label: "Blouse", href: "/enfant/blouse" },
+          { label: "Pull / Sweater", href: "/enfant/pull-sweater" },
+          { label: "Sweat à capuche", href: "/enfant/sweat-a-capuche" },
+          { label: "Gilet", href: "/enfant/gilet" },
+          { label: "Débardeur", href: "/enfant/debardeur" },
+          { label: "Veste légère", href: "/enfant/veste-legere" },
+          { label: "Manteau / Parka", href: "/enfant/manteau-parka" },
         ],
       },
       {
         label: "Bas",
         items: [
-          { label: "Pantalon", href: "/enfant/fille/bas/pantalon" },
-          { label: "Jean", href: "/enfant/fille/bas/jean" },
-          { label: "Short", href: "/enfant/fille/bas/short" },
-          { label: "Jupe", href: "/enfant/fille/bas/jupe" },
-          { label: "Legging", href: "/enfant/fille/bas/legging" },
-          { label: "Chino", href: "/enfant/fille/bas/chino" },
-          { label: "Pantalon de jogging", href: "/enfant/fille/bas/jogging" },
+          { label: "Pantalon", href: "/enfant/pantalon" },
+          { label: "Jean", href: "/enfant/jean" },
+          { label: "Short", href: "/enfant/short" },
+          { label: "Jupe", href: "/enfant/jupe" },
+          { label: "Legging", href: "/enfant/legging" },
+          { label: "Chino", href: "/enfant/chino" },
+          { label: "Pantalon de jogging", href: "/enfant/pantalon-de-jogging" },
         ],
       },
       {
         label: "Robes",
         items: [
-          { label: "Robe courte", href: "/enfant/fille/robes/robe-courte" },
-          { label: "Robe longue", href: "/enfant/fille/robes/robe-longue" },
-          { label: "Robe de soirée", href: "/enfant/fille/robes/robe-soiree" },
-          {
-            label: "Robe de cocktail",
-            href: "/enfant/fille/robes/robe-cocktail",
-          },
+          { label: "Robe courte", href: "/enfant/robe-courte" },
+          { label: "Robe longue", href: "/enfant/robe-longue" },
+          { label: "Robe de soirée", href: "/enfant/robe-de-soiree" },
         ],
       },
     ],
@@ -192,31 +168,25 @@ const enfantChildGroups: ChildGroup[] = [
       {
         label: "Hauts",
         items: [
-          { label: "T-shirt", href: "/enfant/garcon/hauts/t-shirt" },
-          { label: "Chemise", href: "/enfant/garcon/hauts/chemise" },
-          {
-            label: "Pull / Sweater",
-            href: "/enfant/garcon/hauts/pull-sweater",
-          },
-          { label: "Sweat à capuche", href: "/enfant/garcon/hauts/hoodie" },
-          { label: "Gilet", href: "/enfant/garcon/hauts/gilet" },
-          { label: "Débardeur", href: "/enfant/garcon/hauts/debardeur" },
-          { label: "Polo", href: "/enfant/garcon/hauts/polo" },
-          { label: "Veste légère", href: "/enfant/garcon/hauts/veste-legere" },
-          {
-            label: "Manteau / Parka",
-            href: "/enfant/garcon/hauts/manteau-parka",
-          },
+          { label: "T-shirt", href: "/enfant/t-shirt" },
+          { label: "Chemise", href: "/enfant/chemise" },
+          { label: "Pull / Sweater", href: "/enfant/pull-sweater" },
+          { label: "Sweat à capuche", href: "/enfant/sweat-a-capuche" },
+          { label: "Gilet", href: "/enfant/gilet" },
+          { label: "Débardeur", href: "/enfant/debardeur" },
+          { label: "Polo", href: "/enfant/polo" },
+          { label: "Veste légère", href: "/enfant/veste-legere" },
+          { label: "Manteau / Parka", href: "/enfant/manteau-parka" },
         ],
       },
       {
         label: "Bas",
         items: [
-          { label: "Pantalon", href: "/enfant/garcon/bas/pantalon" },
-          { label: "Jean", href: "/enfant/garcon/bas/jean" },
-          { label: "Short", href: "/enfant/garcon/bas/short" },
-          { label: "Chino", href: "/enfant/garcon/bas/chino" },
-          { label: "Pantalon de jogging", href: "/enfant/garcon/bas/jogging" },
+          { label: "Pantalon", href: "/enfant/pantalon" },
+          { label: "Jean", href: "/enfant/jean" },
+          { label: "Short", href: "/enfant/short" },
+          { label: "Chino", href: "/enfant/chino" },
+          { label: "Pantalon de jogging", href: "/enfant/pantalon-de-jogging" },
         ],
       },
     ],
@@ -235,11 +205,12 @@ const navLinks: NavLink[] = [
 
 interface NavbarProps {
   onCartClick: () => void;
+  onSearchClick: () => void;
 }
 
 /* ─────────────────────── Component ─────────────────────── */
 
-export default function Navbar({ onCartClick }: NavbarProps) {
+export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDesktop, setActiveDesktop] = useState<string | null>(null);
   const [expandedMobile, setExpandedMobile] = useState<string | null>(null);
@@ -407,29 +378,21 @@ export default function Navbar({ onCartClick }: NavbarProps) {
         <div className="flex items-center gap-3 sm:gap-4 lg:gap-5">
           <button
             type="button"
+            onClick={onSearchClick}
             aria-label="Search"
-            className="text-[#2C2C2C] transition-colors duration-200 hover:text-[#111]"
+            className="cursor-pointer text-[#2C2C2C] transition-colors duration-200 hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-2 rounded-sm"
           >
             <Search
               className="h-4 w-4 sm:h-[18px] sm:w-[18px]"
               strokeWidth={1.4}
             />
           </button>
-          <button
-            type="button"
-            aria-label="Account"
-            className="hidden sm:block text-[#2C2C2C] transition-colors duration-200 hover:text-[#111]"
-          >
-            <User
-              className="h-4 w-4 sm:h-[18px] sm:w-[18px]"
-              strokeWidth={1.4}
-            />
-          </button>
+          <UserDropdown />
           <button
             type="button"
             onClick={onCartClick}
             aria-label="Shopping bag"
-            className="text-[#2C2C2C] transition-colors duration-200 hover:text-[#111]"
+            className="cursor-pointer text-[#2C2C2C] transition-colors duration-200 hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-2 rounded-sm"
           >
             <ShoppingBag
               className="h-4 w-4 sm:h-[18px] sm:w-[18px]"
@@ -630,6 +593,17 @@ export default function Navbar({ onCartClick }: NavbarProps) {
               </li>
             ))}
           </ul>
+        </div>
+
+        {/* Login button at bottom */}
+        <div className="border-t border-[#E8E6E1] px-5 sm:px-7 py-4 sm:py-5">
+          <Link
+            href="/auth/sign-in"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 font-poppins text-[13px] font-medium text-white transition-all duration-200 hover:bg-primary/90"
+          >
+            <span>Se Connecter</span>
+          </Link>
         </div>
       </div>
     </nav>

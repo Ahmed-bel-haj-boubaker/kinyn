@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 
 export default function HeroSection() {
@@ -9,15 +8,15 @@ export default function HeroSection() {
       className="relative w-full overflow-hidden"
       style={{ minHeight: "80vh" }}
     >
-      <Image
-        src="/images/hero.jpg"
-        alt="Collection KINYN"
-        fill
-        className="object-cover object-center"
-        priority
-        quality={90}
-        sizes="100vw"
-      />
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      >
+        <source src="/video/hero.mp4" type="video/mp4" />
+      </video>
 
       <div className="absolute inset-0 bg-dark/30" />
 

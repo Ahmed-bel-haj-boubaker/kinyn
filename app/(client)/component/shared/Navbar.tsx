@@ -1,541 +1,620 @@
 "use client";
 
-import Link from "next/link";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronDown, Heart, Menu, ShoppingBag, User, X } from "lucide-react";
+import Link from "next/link";
+import { Search, User, ShoppingBag, Menu, X, ChevronDown } from "lucide-react";
 
-/* ──────────────────────────── Types ──────────────────────────── */
+/* ─────────────────────── Navigation Data ─────────────────────── */
 
 interface SubCategory {
-  title: string;
-  items: string[];
-}
-
-interface MegaMenuColumn {
-  heading: string;
-  subcategories: SubCategory[];
-}
-
-interface NavCategory {
   label: string;
   href: string;
-  columns: MegaMenuColumn[];
 }
 
-/* ──────────────────────────── Data ──────────────────────────── */
+interface Category {
+  label: string;
+  items: SubCategory[];
+}
 
-const NAV_CATEGORIES: NavCategory[] = [
+interface ChildGroup {
+  label: string;
+  categories: Category[];
+}
+
+interface NavLink {
+  label: string;
+  href: string;
+  categories?: Category[];
+  childGroups?: ChildGroup[];
+}
+
+const femmeCategories: Category[] = [
   {
-    label: "Femme",
-    href: "/femme",
-    columns: [
+    label: "Hauts",
+    items: [
+      { label: "T-shirt", href: "/femme/hauts/t-shirt" },
+      { label: "Chemise", href: "/femme/hauts/chemise" },
+      { label: "Blouse", href: "/femme/hauts/blouse" },
+      { label: "Pull / Sweater", href: "/femme/hauts/pull-sweater" },
+      { label: "Sweat à capuche", href: "/femme/hauts/hoodie" },
+      { label: "Gilet", href: "/femme/hauts/gilet" },
+      { label: "Débardeur", href: "/femme/hauts/debardeur" },
+      { label: "Polo", href: "/femme/hauts/polo" },
+      { label: "Veste légère", href: "/femme/hauts/veste-legere" },
+      { label: "Manteau / Parka", href: "/femme/hauts/manteau-parka" },
+    ],
+  },
+  {
+    label: "Bas",
+    items: [
+      { label: "Pantalon", href: "/femme/bas/pantalon" },
+      { label: "Jean", href: "/femme/bas/jean" },
+      { label: "Short", href: "/femme/bas/short" },
+      { label: "Jupe", href: "/femme/bas/jupe" },
+      { label: "Legging", href: "/femme/bas/legging" },
+      { label: "Chino", href: "/femme/bas/chino" },
+      { label: "Pantalon de jogging", href: "/femme/bas/jogging" },
+    ],
+  },
+  {
+    label: "Robes",
+    items: [
+      { label: "Robe courte", href: "/femme/robes/robe-courte" },
+      { label: "Robe longue", href: "/femme/robes/robe-longue" },
+      { label: "Robe de soirée", href: "/femme/robes/robe-soiree" },
+      { label: "Robe de cocktail", href: "/femme/robes/robe-cocktail" },
+    ],
+  },
+];
+
+const enfantChildGroups: ChildGroup[] = [
+  {
+    label: "Bébé Fille",
+    categories: [
       {
-        heading: "Femme",
-        subcategories: [
+        label: "Hauts",
+        items: [
+          { label: "T-shirt", href: "/enfant/bebe-fille/hauts/t-shirt" },
           {
-            title: "Hauts",
-            items: [
-              "T-shirt",
-              "Chemise",
-              "Blouse",
-              "Pull / Sweater",
-              "Sweat à capuche (Hoodie)",
-              "Gilet",
-              "Débardeur",
-              "Polo",
-              "Veste légère",
-              "Manteau / Parka",
-            ],
+            label: "Pull / Sweater",
+            href: "/enfant/bebe-fille/hauts/pull-sweater",
           },
+          { label: "Sweat à capuche", href: "/enfant/bebe-fille/hauts/hoodie" },
+          { label: "Gilet", href: "/enfant/bebe-fille/hauts/gilet" },
         ],
       },
       {
-        heading: "",
-        subcategories: [
-          {
-            title: "Bas",
-            items: [
-              "Pantalon",
-              "Jean",
-              "Short",
-              "Jupe",
-              "Legging",
-              "Chino",
-              "Pantalon de jogging",
-            ],
-          },
+        label: "Bas",
+        items: [
+          { label: "Pantalon", href: "/enfant/bebe-fille/bas/pantalon" },
+          { label: "Legging", href: "/enfant/bebe-fille/bas/legging" },
+          { label: "Jean", href: "/enfant/bebe-fille/bas/jean" },
+          { label: "Short", href: "/enfant/bebe-fille/bas/short" },
         ],
       },
       {
-        heading: "",
-        subcategories: [
+        label: "Robes",
+        items: [
           {
-            title: "Robes",
-            items: [
-              "Robe courte",
-              "Robe longue",
-              "Robe de soirée",
-              "Robe de cocktail",
-            ],
+            label: "Robe courte",
+            href: "/enfant/bebe-fille/robes/robe-courte",
+          },
+          {
+            label: "Robe longue",
+            href: "/enfant/bebe-fille/robes/robe-longue",
           },
         ],
       },
     ],
   },
   {
-    label: "Enfant",
-    href: "/enfant",
-    columns: [
+    label: "Bébé Garçon",
+    categories: [
       {
-        heading: "Bébé Fille",
-        subcategories: [
+        label: "Hauts",
+        items: [
+          { label: "T-shirt", href: "/enfant/bebe-garcon/hauts/t-shirt" },
           {
-            title: "Hauts",
-            items: ["T-shirt", "Pull / Sweater", "Sweat à capuche", "Gilet"],
+            label: "Pull / Sweater",
+            href: "/enfant/bebe-garcon/hauts/pull-sweater",
           },
-          { title: "Bas", items: ["Pantalon", "Legging", "Jean", "Short"] },
-          { title: "Robes", items: ["Robe courte", "Robe longue"] },
+          {
+            label: "Sweat à capuche",
+            href: "/enfant/bebe-garcon/hauts/hoodie",
+          },
+          { label: "Gilet", href: "/enfant/bebe-garcon/hauts/gilet" },
         ],
       },
       {
-        heading: "Bébé Garçon",
-        subcategories: [
+        label: "Bas",
+        items: [
+          { label: "Pantalon", href: "/enfant/bebe-garcon/bas/pantalon" },
+          { label: "Jean", href: "/enfant/bebe-garcon/bas/jean" },
+          { label: "Short", href: "/enfant/bebe-garcon/bas/short" },
           {
-            title: "Hauts",
-            items: ["T-shirt", "Pull / Sweater", "Sweat à capuche", "Gilet"],
-          },
-          {
-            title: "Bas",
-            items: ["Pantalon", "Jean", "Short", "Pantalon de jogging"],
+            label: "Pantalon de jogging",
+            href: "/enfant/bebe-garcon/bas/jogging",
           },
         ],
       },
+    ],
+  },
+  {
+    label: "Fille",
+    categories: [
       {
-        heading: "Fille",
-        subcategories: [
+        label: "Hauts",
+        items: [
+          { label: "T-shirt", href: "/enfant/fille/hauts/t-shirt" },
+          { label: "Chemise", href: "/enfant/fille/hauts/chemise" },
+          { label: "Blouse", href: "/enfant/fille/hauts/blouse" },
+          { label: "Pull / Sweater", href: "/enfant/fille/hauts/pull-sweater" },
+          { label: "Sweat à capuche", href: "/enfant/fille/hauts/hoodie" },
+          { label: "Gilet", href: "/enfant/fille/hauts/gilet" },
+          { label: "Débardeur", href: "/enfant/fille/hauts/debardeur" },
+          { label: "Veste légère", href: "/enfant/fille/hauts/veste-legere" },
           {
-            title: "Hauts",
-            items: [
-              "T-shirt",
-              "Chemise",
-              "Blouse",
-              "Pull / Sweater",
-              "Sweat à capuche",
-              "Gilet",
-              "Débardeur",
-              "Veste légère",
-              "Manteau / Parka",
-            ],
-          },
-          {
-            title: "Bas",
-            items: [
-              "Pantalon",
-              "Jean",
-              "Short",
-              "Jupe",
-              "Legging",
-              "Chino",
-              "Pantalon de jogging",
-            ],
-          },
-          {
-            title: "Robes",
-            items: [
-              "Robe courte",
-              "Robe longue",
-              "Robe de soirée",
-              "Robe de cocktail",
-            ],
+            label: "Manteau / Parka",
+            href: "/enfant/fille/hauts/manteau-parka",
           },
         ],
       },
       {
-        heading: "Garçon",
-        subcategories: [
+        label: "Bas",
+        items: [
+          { label: "Pantalon", href: "/enfant/fille/bas/pantalon" },
+          { label: "Jean", href: "/enfant/fille/bas/jean" },
+          { label: "Short", href: "/enfant/fille/bas/short" },
+          { label: "Jupe", href: "/enfant/fille/bas/jupe" },
+          { label: "Legging", href: "/enfant/fille/bas/legging" },
+          { label: "Chino", href: "/enfant/fille/bas/chino" },
+          { label: "Pantalon de jogging", href: "/enfant/fille/bas/jogging" },
+        ],
+      },
+      {
+        label: "Robes",
+        items: [
+          { label: "Robe courte", href: "/enfant/fille/robes/robe-courte" },
+          { label: "Robe longue", href: "/enfant/fille/robes/robe-longue" },
+          { label: "Robe de soirée", href: "/enfant/fille/robes/robe-soiree" },
           {
-            title: "Hauts",
-            items: [
-              "T-shirt",
-              "Chemise",
-              "Pull / Sweater",
-              "Sweat à capuche",
-              "Gilet",
-              "Débardeur",
-              "Polo",
-              "Veste légère",
-              "Manteau / Parka",
-            ],
+            label: "Robe de cocktail",
+            href: "/enfant/fille/robes/robe-cocktail",
           },
+        ],
+      },
+    ],
+  },
+  {
+    label: "Garçon",
+    categories: [
+      {
+        label: "Hauts",
+        items: [
+          { label: "T-shirt", href: "/enfant/garcon/hauts/t-shirt" },
+          { label: "Chemise", href: "/enfant/garcon/hauts/chemise" },
           {
-            title: "Bas",
-            items: [
-              "Pantalon",
-              "Jean",
-              "Short",
-              "Chino",
-              "Pantalon de jogging",
-            ],
+            label: "Pull / Sweater",
+            href: "/enfant/garcon/hauts/pull-sweater",
           },
+          { label: "Sweat à capuche", href: "/enfant/garcon/hauts/hoodie" },
+          { label: "Gilet", href: "/enfant/garcon/hauts/gilet" },
+          { label: "Débardeur", href: "/enfant/garcon/hauts/debardeur" },
+          { label: "Polo", href: "/enfant/garcon/hauts/polo" },
+          { label: "Veste légère", href: "/enfant/garcon/hauts/veste-legere" },
+          {
+            label: "Manteau / Parka",
+            href: "/enfant/garcon/hauts/manteau-parka",
+          },
+        ],
+      },
+      {
+        label: "Bas",
+        items: [
+          { label: "Pantalon", href: "/enfant/garcon/bas/pantalon" },
+          { label: "Jean", href: "/enfant/garcon/bas/jean" },
+          { label: "Short", href: "/enfant/garcon/bas/short" },
+          { label: "Chino", href: "/enfant/garcon/bas/chino" },
+          { label: "Pantalon de jogging", href: "/enfant/garcon/bas/jogging" },
         ],
       },
     ],
   },
 ];
 
-const CART_COUNT = 2;
-const WISHLIST_COUNT = 5;
+const navLinks: NavLink[] = [
+  { label: "Accueil", href: "/" },
+  { label: "Femme", href: "/femme", categories: femmeCategories },
+  { label: "Enfant", href: "/enfant", childGroups: enfantChildGroups },
+  { label: "À propos de nous", href: "/about" },
+  { label: "Contact", href: "/contact" },
+];
 
-/* ──────────────────────────── Component ──────────────────────── */
+/* ─────────────────────── Props ─────────────────────── */
 
 interface NavbarProps {
   onCartClick: () => void;
 }
 
+/* ─────────────────────── Component ─────────────────────── */
+
 export default function Navbar({ onCartClick }: NavbarProps) {
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [mobileAccordion, setMobileAccordion] = useState<string | null>(null);
-  const [mobileSubAccordion, setMobileSubAccordion] = useState<string | null>(
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeDesktop, setActiveDesktop] = useState<string | null>(null);
+  const [expandedMobile, setExpandedMobile] = useState<string | null>(null);
+  const [expandedMobileChild, setExpandedMobileChild] = useState<string | null>(
     null,
   );
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const navRef = useRef<HTMLElement>(null);
-
-  /* ── Keyboard: ESC closes everything ── */
+  /* Lock body scroll when mobile menu is open */
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setActiveMenu(null);
-        setMobileOpen(false);
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
-  /* ── Lock body scroll when mobile menu is open ── */
-  useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    document.body.style.overflow = mobileMenuOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [mobileOpen]);
+  }, [mobileMenuOpen]);
 
-  /* ── Desktop hover handlers (with grace period) ── */
-  const handleMouseEnter = useCallback((label: string) => {
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-      closeTimeoutRef.current = null;
-    }
-    setActiveMenu(label);
-  }, []);
+  /* Desktop hover helpers with delay to avoid flicker */
+  const showDropdown = (label: string) => {
+    if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+    setActiveDesktop(label);
+  };
 
-  const handleMouseLeave = useCallback(() => {
-    closeTimeoutRef.current = setTimeout(() => {
-      setActiveMenu(null);
-    }, 150);
-  }, []);
+  const hideDropdown = () => {
+    hideTimeoutRef.current = setTimeout(() => setActiveDesktop(null), 120);
+  };
 
-  /* ── Mobile accordion toggle ── */
-  const toggleMobileAccordion = useCallback((label: string) => {
-    setMobileAccordion((prev) => {
-      if (prev !== label) setMobileSubAccordion(null);
-      return prev === label ? null : label;
-    });
-  }, []);
+  const hasDropdown = (link: NavLink) =>
+    !!(link.categories || link.childGroups);
 
-  const toggleMobileSubAccordion = useCallback((key: string) => {
-    setMobileSubAccordion((prev) => (prev === key ? null : key));
-  }, []);
-
-  /* ── Slug helper ── */
-  const toSlug = (str: string) =>
-    str
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-
-  return (
-    <>
-      <nav
-        ref={navRef}
-        role="navigation"
-        aria-label="Main navigation"
-        className="bg-background font-poppins"
-      >
-        <div className="border-b border-dark/10 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-          <div className="mx-auto max-w-[1440px] px-6 lg:px-10">
-            <div className="flex h-[76px] items-center justify-between">
-              {/* ────────── Left: Logo ────────── */}
-              <Link
-                href="/"
-                className="group relative flex items-center"
-                aria-label="KINYN – Accueil"
-              >
-                <Image
-                  src="/images/logo.png"
-                  alt="KINYN"
-                  width={400}
-                  height={400}
-                  className="h-14 w-auto object-contain transition-opacity duration-200 group-hover:opacity-80"
-                  priority
-                />
-              </Link>
-
-              {/* ────────── Center: Desktop categories ────────── */}
-              <div className="hidden lg:flex items-center gap-10">
-                {NAV_CATEGORIES.map((cat) => (
-                  <div
-                    key={cat.label}
-                    className="relative"
-                    onMouseEnter={() => handleMouseEnter(cat.label)}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    <Link
-                      href={cat.href}
-                      className={`group relative flex items-center gap-1 text-[0.8rem] font-medium uppercase tracking-[0.14em] transition-colors duration-200 py-7 ${
-                        activeMenu === cat.label
-                          ? "text-primary"
-                          : "text-dark hover:text-primary"
-                      }`}
-                      aria-expanded={activeMenu === cat.label}
-                      aria-haspopup="true"
-                    >
-                      {cat.label}
-                      <ChevronDown
-                        className={`h-3.5 w-3.5 transition-transform duration-200 ${
-                          activeMenu === cat.label ? "rotate-180" : ""
-                        }`}
-                        strokeWidth={2}
-                      />
-                      <span
-                        className={`absolute bottom-5 left-0 h-[1.5px] bg-primary transition-all duration-300 ease-out ${
-                          activeMenu === cat.label ? "w-full" : "w-0"
-                        }`}
-                      />
-                    </Link>
-                  </div>
-                ))}
-              </div>
-
-              {/* ────────── Right: Actions ────────── */}
-              <div className="flex items-center gap-3 font-poppins ">
-                {/* Se connecter */}
+  /* ─────── Render flat mega menu (Femme) ─────── */
+  const renderFlatMega = (categories: Category[]) => (
+    <div className="grid grid-cols-3 gap-12 px-10 py-8">
+      {categories.map((cat) => (
+        <div key={cat.label}>
+          <h4 className="font-poppins text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2C2C2C] mb-4">
+            {cat.label}
+          </h4>
+          <ul className="flex flex-col gap-2">
+            {cat.items.map((item) => (
+              <li key={item.href}>
                 <Link
-                  href="/auth/sign-in"
-                  className="hidden lg:flex items-center gap-2 rounded-full border border-dark/20 px-5 py-2 text-[0.78rem] font-medium tracking-wide text-dark transition-all duration-200 hover:border-primary hover:text-primary"
+                  href={item.href}
+                  onClick={() => setActiveDesktop(null)}
+                  className="font-poppins text-[12.5px] text-[#555] transition-colors duration-200 hover:text-[#111]"
                 >
-                  <User className="h-4 w-4" strokeWidth={1.8} />
-                  <span>Se connecter</span>
+                  {item.label}
                 </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
 
-                {/* Wishlist */}
-                <Link
-                  href="/wishlist"
-                  className="relative flex items-center justify-center h-10 w-10 rounded-full text-dark transition-colors duration-200 hover:text-primary"
-                  aria-label={`Favoris${WISHLIST_COUNT > 0 ? `, ${WISHLIST_COUNT} articles` : ""}`}
-                >
-                  <Heart className="h-5 w-5" strokeWidth={1.8} />
-                  {WISHLIST_COUNT > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[0.6rem] font-semibold leading-none text-background">
-                      {WISHLIST_COUNT}
-                    </span>
-                  )}
-                </Link>
-
-                {/* Cart */}
-                <button
-                  type="button"
-                  onClick={onCartClick}
-                  className="relative font-poppins flex items-center justify-center h-10 w-10 rounded-full text-dark transition-colors duration-200 hover:text-primary"
-                  aria-label={`Panier${CART_COUNT > 0 ? `, ${CART_COUNT} articles` : ""}`}
-                >
-                  <ShoppingBag className="h-5 w-5" strokeWidth={1.8} />
-                  {CART_COUNT > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[0.6rem] font-semibold leading-none text-background">
-                      {CART_COUNT}
-                    </span>
-                  )}
-                </button>
-
-                {/* Mobile hamburger / close */}
-                <button
-                  type="button"
-                  className="flex lg:hidden items-center justify-center h-10 w-10 rounded-full text-dark transition-colors duration-200 hover:text-primary"
-                  onClick={() => setMobileOpen(!mobileOpen)}
-                  aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
-                  aria-expanded={mobileOpen}
-                >
-                  {mobileOpen ? (
-                    <X className="h-5 w-5" strokeWidth={1.8} />
-                  ) : (
-                    <Menu className="h-5 w-5" strokeWidth={1.8} />
-                  )}
-                </button>
+  /* ─────── Render grouped mega menu (Enfant) ─────── */
+  const renderGroupedMega = (groups: ChildGroup[]) => (
+    <div className="flex gap-0 divide-x divide-[#EEECE7] px-2 py-8">
+      {groups.map((group) => (
+        <div key={group.label} className="flex-1 px-8 first:pl-10 last:pr-10">
+          <h3 className="font-poppins text-[11.5px] font-bold uppercase tracking-[0.12em] text-[#2C2C2C] mb-5 pb-2 border-b border-[#E8E6E1]">
+            {group.label}
+          </h3>
+          <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+            {group.categories.map((cat) => (
+              <div key={cat.label}>
+                <h4 className="font-poppins text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[#888] mb-2.5">
+                  {cat.label}
+                </h4>
+                <ul className="flex flex-col gap-1.5">
+                  {cat.items.map((item) => (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={() => setActiveDesktop(null)}
+                        className="font-poppins text-[12px] text-[#555] transition-colors duration-200 hover:text-[#111]"
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </div>
+            ))}
           </div>
         </div>
+      ))}
+    </div>
+  );
 
-        {/* ────────── Desktop Mega Menus ────────── */}
-        {NAV_CATEGORIES.map((cat) => (
-          <div
-            key={cat.label}
-            className={`absolute left-0 right-0 top-full z-40 overflow-hidden bg-background transition-all duration-300 ease-out ${
-              activeMenu === cat.label
-                ? "pointer-events-auto max-h-[600px] opacity-100 translate-y-0"
-                : "pointer-events-none max-h-0 opacity-0 -translate-y-2"
-            }`}
-            onMouseEnter={() => handleMouseEnter(cat.label)}
-            onMouseLeave={handleMouseLeave}
-            role="region"
-            aria-label={`${cat.label} sous-menu`}
-          >
-            <div className="hidden lg:block bg-background rounded-b-xl shadow-[0_8px_24px_rgba(0,0,0,0.06)] border-t border-dark/5">
-              <div className="mx-auto max-w-[1440px] px-10 py-10">
-                <div
-                  className={`grid gap-10 ${
-                    cat.columns.length === 1
-                      ? "grid-cols-2"
-                      : cat.columns.length === 2
-                        ? "grid-cols-2"
-                        : cat.columns.length === 3
-                          ? "grid-cols-3"
-                          : "grid-cols-4"
-                  }`}
-                >
-                  {cat.columns.map((col, colIdx) => (
-                    <div key={`${cat.label}-col-${colIdx}`}>
-                      {col.heading && (
-                        <h3 className="mb-5 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-dark">
-                          {col.heading}
-                        </h3>
-                      )}
-                      <div className="space-y-6">
-                        {col.subcategories.map((sub) => (
-                          <div key={sub.title}>
-                            <h4 className="mb-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-dark/60">
-                              {sub.title}
-                            </h4>
-                            <ul className="space-y-1.5">
-                              {sub.items.map((item) => (
-                                <li key={item}>
-                                  <Link
-                                    href={`${cat.href}/${toSlug(item)}`}
-                                    className="group/item inline-flex items-center text-[0.8rem] text-dark/80 transition-all duration-200 hover:text-primary hover:translate-x-1"
-                                  >
-                                    <span>{item}</span>
-                                  </Link>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
+  /* ─────── Mobile accordion helpers ─────── */
+  const toggleMobileSection = (label: string) => {
+    setExpandedMobile((prev) => (prev === label ? null : label));
+    setExpandedMobileChild(null);
+  };
 
-        {/* ────────── Mobile Dropdown Menu ────────── */}
-        <div
-          className={`lg:hidden overflow-hidden bg-background border-b border-dark/10 shadow-lg transition-all duration-300 ease-out ${
-            mobileOpen
-              ? "max-h-[calc(100vh-76px)] opacity-100"
-              : "max-h-0 opacity-0 pointer-events-none"
-          }`}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Menu de navigation"
+  const toggleMobileChild = (label: string) => {
+    setExpandedMobileChild((prev) => (prev === label ? null : label));
+  };
+
+  return (
+    <nav className="relative w-full bg-[#FAF9F6] overflow-y-visible overflow-x-clip">
+      {/* ─── Main bar ─── */}
+      <div className="relative z-30 mx-auto flex h-[56px] sm:h-[64px] md:h-[68px] lg:h-[72px] max-w-7xl items-center px-4 sm:px-6 lg:px-12">
+        {/* Mobile hamburger — far left */}
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(true)}
+          className="lg:hidden -ml-1 p-2 text-[#2C2C2C] transition-colors duration-200 hover:text-[#111]"
+          aria-label="Open menu"
         >
-          <div className="overflow-y-auto max-h-[calc(100vh-76px)]">
-            {/* Mobile navigation */}
-            <div className="px-6 py-6 space-y-1">
-              {NAV_CATEGORIES.map((cat) => (
-                <div
-                  key={cat.label}
-                  className="border-b border-dark/5 last:border-b-0"
+          <Menu className="h-5 w-5" strokeWidth={1.5} />
+        </button>
+
+        {/* ─── Desktop navigation ─── */}
+        <div className="hidden lg:flex flex-1 items-center justify-center">
+          <ul className="flex items-center gap-6 xl:gap-10">
+            {navLinks.map((link) => (
+              <li
+                key={link.label}
+                className="relative"
+                onMouseEnter={() =>
+                  hasDropdown(link) && showDropdown(link.label)
+                }
+                onMouseLeave={hasDropdown(link) ? hideDropdown : undefined}
+              >
+                <Link
+                  href={link.href}
+                  className="group relative flex items-center gap-1.5 font-poppins text-[11px] xl:text-[12.5px] font-medium uppercase tracking-[0.1em] text-[#2C2C2C] transition-colors duration-200 hover:text-[#111]"
                 >
-                  {/* Category toggle */}
-                  <button
-                    type="button"
-                    onClick={() => toggleMobileAccordion(cat.label)}
-                    className="flex w-full items-center justify-between py-4 text-[0.85rem] font-medium uppercase tracking-[0.12em] text-dark transition-colors duration-200 hover:text-primary"
-                    aria-expanded={mobileAccordion === cat.label}
-                  >
-                    <span>{cat.label}</span>
+                  <span>{link.label}</span>
+                  {hasDropdown(link) && (
                     <ChevronDown
-                      className={`h-4 w-4 transition-transform duration-300 ${
-                        mobileAccordion === cat.label ? "rotate-180" : ""
+                      className={`h-3 w-3 text-[#2C2C2C]/50 transition-transform duration-200 ${
+                        activeDesktop === link.label ? "rotate-180" : ""
                       }`}
                       strokeWidth={2}
                     />
-                  </button>
+                  )}
+                  <span className="absolute -bottom-1.5 left-0 h-px w-0 bg-[#2C2C2C] transition-all duration-300 ease-out group-hover:w-full" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-                  {/* Category accordion content */}
-                  <div
-                    className={`overflow-hidden transition-all duration-300 ease-out ${
-                      mobileAccordion === cat.label
-                        ? "max-h-[2000px] opacity-100 pb-4"
-                        : "max-h-0 opacity-0"
-                    }`}
+        {/* Mobile center logo */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lg:hidden">
+          <Link href="/" aria-label="Home">
+            <Image
+              src="/images/logo.png"
+              alt="Kinyn"
+              width={80}
+              height={80}
+              className="object-contain w-20 h-20"
+              priority
+            />
+          </Link>
+        </div>
+
+        {/* Mobile spacer — pushes icons to the right */}
+        <div className="flex-1 lg:hidden" />
+
+        {/* ─── Icon cluster — far right ─── */}
+        <div className="flex items-center gap-3 sm:gap-4 lg:gap-5">
+          <button
+            type="button"
+            aria-label="Search"
+            className="text-[#2C2C2C] transition-colors duration-200 hover:text-[#111]"
+          >
+            <Search
+              className="h-4 w-4 sm:h-[18px] sm:w-[18px]"
+              strokeWidth={1.4}
+            />
+          </button>
+          <button
+            type="button"
+            aria-label="Account"
+            className="hidden sm:block text-[#2C2C2C] transition-colors duration-200 hover:text-[#111]"
+          >
+            <User
+              className="h-4 w-4 sm:h-[18px] sm:w-[18px]"
+              strokeWidth={1.4}
+            />
+          </button>
+          <button
+            type="button"
+            onClick={onCartClick}
+            aria-label="Shopping bag"
+            className="text-[#2C2C2C] transition-colors duration-200 hover:text-[#111]"
+          >
+            <ShoppingBag
+              className="h-4 w-4 sm:h-[18px] sm:w-[18px]"
+              strokeWidth={1.4}
+            />
+          </button>
+        </div>
+      </div>
+
+      {/* Ultra-subtle bottom divider */}
+      <div className="absolute bottom-0 left-0 right-0 z-30 h-px bg-[#E8E6E1]" />
+
+      {/* ─── Desktop Mega Menu Dropdowns ─── */}
+      {navLinks.map(
+        (link) =>
+          hasDropdown(link) && (
+            <div
+              key={link.label}
+              className={`absolute left-0 right-0 top-full z-20 bg-[#FAF9F6] shadow-[0_8px_30px_rgba(0,0,0,0.08)] border-t border-[#EEECE7] transition-all duration-250 ease-out ${
+                activeDesktop === link.label
+                  ? "opacity-100 translate-y-0 pointer-events-auto"
+                  : "opacity-0 -translate-y-1 pointer-events-none"
+              }`}
+              onMouseEnter={() => showDropdown(link.label)}
+              onMouseLeave={hideDropdown}
+            >
+              <div className="mx-auto max-w-6xl">
+                {link.categories && renderFlatMega(link.categories)}
+                {link.childGroups && renderGroupedMega(link.childGroups)}
+              </div>
+            </div>
+          ),
+      )}
+
+      {/* ─── Logo half-circle — fixed to bottom of navbar (desktop only) ─── */}
+      <Link
+        href="/"
+        className="hidden lg:block absolute left-1/2 top-full  -translate-x-1/2 overflow-hidden
+          lg:w-[250px] lg:h-[100px]"
+        aria-label="Home"
+      >
+        <div
+          className="absolute left-1/2 z-9999 -translate-x-1/2 flex items-center justify-center rounded-b-full border border-[#E5E3DE] bg-[#FAF9F6] shadow-[0_6px_20px_rgba(0,0,0,0.08)]
+          lg:-top-[120px] lg:h-[180px] lg:w-[230px]"
+        >
+          <Image
+            src="/images/logo.png"
+            alt="Kinyn"
+            width={110}
+            height={110}
+            className="object-contain
+              lg:translate-y-[60px]
+              lg:w-[110px] lg:h-[110px]"
+            priority
+          />
+        </div>
+      </Link>
+
+      {/* ─── Mobile overlay ─── */}
+      <div
+        className={`fixed inset-0 z-40 bg-black/25 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden ${
+          mobileMenuOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* ─── Mobile slide-in panel ─── */}
+      <div
+        className={`fixed left-0 top-0 z-50 flex h-full w-[280px] sm:w-[320px] flex-col bg-[#FAF9F6] shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] lg:hidden ${
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Panel header */}
+        <div className="flex items-center justify-between border-b border-[#E8E6E1] px-5 sm:px-7 py-4 sm:py-5">
+          <span className="font-poppins text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2C2C2C]">
+            Menu
+          </span>
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Close menu"
+            className="p-1 text-[#2C2C2C] transition-colors duration-200 hover:text-[#111]"
+          >
+            <X className="h-5 w-5" strokeWidth={1.5} />
+          </button>
+        </div>
+
+        {/* Panel links — scrollable */}
+        <div className="flex-1 overflow-y-auto ">
+          <ul className="flex flex-col px-5 sm:px-7 pt-5 sm:pt-6 pb-10">
+            {navLinks.map((link) => (
+              <li
+                key={link.label}
+                className="border-b border-[#EEECE7] last:border-b-0"
+              >
+                {hasDropdown(link) ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleMobileSection(link.label)}
+                    className="flex w-full items-center justify-between py-4 font-poppins text-[13px] font-medium uppercase tracking-[0.08em] text-[#2C2C2C] transition-colors duration-200 hover:text-[#111]"
                   >
-                    {cat.columns.map((col, colIdx) => {
-                      const colKey = `${cat.label}-${col.heading || colIdx}`;
+                    <span>{link.label}</span>
+                    <ChevronDown
+                      className={`h-4 w-4 text-[#2C2C2C]/40 transition-transform duration-200 ${
+                        expandedMobile === link.label ? "rotate-180" : ""
+                      }`}
+                      strokeWidth={1.8}
+                    />
+                  </button>
+                ) : (
+                  <Link
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center py-4 font-poppins text-[13px] font-medium uppercase tracking-[0.08em] text-[#2C2C2C] transition-colors duration-200 hover:text-[#111]"
+                  >
+                    {link.label}
+                  </Link>
+                )}
 
-                      return (
-                        <div key={colKey} className="mb-2">
-                          {/* Column heading (only Enfant has sub-headings) */}
-                          {col.heading && cat.label === "Enfant" && (
-                            <button
-                              type="button"
-                              onClick={() => toggleMobileSubAccordion(colKey)}
-                              className="flex w-full items-center justify-between py-3 pl-3 text-[0.78rem] font-semibold uppercase tracking-[0.12em] text-dark/70 transition-colors duration-200 hover:text-primary"
-                              aria-expanded={mobileSubAccordion === colKey}
-                            >
-                              <span>{col.heading}</span>
-                              <ChevronDown
-                                className={`h-3.5 w-3.5 transition-transform duration-300 ${
-                                  mobileSubAccordion === colKey
-                                    ? "rotate-180"
-                                    : ""
-                                }`}
-                                strokeWidth={2}
-                              />
-                            </button>
-                          )}
+                {/* Femme-style flat accordion */}
+                {link.categories && expandedMobile === link.label && (
+                  <div className="pb-4 pl-3 ">
+                    {link.categories.map((cat) => (
+                      <div key={cat.label} className="mb-4 last:mb-0 ">
+                        <h4 className="font-poppins text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[#888] mb-2">
+                          {cat.label}
+                        </h4>
+                        <ul className="flex flex-col gap-1.5 pl-2">
+                          {cat.items.map((item) => (
+                            <li key={item.href}>
+                              <Link
+                                href={item.href}
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="font-poppins text-[12.5px] text-[#555] transition-colors duration-200 hover:text-[#111]"
+                              >
+                                {item.label}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-                          <div
-                            className={`overflow-hidden transition-all duration-300 ease-out ${
-                              cat.label === "Enfant"
-                                ? mobileSubAccordion === colKey
-                                  ? "max-h-[1400px] opacity-100"
-                                  : "max-h-0 opacity-0"
-                                : "max-h-[1400px] opacity-100"
+                {/* Enfant-style grouped accordion */}
+                {link.childGroups && expandedMobile === link.label && (
+                  <div className="pb-4 pl-2">
+                    {link.childGroups.map((group) => (
+                      <div key={group.label} className="mb-1">
+                        <button
+                          type="button"
+                          onClick={() => toggleMobileChild(group.label)}
+                          className="flex w-full items-center justify-between py-2.5 font-poppins text-[12px] font-semibold uppercase tracking-[0.08em] text-[#2C2C2C]/80 transition-colors duration-200 hover:text-[#111]"
+                        >
+                          <span>{group.label}</span>
+                          <ChevronDown
+                            className={`h-3.5 w-3.5 text-[#2C2C2C]/30 transition-transform duration-200 ${
+                              expandedMobileChild === group.label
+                                ? "rotate-180"
+                                : ""
                             }`}
-                          >
-                            {col.subcategories.map((sub) => (
-                              <div key={sub.title} className="mb-3 pl-3">
-                                <h4 className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-dark/50">
-                                  {sub.title}
+                            strokeWidth={1.8}
+                          />
+                        </button>
+
+                        {expandedMobileChild === group.label && (
+                          <div className="pb-3 pl-3">
+                            {group.categories.map((cat) => (
+                              <div key={cat.label} className="mb-3 last:mb-0">
+                                <h4 className="font-poppins text-[10px] font-semibold uppercase tracking-[0.12em] text-[#999] mb-1.5">
+                                  {cat.label}
                                 </h4>
-                                <ul className="space-y-1">
-                                  {sub.items.map((item) => (
-                                    <li key={item}>
+                                <ul className="flex flex-col gap-1 pl-1.5">
+                                  {cat.items.map((item) => (
+                                    <li key={item.href}>
                                       <Link
-                                        href={`${cat.href}/${toSlug(item)}`}
-                                        onClick={() => setMobileOpen(false)}
-                                        className="block py-1.5 pl-2 text-[0.82rem] text-dark/75 transition-all duration-200 hover:text-primary hover:translate-x-1"
+                                        href={item.href}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="font-poppins text-[12px] text-[#555] transition-colors duration-200 hover:text-[#111]"
                                       >
-                                        {item}
+                                        {item.label}
                                       </Link>
                                     </li>
                                   ))}
@@ -543,28 +622,16 @@ export default function Navbar({ onCartClick }: NavbarProps) {
                               </div>
                             ))}
                           </div>
-                        </div>
-                      );
-                    })}
+                        )}
+                      </div>
+                    ))}
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Mobile actions */}
-            <div className="border-t border-dark/10 px-6 py-6 space-y-3">
-              <Link
-                href="/auth/sign-in"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-center gap-2 rounded-full border border-dark/20 py-3 text-[0.82rem] font-medium tracking-wide text-dark transition-all duration-200 hover:border-primary hover:text-primary"
-              >
-                <User className="h-4 w-4" strokeWidth={1.8} />
-                <span>Se connecter</span>
-              </Link>
-            </div>
-          </div>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
-      </nav>
-    </>
+      </div>
+    </nav>
   );
 }

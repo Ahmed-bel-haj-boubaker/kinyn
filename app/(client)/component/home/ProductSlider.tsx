@@ -2,16 +2,14 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Heart } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 interface Product {
   id: number;
   name: string;
   price: string;
   originalPrice?: string;
-  discount?: number;
   image: string;
   href: string;
 }
@@ -20,7 +18,7 @@ const PRODUCTS: Product[] = [
   {
     id: 1,
     name: "T-shirt Oversize",
-    price: "89,00 TND",
+    price: "89.000 DT",
     image:
       "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80",
     href: "/homme/t-shirt",
@@ -28,9 +26,8 @@ const PRODUCTS: Product[] = [
   {
     id: 2,
     name: "Chemise Lin",
-    price: "119,00 TND",
-    originalPrice: "149,00 TND",
-    discount: 20,
+    price: "119.000 DT",
+    originalPrice: "149.000 DT",
     image:
       "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80",
     href: "/homme/chemise",
@@ -38,9 +35,8 @@ const PRODUCTS: Product[] = [
   {
     id: 3,
     name: "Robe Élégante",
-    price: "159,00 TND",
-    originalPrice: "199,00 TND",
-    discount: 20,
+    price: "159.000 DT",
+    originalPrice: "199.000 DT",
     image:
       "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&q=80",
     href: "/femme/robe-courte",
@@ -48,7 +44,7 @@ const PRODUCTS: Product[] = [
   {
     id: 4,
     name: "Pull Cachemire",
-    price: "259,00 TND",
+    price: "259.000 DT",
     image:
       "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=800&q=80",
     href: "/femme/pull-sweater",
@@ -56,9 +52,8 @@ const PRODUCTS: Product[] = [
   {
     id: 5,
     name: "Pantalon Cargo",
-    price: "97,00 TND",
-    originalPrice: "129,00 TND",
-    discount: 25,
+    price: "97.000 DT",
+    originalPrice: "129.000 DT",
     image:
       "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=800&q=80",
     href: "/homme/pantalon",
@@ -66,7 +61,7 @@ const PRODUCTS: Product[] = [
   {
     id: 6,
     name: "Blouse Satin",
-    price: "179,00 TND",
+    price: "179.000 DT",
     image:
       "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=800&q=80",
     href: "/femme/blouse",
@@ -74,9 +69,8 @@ const PRODUCTS: Product[] = [
   {
     id: 7,
     name: "Hoodie Premium",
-    price: "135,00 TND",
-    originalPrice: "169,00 TND",
-    discount: 20,
+    price: "135.000 DT",
+    originalPrice: "169.000 DT",
     image:
       "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&q=80",
     href: "/homme/sweat-a-capuche-hoodie",
@@ -84,7 +78,7 @@ const PRODUCTS: Product[] = [
   {
     id: 8,
     name: "Jupe Plissée",
-    price: "139,00 TND",
+    price: "139.000 DT",
     image:
       "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=800&q=80",
     href: "/femme/jupe",
@@ -253,57 +247,41 @@ export default function ProductSlider() {
                 className="shrink-0"
                 style={{ width: `${cardWidth}px` }}
               >
-                <div className="group overflow-hidden rounded-xl border border-dark/5 bg-background transition-shadow duration-300 hover:shadow-[0_6px_24px_rgba(0,0,0,0.06)]">
-                  {/* Image */}
-                  <div className="relative aspect-[3/4] overflow-hidden bg-dark/[0.03]">
+                <div className="group">
+                  {/* Arch-shaped Image */}
+                  <div className="relative aspect-[3/4] overflow-hidden rounded-t-full bg-dark/[0.03]">
                     <Image
                       src={product.image}
                       alt={product.name}
                       fill
-                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                       sizes={`(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw`}
                     />
-
-                    {/* Discount badge */}
-                    {product.discount && (
-                      <div className="absolute top-3 left-3 rounded-full bg-primary px-2.5 py-1 font-poppins text-[0.65rem] font-bold text-background">
-                        -{product.discount}%
-                      </div>
-                    )}
-
-                    {/* Heart button */}
-                    <button
-                      type="button"
-                      className="absolute top-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-dark backdrop-blur-sm transition-all duration-200 hover:bg-primary hover:text-background hover:scale-110"
-                      aria-label="Ajouter aux favoris"
-                    >
-                      <Heart className="h-4 w-4" strokeWidth={2} />
-                    </button>
                   </div>
 
                   {/* Info */}
-                  <div className="px-4 py-4 space-y-3">
+                  <div className="pt-4 pb-1 space-y-2.5">
                     <div>
-                      <h3 className="font-erotique text-[1rem] text-dark leading-tight">
+                      <h3 className="font-erotique text-[0.95rem] text-dark leading-snug tracking-wide">
                         {product.name}
                       </h3>
-                      <div className="mt-1.5 flex items-center gap-2">
-                        <p className="font-poppins text-[0.82rem] font-semibold text-dark">
+                      <div className="mt-1 flex items-center gap-2.5">
+                        <p className="font-poppins text-[0.85rem] text-dark/80">
                           {product.price}
                         </p>
                         {product.originalPrice && (
-                          <p className="font-poppins text-[0.72rem] text-dark/40 line-through">
+                          <p className="font-poppins text-[0.75rem] text-dark/35 line-through">
                             {product.originalPrice}
                           </p>
                         )}
                       </div>
                     </div>
-                    <Link
-                      href={product.href}
-                      className="inline-block rounded-full border border-dark/15 px-5 py-2 font-poppins text-[0.72rem] font-medium uppercase tracking-[0.1em] text-dark transition-all duration-200 hover:border-primary hover:bg-primary hover:text-background"
+                    <button
+                      type="button"
+                      className="w-full border border-dark/20 py-2.5 font-poppins text-[0.78rem] tracking-[0.05em] text-dark transition-all duration-300 hover:border-dark hover:bg-dark hover:text-background"
                     >
-                      Voir
-                    </Link>
+                      Add to cart
+                    </button>
                   </div>
                 </div>
               </div>

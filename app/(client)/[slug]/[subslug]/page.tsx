@@ -382,8 +382,8 @@ function ProductDetailPage({
     <div className="bg-background min-h-screen">
       {/* ── Breadcrumb ── */}
       <div className="border-b border-dark/8">
-        <div className="mx-auto max-w-[1440px] px-6 lg:px-10 py-4">
-          <nav className="font-poppins text-[0.7rem] text-dark/45 flex items-center flex-wrap gap-y-1">
+        <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-10 py-3 sm:py-4">
+          <nav className="font-poppins text-[0.62rem] sm:text-[0.7rem] text-dark/45 flex items-center flex-wrap gap-y-1">
             <Link
               href="/"
               className="transition-colors duration-200 hover:text-primary"
@@ -404,14 +404,14 @@ function ProductDetailPage({
       </div>
 
       {/* ── Main content ── */}
-      <div className="mx-auto max-w-[1440px] px-6 lg:px-10 py-8 lg:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14">
+      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-10 py-5 sm:py-8 lg:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-14">
           {/* ════════════ LEFT: Image Gallery ════════════ */}
           <div className="space-y-4">
             {/* Main image */}
             <div
               ref={mainImageRef}
-              className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-dark/[0.03] cursor-crosshair group"
+              className="relative aspect-square sm:aspect-[3/4] overflow-hidden rounded-xl sm:rounded-2xl bg-dark/[0.03] lg:cursor-crosshair group"
               onMouseEnter={() => setImageZoomed(true)}
               onMouseLeave={() => setImageZoomed(false)}
               onMouseMove={handleImageMouseMove}
@@ -425,51 +425,51 @@ function ProductDetailPage({
                   transform: imageZoomed ? "scale(2)" : "scale(1)",
                   transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
                 }}
-                sizes="(max-width: 1024px) 100vw, 50vw"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 50vw"
                 priority
               />
 
               {/* Discount badge */}
               {discountPercent && (
-                <div className="absolute top-4 left-4 rounded-full bg-primary px-3 py-1 font-poppins text-[0.68rem] font-semibold text-background">
+                <div className="absolute top-3 left-3 sm:top-4 sm:left-4 rounded-full bg-primary px-2.5 py-0.5 sm:px-3 sm:py-1 font-poppins text-[0.6rem] sm:text-[0.68rem] font-semibold text-background">
                   -{discountPercent}%
                 </div>
               )}
 
-              {/* Navigation arrows */}
+              {/* Navigation arrows — always visible on mobile, hover on desktop */}
               <button
                 type="button"
                 onClick={handlePrevImage}
-                className="absolute left-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-dark/70 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:text-dark"
+                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-dark/70 shadow-sm opacity-70 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:text-dark active:scale-90"
                 aria-label="Image précédente"
               >
-                <ChevronLeft className="h-5 w-5" strokeWidth={2} />
+                <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2} />
               </button>
               <button
                 type="button"
                 onClick={handleNextImage}
-                className="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-dark/70 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:text-dark"
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-dark/70 shadow-sm opacity-70 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:text-dark active:scale-90"
                 aria-label="Image suivante"
               >
-                <ChevronRight className="h-5 w-5" strokeWidth={2} />
+                <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2} />
               </button>
 
               {/* Image counter */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-dark/60 backdrop-blur-sm px-3 py-1 font-poppins text-[0.65rem] text-background/90">
+              <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-dark/60 backdrop-blur-sm px-2.5 py-0.5 sm:px-3 sm:py-1 font-poppins text-[0.58rem] sm:text-[0.65rem] text-background/90">
                 {selectedImage + 1} / {product.images.length}
               </div>
             </div>
 
             {/* Thumbnails */}
-            <div className="flex gap-2.5 overflow-x-auto pb-1">
+            <div className="flex gap-1.5 sm:gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
               {product.images.map((img, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => setSelectedImage(idx)}
-                  className={`relative shrink-0 h-20 w-16 sm:h-24 sm:w-20 overflow-hidden rounded-lg transition-all duration-200 ${
+                  className={`relative shrink-0 h-16 w-13 sm:h-20 sm:w-16 md:h-24 md:w-20 overflow-hidden rounded-md sm:rounded-lg transition-all duration-200 ${
                     selectedImage === idx
-                      ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                      ? "ring-2 ring-primary ring-offset-1 sm:ring-offset-2 ring-offset-background"
                       : "opacity-60 hover:opacity-100"
                   }`}
                   aria-label={`Voir ${img.alt}`}
@@ -488,18 +488,18 @@ function ProductDetailPage({
 
           {/* ════════════ RIGHT: Product Info ════════════ */}
           <div className="lg:sticky lg:top-32 lg:self-start">
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Category + Name */}
               <div>
-                <p className="font-poppins text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-primary mb-2">
+                <p className="font-poppins text-[0.6rem] sm:text-[0.68rem] font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] text-primary mb-1.5 sm:mb-2">
                   {product.category} — {product.subcategory}
                 </p>
-                <h1 className="font-erotique text-3xl sm:text-4xl text-dark leading-tight">
+                <h1 className="font-erotique text-2xl sm:text-3xl md:text-4xl text-dark leading-tight">
                   {product.name}
                 </h1>
 
                 {/* Rating */}
-                <div className="mt-3 flex items-center gap-2">
+                <div className="mt-2 sm:mt-3 flex items-center gap-2">
                   <div className="flex items-center gap-0.5">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star
@@ -520,17 +520,17 @@ function ProductDetailPage({
               </div>
 
               {/* Price */}
-              <div className="flex items-baseline gap-3">
-                <span className="font-poppins text-2xl font-semibold text-dark">
+              <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap">
+                <span className="font-poppins text-xl sm:text-2xl font-semibold text-dark">
                   {product.price.toFixed(2)} TND
                 </span>
                 {product.oldPrice && (
-                  <span className="font-poppins text-[0.9rem] text-dark/40 line-through">
+                  <span className="font-poppins text-[0.8rem] sm:text-[0.9rem] text-dark/40 line-through">
                     {product.oldPrice.toFixed(2)} TND
                   </span>
                 )}
                 {discountPercent && (
-                  <span className="rounded-md bg-primary/10 px-2 py-0.5 font-poppins text-[0.7rem] font-semibold text-primary">
+                  <span className="rounded-md bg-primary/10 px-2 py-0.5 font-poppins text-[0.65rem] sm:text-[0.7rem] font-semibold text-primary">
                     -{discountPercent}%
                   </span>
                 )}
@@ -540,19 +540,19 @@ function ProductDetailPage({
 
               {/* Color selector */}
               <div>
-                <p className="font-poppins text-[0.75rem] font-medium text-dark mb-3">
+                <p className="font-poppins text-[0.7rem] sm:text-[0.75rem] font-medium text-dark mb-2 sm:mb-3">
                   Couleur :{" "}
                   <span className="font-normal text-dark/60">
                     {selectedColor}
                   </span>
                 </p>
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2 sm:gap-2.5">
                   {product.colors.map((color) => (
                     <button
                       key={color.name}
                       type="button"
                       onClick={() => setSelectedColor(color.name)}
-                      className={`h-8 w-8 rounded-full border-2 transition-all duration-200 ${
+                      className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full border-2 transition-all duration-200 ${
                         selectedColor === color.name
                           ? "border-primary ring-2 ring-primary/25 scale-110"
                           : "border-dark/15 hover:border-dark/30"
@@ -566,8 +566,8 @@ function ProductDetailPage({
 
               {/* Size selector */}
               <div>
-                <div className="flex items-center justify-between mb-3">
-                  <p className="font-poppins text-[0.75rem] font-medium text-dark">
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <p className="font-poppins text-[0.7rem] sm:text-[0.75rem] font-medium text-dark">
                     Taille{" "}
                     {selectedSize && (
                       <span className="font-normal text-dark/60">
@@ -583,7 +583,7 @@ function ProductDetailPage({
                     Guide des tailles
                   </button>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {product.sizes.map((size) => (
                     <button
                       key={size}
@@ -592,7 +592,7 @@ function ProductDetailPage({
                         setSelectedSize(size);
                         setSizeError(false);
                       }}
-                      className={`min-w-[3rem] rounded-lg border px-4 py-2.5 font-poppins text-[0.75rem] font-medium transition-all duration-200 ${
+                      className={`min-w-[2.5rem] sm:min-w-[3rem] rounded-lg border px-3 sm:px-4 py-2 sm:py-2.5 font-poppins text-[0.68rem] sm:text-[0.75rem] font-medium transition-all duration-200 active:scale-95 ${
                         selectedSize === size
                           ? "border-primary bg-primary text-background"
                           : "border-dark/15 text-dark/70 hover:border-dark/30"
@@ -610,27 +610,27 @@ function ProductDetailPage({
               </div>
 
               {/* Quantity + Add to cart */}
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex gap-2 sm:gap-3">
                 {/* Quantity */}
-                <div className="flex items-center border border-dark/15 rounded-lg">
+                <div className="flex items-center border border-dark/15 rounded-lg shrink-0">
                   <button
                     type="button"
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="flex h-12 w-12 items-center justify-center text-dark/50 transition-colors duration-200 hover:text-dark"
+                    className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center text-dark/50 transition-colors duration-200 hover:text-dark active:text-dark"
                     aria-label="Diminuer la quantité"
                   >
-                    <Minus className="h-4 w-4" strokeWidth={2} />
+                    <Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2} />
                   </button>
-                  <span className="flex h-12 w-10 items-center justify-center font-poppins text-[0.82rem] font-medium text-dark">
+                  <span className="flex h-10 w-8 sm:h-12 sm:w-10 items-center justify-center font-poppins text-[0.75rem] sm:text-[0.82rem] font-medium text-dark tabular-nums">
                     {quantity}
                   </span>
                   <button
                     type="button"
                     onClick={() => setQuantity((q) => Math.min(10, q + 1))}
-                    className="flex h-12 w-12 items-center justify-center text-dark/50 transition-colors duration-200 hover:text-dark"
+                    className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center text-dark/50 transition-colors duration-200 hover:text-dark active:text-dark"
                     aria-label="Augmenter la quantité"
                   >
-                    <Plus className="h-4 w-4" strokeWidth={2} />
+                    <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2} />
                   </button>
                 </div>
 
@@ -638,21 +638,21 @@ function ProductDetailPage({
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className={`flex-1 flex items-center justify-center gap-2.5 rounded-lg py-3.5 font-poppins text-[0.82rem] font-semibold transition-all duration-300 ${
+                  className={`flex-1 flex items-center justify-center gap-2 sm:gap-2.5 rounded-lg py-2.5 sm:py-3.5 font-poppins text-[0.72rem] sm:text-[0.82rem] font-semibold transition-all duration-300 ${
                     addedToCart
                       ? "bg-green-600 text-background"
                       : "bg-primary text-background hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98]"
                   }`}
                 >
-                  <ShoppingBag className="h-4.5 w-4.5" strokeWidth={2} />
-                  {addedToCart ? "Ajouté au panier !" : "Ajouter au panier"}
+                  <ShoppingBag className="h-4 w-4 sm:h-4.5 sm:w-4.5" strokeWidth={2} />
+                  {addedToCart ? "Ajouté !" : "Ajouter au panier"}
                 </button>
 
                 {/* Wishlist */}
                 <button
                   type="button"
                   onClick={() => setIsWishlisted(!isWishlisted)}
-                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 ${
+                  className={`flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 active:scale-90 ${
                     isWishlisted
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-dark/15 text-dark/40 hover:border-primary hover:text-primary"
@@ -662,7 +662,7 @@ function ProductDetailPage({
                   }
                 >
                   <Heart
-                    className={`h-5 w-5 transition-all duration-200 ${isWishlisted ? "fill-primary" : ""}`}
+                    className={`h-4.5 w-4.5 sm:h-5 sm:w-5 transition-all duration-200 ${isWishlisted ? "fill-primary" : ""}`}
                     strokeWidth={2}
                   />
                 </button>
@@ -680,32 +680,32 @@ function ProductDetailPage({
               <div className="h-px bg-dark/8" />
 
               {/* Trust badges */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="flex flex-col items-center text-center gap-2 py-3">
-                  <Truck className="h-5 w-5 text-dark/40" strokeWidth={1.6} />
-                  <span className="font-poppins text-[0.62rem] leading-snug text-dark/50">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                <div className="flex flex-col items-center text-center gap-1 sm:gap-2 py-2 sm:py-3">
+                  <Truck className="h-4 w-4 sm:h-5 sm:w-5 text-dark/40" strokeWidth={1.6} />
+                  <span className="font-poppins text-[0.52rem] sm:text-[0.62rem] leading-snug text-dark/50">
                     Livraison gratuite
                     <br />
                     dès 200 TND
                   </span>
                 </div>
-                <div className="flex flex-col items-center text-center gap-2 py-3">
+                <div className="flex flex-col items-center text-center gap-1 sm:gap-2 py-2 sm:py-3">
                   <RotateCcw
-                    className="h-5 w-5 text-dark/40"
+                    className="h-4 w-4 sm:h-5 sm:w-5 text-dark/40"
                     strokeWidth={1.6}
                   />
-                  <span className="font-poppins text-[0.62rem] leading-snug text-dark/50">
+                  <span className="font-poppins text-[0.52rem] sm:text-[0.62rem] leading-snug text-dark/50">
                     Retours gratuits
                     <br />
                     sous 14 jours
                   </span>
                 </div>
-                <div className="flex flex-col items-center text-center gap-2 py-3">
+                <div className="flex flex-col items-center text-center gap-1 sm:gap-2 py-2 sm:py-3">
                   <ShieldCheck
-                    className="h-5 w-5 text-dark/40"
+                    className="h-4 w-4 sm:h-5 sm:w-5 text-dark/40"
                     strokeWidth={1.6}
                   />
-                  <span className="font-poppins text-[0.62rem] leading-snug text-dark/50">
+                  <span className="font-poppins text-[0.52rem] sm:text-[0.62rem] leading-snug text-dark/50">
                     Paiement
                     <br />
                     100% sécurisé
@@ -813,8 +813,8 @@ function ProductDetailPage({
         </div>
 
         {/* ════════════ Related Products ════════════ */}
-        <div className="mt-20 lg:mt-28">
-          <div className="mb-10 text-center">
+        <div className="mt-12 sm:mt-20 lg:mt-28">
+          <div className="mb-6 sm:mb-10 text-center">
             <p className="font-poppins text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-primary mb-2.5">
               Vous aimerez aussi
             </p>

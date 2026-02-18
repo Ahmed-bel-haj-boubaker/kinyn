@@ -203,7 +203,7 @@ function QuickViewModal({
     <div
       ref={backdropRef}
       onClick={handleBackdropClick}
-      className={`fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 transition-all duration-500 ${
+      className={`fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 transition-all duration-500 ${
         isVisible
           ? "bg-dark/50 backdrop-blur-sm"
           : isExiting
@@ -212,24 +212,29 @@ function QuickViewModal({
       }`}
     >
       <div
-        className={`relative w-full max-w-[1020px] max-h-[92vh] overflow-y-auto overflow-x-hidden rounded-2xl bg-background shadow-2xl transition-all duration-500 ease-out ${
+        className={`relative w-full sm:max-w-[1020px] h-[95dvh] sm:h-auto sm:max-h-[92vh] overflow-y-auto overflow-x-hidden rounded-t-2xl sm:rounded-2xl bg-background shadow-2xl transition-all duration-500 ease-out ${
           isVisible
             ? "opacity-100 scale-100 translate-y-0"
             : isExiting
-              ? "opacity-0 scale-95 translate-y-6"
-              : "opacity-0 scale-95 translate-y-10"
+              ? "opacity-0 sm:scale-95 translate-y-6"
+              : "opacity-0 sm:scale-95 translate-y-10"
         }`}
       >
         {/* ── Close button ── */}
         <button
           onClick={handleClose}
-          className={`absolute top-4 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-dark/5 text-dark/60 transition-all duration-300 hover:bg-dark/10 hover:text-dark hover:rotate-90 ${
+          className={`absolute top-3 right-3 sm:top-4 sm:right-4 z-20 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-dark/5 text-dark/60 transition-all duration-300 hover:bg-dark/10 hover:text-dark sm:hover:rotate-90 ${
             isVisible ? "opacity-100 scale-100" : "opacity-0 scale-50"
           }`}
           style={stagger(300)}
         >
-          <X className="h-[18px] w-[18px]" strokeWidth={1.5} />
+          <X className="h-4 w-4 sm:h-[18px] sm:w-[18px]" strokeWidth={1.5} />
         </button>
+
+        {/* Mobile drag handle */}
+        <div className="sm:hidden flex justify-center pt-2 pb-1">
+          <div className="h-1 w-10 rounded-full bg-dark/10" />
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2">
           {/* ════════════ LEFT: Image Gallery ════════════ */}
@@ -240,7 +245,7 @@ function QuickViewModal({
             style={stagger(100)}
           >
             {/* Main image */}
-            <div className="relative aspect-[3/4] overflow-hidden group">
+            <div className="relative aspect-square sm:aspect-[3/4] overflow-hidden group">
               <Image
                 key={selectedImage}
                 src={images[selectedImage]}
@@ -249,14 +254,14 @@ function QuickViewModal({
                 className={`object-cover transition-all duration-700 ease-out ${
                   isVisible ? "opacity-100 scale-100" : "opacity-0 scale-105"
                 }`}
-                sizes="(max-width: 768px) 100vw, 510px"
+                sizes="(max-width: 640px) 100vw, (max-width: 768px) 100vw, 510px"
                 priority
               />
 
               {/* Discount badge */}
               {hasDiscount && (
                 <div
-                  className={`absolute top-4 left-4 px-3 py-1 rounded-full bg-primary text-background font-poppins text-[0.6rem] font-semibold uppercase tracking-[0.12em] transition-all duration-500 ${
+                  className={`absolute top-3 left-3 sm:top-4 sm:left-4 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-primary text-background font-poppins text-[0.55rem] sm:text-[0.6rem] font-semibold uppercase tracking-[0.12em] transition-all duration-500 ${
                     isVisible
                       ? "opacity-100 translate-x-0"
                       : "opacity-0 -translate-x-4"
@@ -267,42 +272,48 @@ function QuickViewModal({
                 </div>
               )}
 
-              {/* Prev / Next arrows */}
+              {/* Prev / Next arrows — always visible on mobile, hover on desktop */}
               <button
                 type="button"
                 onClick={() =>
                   setSelectedImage((p) => (p === 0 ? images.length - 1 : p - 1))
                 }
-                className="absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-background/70 backdrop-blur-sm text-dark/60 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:text-dark"
+                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-background/80 sm:bg-background/70 backdrop-blur-sm text-dark/60 opacity-70 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:text-dark active:scale-90"
               >
-                <ChevronLeft className="h-4 w-4" strokeWidth={2} />
+                <ChevronLeft
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                  strokeWidth={2}
+                />
               </button>
               <button
                 type="button"
                 onClick={() =>
                   setSelectedImage((p) => (p === images.length - 1 ? 0 : p + 1))
                 }
-                className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-background/70 backdrop-blur-sm text-dark/60 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:text-dark"
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-background/80 sm:bg-background/70 backdrop-blur-sm text-dark/60 opacity-70 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:text-dark active:scale-90"
               >
-                <ChevronRight className="h-4 w-4" strokeWidth={2} />
+                <ChevronRight
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                  strokeWidth={2}
+                />
               </button>
 
               {/* Counter pill */}
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-dark/50 backdrop-blur-sm px-2.5 py-1 font-poppins text-[0.58rem] text-background/90">
+              <div className="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-dark/50 backdrop-blur-sm px-2 py-0.5 sm:px-2.5 sm:py-1 font-poppins text-[0.52rem] sm:text-[0.58rem] text-background/90">
                 {selectedImage + 1} / {images.length}
               </div>
             </div>
 
-            {/* Thumbnails */}
-            <div className="flex gap-2 p-3">
+            {/* Thumbnails — horizontally scrollable on mobile */}
+            <div className="flex gap-1.5 sm:gap-2 p-2.5 sm:p-3 overflow-x-auto scrollbar-hide">
               {images.map((img, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => setSelectedImage(idx)}
-                  className={`relative shrink-0 h-16 w-14 sm:h-[72px] sm:w-16 overflow-hidden rounded-lg transition-all duration-200 ${
+                  className={`relative shrink-0 h-14 w-12 sm:h-16 sm:w-14 md:h-[72px] md:w-16 overflow-hidden rounded-md sm:rounded-lg transition-all duration-200 ${
                     selectedImage === idx
-                      ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                      ? "ring-2 ring-primary ring-offset-1 sm:ring-offset-2 ring-offset-background"
                       : "opacity-50 hover:opacity-100"
                   }`}
                 >
@@ -319,7 +330,7 @@ function QuickViewModal({
           </div>
 
           {/* ════════════ RIGHT: Product Details ════════════ */}
-          <div className="flex flex-col px-6 py-7 sm:px-8 sm:py-9 overflow-y-auto max-h-[92vh] md:max-h-none">
+          <div className="flex flex-col px-4 py-5 sm:px-6 sm:py-7 md:px-8 md:py-9 overflow-y-auto">
             {/* Category breadcrumb */}
             <div
               className={`flex items-center gap-2 mb-5 transition-all duration-500 ease-out ${
@@ -338,7 +349,7 @@ function QuickViewModal({
 
             {/* Product name */}
             <h3
-              className={`font-erotique text-2xl sm:text-3xl text-dark leading-[1.08] mb-3 transition-all duration-600 ease-out ${
+              className={`font-erotique text-xl sm:text-2xl md:text-3xl text-dark leading-[1.08] mb-2 sm:mb-3 transition-all duration-600 ease-out ${
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-6"
@@ -358,14 +369,14 @@ function QuickViewModal({
 
             {/* Price */}
             <div
-              className={`flex items-baseline gap-3 mb-5 transition-all duration-500 ease-out ${
+              className={`flex items-baseline gap-2 sm:gap-3 mb-4 sm:mb-5 transition-all duration-500 ease-out ${
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-4"
               }`}
               style={stagger(340)}
             >
-              <span className="font-poppins text-xl sm:text-2xl font-semibold text-dark">
+              <span className="font-poppins text-lg sm:text-xl md:text-2xl font-semibold text-dark">
                 {product.price}
               </span>
               {product.originalPrice && (
@@ -375,9 +386,9 @@ function QuickViewModal({
               )}
             </div>
 
-            {/* Description */}
+            {/* Description — hidden on very small to save space, shown from sm up */}
             <p
-              className={`font-poppins text-[0.74rem] leading-[1.8] text-dark/45 mb-6 transition-all duration-500 ease-out ${
+              className={`hidden sm:block font-poppins text-[0.72rem] sm:text-[0.74rem] leading-[1.7] sm:leading-[1.8] text-dark/45 mb-4 sm:mb-6 transition-all duration-500 ease-out ${
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-4"
@@ -389,30 +400,30 @@ function QuickViewModal({
               accompagner chaque moment de votre quotidien avec style.
             </p>
 
-            <div className="h-px bg-dark/[0.06] mb-5" />
+            <div className="h-px bg-dark/[0.06] mb-4 sm:mb-5" />
 
             {/* ── Color Selector ── */}
             <div
-              className={`mb-5 transition-all duration-500 ease-out ${
+              className={`mb-4 sm:mb-5 transition-all duration-500 ease-out ${
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-4"
               }`}
               style={stagger(420)}
             >
-              <p className="font-poppins text-[0.72rem] font-medium text-dark mb-2.5">
+              <p className="font-poppins text-[0.68rem] sm:text-[0.72rem] font-medium text-dark mb-2">
                 Couleur :{" "}
                 <span className="font-normal text-dark/50">
                   {selectedColor}
                 </span>
               </p>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2 sm:gap-2.5">
                 {MODAL_COLORS.map((color) => (
                   <button
                     key={color.name}
                     type="button"
                     onClick={() => setSelectedColor(color.name)}
-                    className={`h-7 w-7 rounded-full border-2 transition-all duration-200 ${
+                    className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full border-2 transition-all duration-200 ${
                       selectedColor === color.name
                         ? "border-primary ring-2 ring-primary/20 scale-110"
                         : "border-dark/12 hover:border-dark/25"
@@ -426,14 +437,14 @@ function QuickViewModal({
 
             {/* ── Size Selector ── */}
             <div
-              className={`mb-5 transition-all duration-500 ease-out ${
+              className={`mb-4 sm:mb-5 transition-all duration-500 ease-out ${
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-4"
               }`}
               style={stagger(460)}
             >
-              <p className="font-poppins text-[0.72rem] font-medium text-dark mb-2.5">
+              <p className="font-poppins text-[0.68rem] sm:text-[0.72rem] font-medium text-dark mb-2">
                 Taille{" "}
                 {selectedSize && (
                   <span className="font-normal text-dark/50">
@@ -441,7 +452,7 @@ function QuickViewModal({
                   </span>
                 )}
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {MODAL_SIZES.map((size) => (
                   <button
                     key={size}
@@ -450,7 +461,7 @@ function QuickViewModal({
                       setSelectedSize(size);
                       setSizeError(false);
                     }}
-                    className={`min-w-[2.8rem] rounded-lg border px-3.5 py-2 font-poppins text-[0.7rem] font-medium transition-all duration-200 ${
+                    className={`min-w-[2.4rem] sm:min-w-[2.8rem] rounded-lg border px-2.5 sm:px-3.5 py-1.5 sm:py-2 font-poppins text-[0.66rem] sm:text-[0.7rem] font-medium transition-all duration-200 active:scale-95 ${
                       selectedSize === size
                         ? "border-primary bg-primary text-background"
                         : "border-dark/12 text-dark/60 hover:border-dark/25"
@@ -461,44 +472,51 @@ function QuickViewModal({
                 ))}
               </div>
               {sizeError && (
-                <p className="mt-2 font-poppins text-[0.68rem] text-primary">
+                <p className="mt-1.5 sm:mt-2 font-poppins text-[0.64rem] sm:text-[0.68rem] text-primary">
                   Veuillez sélectionner une taille
                 </p>
               )}
             </div>
 
-            <div className="h-px bg-dark/[0.06] mb-5" />
+            <div className="h-px bg-dark/[0.06] mb-4 sm:mb-5" />
 
             {/* ── Quantity + Add to Cart + Wishlist ── */}
             <div
-              className={`flex flex-col gap-3 mb-5 transition-all duration-500 ease-out ${
+              className={`flex flex-col gap-2.5 sm:gap-3 mb-4 sm:mb-5 transition-all duration-500 ease-out ${
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-6"
               }`}
               style={stagger(500)}
             >
-              <div className="flex gap-2.5">
+              {/* Row: Quantity + Cart + Wishlist */}
+              <div className="flex gap-2 sm:gap-2.5">
                 {/* Quantity */}
                 <div className="flex items-center border border-dark/12 rounded-lg shrink-0">
                   <button
                     type="button"
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="flex h-11 w-10 items-center justify-center text-dark/40 transition-colors duration-200 hover:text-dark"
+                    className="flex h-10 w-9 sm:h-11 sm:w-10 items-center justify-center text-dark/40 transition-colors duration-200 hover:text-dark active:text-dark"
                     aria-label="Diminuer la quantité"
                   >
-                    <Minus className="h-3.5 w-3.5" strokeWidth={2} />
+                    <Minus
+                      className="h-3 w-3 sm:h-3.5 sm:w-3.5"
+                      strokeWidth={2}
+                    />
                   </button>
-                  <span className="flex h-11 w-8 items-center justify-center font-poppins text-[0.78rem] font-medium text-dark tabular-nums">
+                  <span className="flex h-10 w-7 sm:h-11 sm:w-8 items-center justify-center font-poppins text-[0.72rem] sm:text-[0.78rem] font-medium text-dark tabular-nums">
                     {quantity}
                   </span>
                   <button
                     type="button"
                     onClick={() => setQuantity((q) => Math.min(10, q + 1))}
-                    className="flex h-11 w-10 items-center justify-center text-dark/40 transition-colors duration-200 hover:text-dark"
+                    className="flex h-10 w-9 sm:h-11 sm:w-10 items-center justify-center text-dark/40 transition-colors duration-200 hover:text-dark active:text-dark"
                     aria-label="Augmenter la quantité"
                   >
-                    <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+                    <Plus
+                      className="h-3 w-3 sm:h-3.5 sm:w-3.5"
+                      strokeWidth={2}
+                    />
                   </button>
                 </div>
 
@@ -506,21 +524,29 @@ function QuickViewModal({
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className={`flex-1 flex items-center justify-center gap-2.5 rounded-lg py-3 font-poppins text-[0.72rem] font-semibold uppercase tracking-[0.08em] transition-all duration-300 ${
+                  className={`flex-1 flex items-center justify-center gap-2 sm:gap-2.5 rounded-lg py-2.5 sm:py-3 font-poppins text-[0.65rem] sm:text-[0.72rem] font-semibold uppercase tracking-[0.06em] sm:tracking-[0.08em] transition-all duration-300 ${
                     addedToCart
                       ? "bg-green-600 text-background"
                       : "bg-primary text-background hover:bg-dark active:scale-[0.97]"
                   }`}
                 >
-                  <ShoppingBag className="h-4 w-4" strokeWidth={1.6} />
-                  {addedToCart ? "Ajouté !" : "Ajouter au panier"}
+                  <ShoppingBag
+                    className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                    strokeWidth={1.6}
+                  />
+                  <span className="hidden xs:inline">
+                    {addedToCart ? "Ajouté !" : "Ajouter au panier"}
+                  </span>
+                  <span className="xs:hidden">
+                    {addedToCart ? "Ajouté !" : "Ajouter"}
+                  </span>
                 </button>
 
                 {/* Wishlist */}
                 <button
                   type="button"
                   onClick={() => setIsWishlisted(!isWishlisted)}
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 ${
+                  className={`flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 active:scale-90 ${
                     isWishlisted
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-dark/12 text-dark/35 hover:border-primary hover:text-primary"
@@ -530,7 +556,7 @@ function QuickViewModal({
                   }
                 >
                   <Heart
-                    className={`h-[18px] w-[18px] transition-all duration-200 ${
+                    className={`h-4 w-4 sm:h-[18px] sm:w-[18px] transition-all duration-200 ${
                       isWishlisted ? "fill-primary" : ""
                     }`}
                     strokeWidth={1.8}
@@ -541,10 +567,10 @@ function QuickViewModal({
               {/* View full product page */}
               <Link
                 href={product.href}
-                className="group flex items-center justify-center gap-2.5 w-full border border-dark/12 py-3 rounded-lg font-poppins text-[0.66rem] font-medium uppercase tracking-[0.1em] text-dark/50 transition-all duration-300 hover:border-dark/30 hover:text-dark active:scale-[0.97]"
+                className="group flex items-center justify-center gap-2 sm:gap-2.5 w-full border border-dark/12 py-2.5 sm:py-3 rounded-lg font-poppins text-[0.62rem] sm:text-[0.66rem] font-medium uppercase tracking-[0.1em] text-dark/50 transition-all duration-300 hover:border-dark/30 hover:text-dark active:scale-[0.97]"
               >
                 <Eye
-                  className="h-3.5 w-3.5 transition-transform duration-300 group-hover:scale-110"
+                  className="h-3 w-3 sm:h-3.5 sm:w-3.5 transition-transform duration-300 group-hover:scale-110"
                   strokeWidth={1.5}
                 />
                 Voir tous les détails
@@ -553,33 +579,39 @@ function QuickViewModal({
 
             {/* ── Trust badges ── */}
             <div
-              className={`grid grid-cols-3 gap-2 pt-4 border-t border-dark/[0.06] transition-all duration-500 ease-out ${
+              className={`grid grid-cols-3 gap-1 sm:gap-2 pt-3 sm:pt-4 border-t border-dark/[0.06] transition-all duration-500 ease-out ${
                 isVisible ? "opacity-100" : "opacity-0"
               }`}
               style={stagger(580)}
             >
-              <div className="flex flex-col items-center text-center gap-1.5 py-2">
-                <Truck className="h-4 w-4 text-dark/30" strokeWidth={1.5} />
-                <span className="font-poppins text-[0.52rem] leading-snug text-dark/40">
+              <div className="flex flex-col items-center text-center gap-1 sm:gap-1.5 py-1.5 sm:py-2">
+                <Truck
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-dark/30"
+                  strokeWidth={1.5}
+                />
+                <span className="font-poppins text-[0.46rem] sm:text-[0.52rem] leading-snug text-dark/40">
                   Livraison gratuite
                   <br />
                   dès 200 TND
                 </span>
               </div>
-              <div className="flex flex-col items-center text-center gap-1.5 py-2">
-                <RotateCcw className="h-4 w-4 text-dark/30" strokeWidth={1.5} />
-                <span className="font-poppins text-[0.52rem] leading-snug text-dark/40">
+              <div className="flex flex-col items-center text-center gap-1 sm:gap-1.5 py-1.5 sm:py-2">
+                <RotateCcw
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-dark/30"
+                  strokeWidth={1.5}
+                />
+                <span className="font-poppins text-[0.46rem] sm:text-[0.52rem] leading-snug text-dark/40">
                   Retours gratuits
                   <br />
                   sous 14 jours
                 </span>
               </div>
-              <div className="flex flex-col items-center text-center gap-1.5 py-2">
+              <div className="flex flex-col items-center text-center gap-1 sm:gap-1.5 py-1.5 sm:py-2">
                 <ShieldCheck
-                  className="h-4 w-4 text-dark/30"
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-dark/30"
                   strokeWidth={1.5}
                 />
-                <span className="font-poppins text-[0.52rem] leading-snug text-dark/40">
+                <span className="font-poppins text-[0.46rem] sm:text-[0.52rem] leading-snug text-dark/40">
                   Paiement
                   <br />
                   100% sécurisé
@@ -697,36 +729,36 @@ export default function ProductSlider() {
   }
 
   return (
-    <section className="bg-background py-16 px-6 lg:px-10">
+    <section className="bg-background py-10 sm:py-14 lg:py-16 px-4 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-[1440px]">
         {/* Header */}
-        <div className="mb-10 flex items-end justify-between">
+        <div className="mb-6 sm:mb-8 lg:mb-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
-            <p className="font-poppins text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary">
+            <p className="font-poppins text-[0.65rem] sm:text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary">
               Sélection
             </p>
-            <h2 className="mt-2 font-erotique text-3xl text-dark sm:text-4xl">
+            <h2 className="mt-1.5 sm:mt-2 font-erotique text-2xl sm:text-3xl lg:text-4xl text-dark">
               Nos Incontournables
             </h2>
           </div>
 
           {/* Nav buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <button
               type="button"
               onClick={() => scroll("left")}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-background transition-transform duration-200 ease-out hover:scale-105 active:scale-95"
+              className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-primary text-background transition-transform duration-200 ease-out hover:scale-105 active:scale-95"
               aria-label="Produits précédents"
             >
-              <ArrowLeft className="h-5 w-5" strokeWidth={2} />
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2} />
             </button>
             <button
               type="button"
               onClick={() => scroll("right")}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-background transition-transform duration-200 ease-out hover:scale-105 active:scale-95"
+              className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-primary text-background transition-transform duration-200 ease-out hover:scale-105 active:scale-95"
               aria-label="Produits suivants"
             >
-              <ArrowRight className="h-5 w-5" strokeWidth={2} />
+              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2} />
             </button>
           </div>
         </div>
@@ -771,17 +803,17 @@ export default function ProductSlider() {
                   </div>
 
                   {/* Info */}
-                  <div className="pt-4 pb-1 space-y-2.5">
+                  <div className="pt-3 sm:pt-4 pb-1 space-y-2">
                     <div>
-                      <h3 className="font-erotique text-[0.95rem] text-dark leading-snug tracking-wide">
+                      <h3 className="font-erotique text-[0.82rem] sm:text-[0.95rem] text-dark leading-snug tracking-wide">
                         {product.name}
                       </h3>
-                      <div className="mt-1 flex items-center gap-2.5">
-                        <p className="font-poppins text-[0.85rem] text-dark/80">
+                      <div className="mt-0.5 sm:mt-1 flex items-center gap-2">
+                        <p className="font-poppins text-[0.78rem] sm:text-[0.85rem] text-dark/80">
                           {product.price}
                         </p>
                         {product.originalPrice && (
-                          <p className="font-poppins text-[0.75rem] text-dark/35 line-through">
+                          <p className="font-poppins text-[0.68rem] sm:text-[0.75rem] text-dark/35 line-through">
                             {product.originalPrice}
                           </p>
                         )}
@@ -790,7 +822,7 @@ export default function ProductSlider() {
                     <button
                       type="button"
                       onClick={() => setSelectedProduct(product)}
-                      className="w-full border border-dark/20 py-2.5 font-poppins text-[0.78rem] tracking-[0.05em] text-dark transition-all duration-300 hover:border-dark hover:bg-dark hover:text-background"
+                      className="w-full border border-dark/20 py-2 sm:py-2.5 font-poppins text-[0.72rem] sm:text-[0.78rem] tracking-[0.05em] text-dark transition-all duration-300 hover:border-dark hover:bg-dark hover:text-background active:scale-[0.97]"
                     >
                       Ajouter au panier
                     </button>

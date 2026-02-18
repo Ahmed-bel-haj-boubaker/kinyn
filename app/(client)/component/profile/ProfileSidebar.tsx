@@ -78,8 +78,8 @@ export default function ProfileSidebar({
       </aside>
 
       {/* Mobile horizontal tabs */}
-      <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 mb-8 overflow-x-auto scrollbar-hide">
-        <div className="flex gap-2 min-w-max pb-1">
+      <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 mb-5 sm:mb-8 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-1.5 sm:gap-2 min-w-max pb-1">
           {menuItems
             .filter((item) => item.key !== "logout")
             .map((item) => {
@@ -91,14 +91,17 @@ export default function ProfileSidebar({
                   key={item.key}
                   type="button"
                   onClick={() => onChange(item.key as ProfileSection)}
-                  className={`flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 font-poppins text-[12px] font-medium transition-all duration-200 ${
+                  className={`flex cursor-pointer items-center gap-1.5 sm:gap-2 whitespace-nowrap rounded-full px-3 py-2 sm:px-4 sm:py-2.5 font-poppins text-[11px] sm:text-[12px] font-medium transition-all duration-200 active:scale-95 ${
                     isActive
-                      ? "bg-primary text-white"
+                      ? "bg-primary text-white shadow-sm"
                       : "bg-white text-[#555] hover:bg-[#F5F4F1] hover:text-dark border border-[#E8E6E1]"
                   }`}
                   aria-current={isActive ? "page" : undefined}
                 >
-                  <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={1.5} />
+                  <Icon
+                    className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0"
+                    strokeWidth={1.5}
+                  />
                   <span>{item.label}</span>
                 </button>
               );

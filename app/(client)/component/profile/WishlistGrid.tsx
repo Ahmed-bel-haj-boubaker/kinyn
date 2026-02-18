@@ -66,25 +66,25 @@ export default function WishlistGrid() {
 
   return (
     <section>
-      <h3 className="font-erotique text-lg text-dark mb-6">
+      <h3 className="font-erotique text-base sm:text-lg text-dark mb-4 sm:mb-6">
         Liste de Souhaits
       </h3>
 
       {items.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
           {items.map((item) => (
             <div
               key={item.id}
-              className="group relative overflow-hidden rounded-xl bg-white border border-[#EEECE7] shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-shadow duration-200 hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)]"
+              className="group relative overflow-hidden rounded-lg sm:rounded-xl bg-white border border-[#EEECE7] shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-shadow duration-200 hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)]"
             >
               {/* Remove button */}
               <button
                 type="button"
                 onClick={() => removeItem(item.id)}
-                className="absolute right-3 top-3 z-10 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-white/90 text-[#999] opacity-0 shadow-sm transition-all duration-200 hover:bg-primary hover:text-white group-hover:opacity-100"
+                className="absolute right-2 top-2 sm:right-3 sm:top-3 z-10 flex h-6 w-6 sm:h-7 sm:w-7 cursor-pointer items-center justify-center rounded-full bg-white/90 text-[#999] opacity-100 sm:opacity-0 shadow-sm transition-all duration-200 hover:bg-primary hover:text-white group-hover:opacity-100 active:scale-90"
                 aria-label={`Retirer ${item.name} de la liste`}
               >
-                <X className="h-3.5 w-3.5" strokeWidth={2} />
+                <X className="h-3 w-3 sm:h-3.5 sm:w-3.5" strokeWidth={2} />
               </button>
 
               {/* Image */}
@@ -99,14 +99,14 @@ export default function WishlistGrid() {
               </div>
 
               {/* Info */}
-              <div className="p-4">
-                <p className="font-poppins text-[10.5px] uppercase tracking-wide text-[#999] mb-1">
+              <div className="p-3 sm:p-4">
+                <p className="font-poppins text-[9.5px] sm:text-[10.5px] uppercase tracking-wide text-[#999] mb-0.5 sm:mb-1">
                   {item.category}
                 </p>
-                <h4 className="font-poppins text-[13px] font-medium text-dark leading-snug mb-2 truncate">
+                <h4 className="font-poppins text-[12px] sm:text-[13px] font-medium text-dark leading-snug mb-1.5 sm:mb-2 truncate">
                   {item.name}
                 </h4>
-                <p className="font-poppins text-[13.5px] font-semibold text-dark">
+                <p className="font-poppins text-[12.5px] sm:text-[13.5px] font-semibold text-dark">
                   {item.price}
                 </p>
               </div>
@@ -114,8 +114,8 @@ export default function WishlistGrid() {
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <p className="font-poppins text-[14px] text-[#999]">
+        <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center">
+          <p className="font-poppins text-[13px] sm:text-[14px] text-[#999]">
             Votre liste de souhaits est vide.
           </p>
         </div>

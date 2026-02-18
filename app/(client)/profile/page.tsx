@@ -10,7 +10,9 @@ import {
   Heart,
   ShoppingBag,
 } from "lucide-react";
-import ProfileSidebar, { type ProfileSection } from "../component/profile/ProfileSidebar";
+import ProfileSidebar, {
+  type ProfileSection,
+} from "../component/profile/ProfileSidebar";
 import ProfileInfo from "../component/profile/ProfileInfo";
 import AddressModal from "../component/profile/AddressModal";
 import OrdersList from "../component/profile/OrdersList";
@@ -99,33 +101,33 @@ export default function ProfilePage() {
   const renderOverview = () => (
     <section>
       {/* Welcome header */}
-      <div className="mb-10">
-        <h2 className="font-erotique text-2xl sm:text-3xl text-dark mb-2">
+      <div className="mb-6 sm:mb-10">
+        <h2 className="font-erotique text-xl sm:text-2xl lg:text-3xl text-dark mb-1.5 sm:mb-2">
           Bienvenue, Amira
         </h2>
-        <p className="font-poppins text-[13.5px] text-[#888] leading-relaxed">
+        <p className="font-poppins text-[12.5px] sm:text-[13.5px] text-[#888] leading-relaxed">
           Gérez vos informations personnelles, vos adresses et suivez vos
           commandes.
         </p>
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+      <div className="grid grid-cols-3 gap-2.5 sm:gap-4 mb-6 sm:mb-10">
         {overviewStats.map((stat) => {
           const Icon = stat.icon;
           return (
             <div
               key={stat.label}
-              className="flex items-center gap-4 rounded-xl bg-white border border-[#EEECE7] shadow-[0_2px_12px_rgba(0,0,0,0.03)] px-6 py-5"
+              className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-4 rounded-xl bg-white border border-[#EEECE7] shadow-[0_2px_12px_rgba(0,0,0,0.03)] px-3 py-4 sm:px-6 sm:py-5"
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/8 text-primary shrink-0">
-                <Icon className="h-5 w-5" strokeWidth={1.5} />
+              <div className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-primary/8 text-primary shrink-0">
+                <Icon className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.5} />
               </div>
-              <div>
-                <p className="font-poppins text-[22px] font-semibold text-dark leading-none mb-0.5">
+              <div className="text-center sm:text-left">
+                <p className="font-poppins text-[18px] sm:text-[22px] font-semibold text-dark leading-none mb-0.5">
                   {stat.value}
                 </p>
-                <p className="font-poppins text-[11.5px] text-[#999]">
+                <p className="font-poppins text-[10px] sm:text-[11.5px] text-[#999]">
                   {stat.label}
                 </p>
               </div>
@@ -135,18 +137,18 @@ export default function ProfilePage() {
       </div>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <button
           type="button"
           onClick={() => setSection("info")}
-          className="cursor-pointer flex items-center gap-3 rounded-xl bg-white border border-[#EEECE7] shadow-[0_2px_12px_rgba(0,0,0,0.03)] px-6 py-5 text-left transition-all duration-200 hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:border-primary/20"
+          className="cursor-pointer flex items-center gap-3 rounded-xl bg-white border border-[#EEECE7] shadow-[0_2px_12px_rgba(0,0,0,0.03)] px-4 py-4 sm:px-6 sm:py-5 text-left transition-all duration-200 hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:border-primary/20 active:scale-[0.98]"
         >
           <Pencil className="h-4 w-4 text-primary shrink-0" strokeWidth={1.5} />
-          <div>
-            <p className="font-poppins text-[13px] font-medium text-dark">
+          <div className="min-w-0">
+            <p className="font-poppins text-[12.5px] sm:text-[13px] font-medium text-dark">
               Modifier le Profil
             </p>
-            <p className="font-poppins text-[11.5px] text-[#999] mt-0.5">
+            <p className="font-poppins text-[11px] sm:text-[11.5px] text-[#999] mt-0.5">
               Mettre à jour vos informations personnelles
             </p>
           </div>
@@ -154,17 +156,17 @@ export default function ProfilePage() {
         <button
           type="button"
           onClick={() => setSection("orders")}
-          className="cursor-pointer flex items-center gap-3 rounded-xl bg-white border border-[#EEECE7] shadow-[0_2px_12px_rgba(0,0,0,0.03)] px-6 py-5 text-left transition-all duration-200 hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:border-primary/20"
+          className="cursor-pointer flex items-center gap-3 rounded-xl bg-white border border-[#EEECE7] shadow-[0_2px_12px_rgba(0,0,0,0.03)] px-4 py-4 sm:px-6 sm:py-5 text-left transition-all duration-200 hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:border-primary/20 active:scale-[0.98]"
         >
           <Package
             className="h-4 w-4 text-primary shrink-0"
             strokeWidth={1.5}
           />
-          <div>
-            <p className="font-poppins text-[13px] font-medium text-dark">
+          <div className="min-w-0">
+            <p className="font-poppins text-[12.5px] sm:text-[13px] font-medium text-dark">
               Suivre mes Commandes
             </p>
-            <p className="font-poppins text-[11.5px] text-[#999] mt-0.5">
+            <p className="font-poppins text-[11px] sm:text-[11.5px] text-[#999] mt-0.5">
               Voir l&apos;état de vos commandes récentes
             </p>
           </div>
@@ -175,43 +177,45 @@ export default function ProfilePage() {
 
   const renderAddresses = () => (
     <section>
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="font-erotique text-lg text-dark">Mes Adresses</h3>
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h3 className="font-erotique text-base sm:text-lg text-dark">
+          Mes Adresses
+        </h3>
         <button
           type="button"
           onClick={openAddModal}
-          className="flex cursor-pointer items-center gap-2 rounded-full border border-primary px-4 py-2 font-poppins text-[12px] font-medium text-primary transition-all duration-200 hover:bg-primary hover:text-white"
+          className="flex cursor-pointer items-center gap-1.5 sm:gap-2 rounded-full border border-primary px-3 py-1.5 sm:px-4 sm:py-2 font-poppins text-[11px] sm:text-[12px] font-medium text-primary transition-all duration-200 hover:bg-primary hover:text-white active:scale-95"
         >
-          <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
+          <Plus className="h-3 w-3 sm:h-3.5 sm:w-3.5" strokeWidth={1.5} />
           <span>Ajouter</span>
         </button>
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2.5 sm:gap-3">
         {addresses.map((addr) => (
           <div
             key={addr.id}
-            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl bg-white border border-[#EEECE7] shadow-[0_2px_12px_rgba(0,0,0,0.03)] px-5 sm:px-6 py-4 sm:py-5"
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl bg-white border border-[#EEECE7] shadow-[0_2px_12px_rgba(0,0,0,0.03)] px-4 sm:px-6 py-3.5 sm:py-5"
           >
-            <div className="flex items-start gap-3 min-w-0">
+            <div className="flex items-start gap-2.5 sm:gap-3 min-w-0">
               <MapPin
                 className="h-4 w-4 text-primary shrink-0 mt-0.5"
                 strokeWidth={1.5}
               />
               <div className="min-w-0">
-                <p className="font-poppins text-[13.5px] text-dark leading-snug">
+                <p className="font-poppins text-[12.5px] sm:text-[13.5px] text-dark leading-snug">
                   {addr.address}
                 </p>
-                <p className="font-poppins text-[12px] text-[#999] mt-0.5">
+                <p className="font-poppins text-[11px] sm:text-[12px] text-[#999] mt-0.5">
                   {addr.city}, {addr.postalCode} — {addr.country}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 ml-6.5 sm:ml-0">
               <button
                 type="button"
                 onClick={() => openEditModal(addr)}
-                className="flex cursor-pointer items-center gap-1.5 rounded-full border border-[#E0DED9] px-3.5 py-1.5 font-poppins text-[11px] font-medium text-[#666] transition-all duration-200 hover:border-primary hover:text-primary"
+                className="flex cursor-pointer items-center gap-1.5 rounded-full border border-[#E0DED9] px-3 py-1.5 sm:px-3.5 font-poppins text-[10.5px] sm:text-[11px] font-medium text-[#666] transition-all duration-200 hover:border-primary hover:text-primary active:scale-95"
                 aria-label={`Modifier l'adresse ${addr.address}`}
               >
                 <Pencil className="h-3 w-3" strokeWidth={1.5} />
@@ -220,7 +224,7 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={() => deleteAddress(addr.id)}
-                className="flex cursor-pointer items-center gap-1.5 rounded-full border border-[#E0DED9] px-3.5 py-1.5 font-poppins text-[11px] font-medium text-[#666] transition-all duration-200 hover:border-red-400 hover:text-red-500"
+                className="flex cursor-pointer items-center gap-1.5 rounded-full border border-[#E0DED9] px-3 py-1.5 sm:px-3.5 font-poppins text-[10.5px] sm:text-[11px] font-medium text-[#666] transition-all duration-200 hover:border-red-400 hover:text-red-500 active:scale-95"
                 aria-label={`Supprimer l'adresse ${addr.address}`}
               >
                 <Trash2 className="h-3 w-3" strokeWidth={1.5} />
@@ -231,9 +235,12 @@ export default function ProfilePage() {
         ))}
 
         {addresses.length === 0 && (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#DDD] py-12 text-center">
-            <MapPin className="h-6 w-6 text-[#CCC] mb-3" strokeWidth={1.5} />
-            <p className="font-poppins text-[13px] text-[#999]">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#DDD] py-10 sm:py-12 text-center">
+            <MapPin
+              className="h-5 w-5 sm:h-6 sm:w-6 text-[#CCC] mb-2.5 sm:mb-3"
+              strokeWidth={1.5}
+            />
+            <p className="font-poppins text-[12px] sm:text-[13px] text-[#999]">
               Aucune adresse enregistrée.
             </p>
           </div>
@@ -252,14 +259,14 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-12 py-12 sm:py-16 lg:py-20">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-12 py-8 sm:py-12 lg:py-20">
         {/* Page title */}
-        <h1 className="font-erotique text-3xl sm:text-4xl text-dark mb-10 lg:mb-14">
+        <h1 className="font-erotique text-2xl sm:text-3xl lg:text-4xl text-dark mb-6 sm:mb-10 lg:mb-14">
           Mon Compte
         </h1>
 
         {/* Layout: sidebar + content */}
-        <div className="flex gap-12">
+        <div className="flex flex-col lg:flex-row lg:gap-12">
           <ProfileSidebar active={section} onChange={setSection} />
           <div className="flex-1 min-w-0">{sectionContent[section]}</div>
         </div>

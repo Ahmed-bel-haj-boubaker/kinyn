@@ -62,12 +62,15 @@ function InnerForm({
   const isEditing = initial !== emptyForm;
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 space-y-4">
+    <form
+      onSubmit={handleSubmit}
+      className="p-4 sm:p-6 space-y-3.5 sm:space-y-4"
+    >
       {fieldDefs.map((field) => (
-        <div key={field.key} className="flex flex-col gap-1.5">
+        <div key={field.key} className="flex flex-col gap-1 sm:gap-1.5">
           <label
             htmlFor={`addr-${field.key}`}
-            className="font-poppins text-[11px] font-semibold uppercase tracking-wide text-[#999]"
+            className="font-poppins text-[10.5px] sm:text-[11px] font-semibold uppercase tracking-wide text-[#999]"
           >
             {field.label}
           </label>
@@ -78,12 +81,12 @@ function InnerForm({
             onChange={(e) => handleChange(field.key, e.target.value)}
             placeholder={field.placeholder}
             required
-            className="w-full rounded-lg border border-[#E0DED9] bg-[#FAFAF8] px-4 py-2.5 font-poppins text-[13px] text-dark placeholder:text-[#CCC] outline-none transition-all duration-200 focus:border-primary focus:ring-1 focus:ring-primary/20"
+            className="w-full rounded-lg border border-[#E0DED9] bg-[#FAFAF8] px-3.5 py-2.5 sm:px-4 font-poppins text-[13px] text-dark placeholder:text-[#CCC] outline-none transition-all duration-200 focus:border-primary focus:ring-1 focus:ring-primary/20"
           />
         </div>
       ))}
 
-      <div className="flex justify-end gap-3 pt-3">
+      <div className="flex justify-end gap-2.5 sm:gap-3 pt-2 sm:pt-3">
         <button
           type="button"
           onClick={onClose}
@@ -139,15 +142,20 @@ export default function AddressModal({
     <div
       ref={backdropRef}
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-[3px] animate-[fadeIn_200ms_ease-in-out_forwards]"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 backdrop-blur-[3px] animate-[fadeIn_200ms_ease-in-out_forwards]"
       role="dialog"
       aria-modal="true"
       aria-label={initial ? "Modifier l'adresse" : "Ajouter une adresse"}
     >
-      <div className="relative w-full max-w-md mx-4 rounded-xl bg-white border border-[#EEECE7] shadow-[0_16px_50px_rgba(0,0,0,0.12)] animate-[scaleIn_200ms_ease-in-out_forwards]">
+      <div className="relative w-full sm:max-w-md sm:mx-4 rounded-t-2xl sm:rounded-xl bg-white border border-[#EEECE7] shadow-[0_16px_50px_rgba(0,0,0,0.12)] animate-[scaleIn_200ms_ease-in-out_forwards]">
+        {/* Mobile drag handle */}
+        <div className="sm:hidden flex justify-center pt-2">
+          <div className="h-1 w-8 rounded-full bg-[#DDD]" />
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#F0EFEB] px-6 py-4">
-          <h3 className="font-erotique text-lg text-dark">
+        <div className="flex items-center justify-between border-b border-[#F0EFEB] px-4 sm:px-6 py-3 sm:py-4">
+          <h3 className="font-erotique text-base sm:text-lg text-dark">
             {initial ? "Modifier l\u2019adresse" : "Nouvelle Adresse"}
           </h3>
           <button

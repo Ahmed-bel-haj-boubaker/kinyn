@@ -443,7 +443,10 @@ function ProductDetailPage({
                 className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-dark/70 shadow-sm opacity-70 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:text-dark active:scale-90"
                 aria-label="Image précédente"
               >
-                <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2} />
+                <ChevronLeft
+                  className="h-4 w-4 sm:h-5 sm:w-5"
+                  strokeWidth={2}
+                />
               </button>
               <button
                 type="button"
@@ -451,7 +454,10 @@ function ProductDetailPage({
                 className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-dark/70 shadow-sm opacity-70 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:text-dark active:scale-90"
                 aria-label="Image suivante"
               >
-                <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2} />
+                <ChevronRight
+                  className="h-4 w-4 sm:h-5 sm:w-5"
+                  strokeWidth={2}
+                />
               </button>
 
               {/* Image counter */}
@@ -619,7 +625,10 @@ function ProductDetailPage({
                     className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center text-dark/50 transition-colors duration-200 hover:text-dark active:text-dark"
                     aria-label="Diminuer la quantité"
                   >
-                    <Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2} />
+                    <Minus
+                      className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                      strokeWidth={2}
+                    />
                   </button>
                   <span className="flex h-10 w-8 sm:h-12 sm:w-10 items-center justify-center font-poppins text-[0.75rem] sm:text-[0.82rem] font-medium text-dark tabular-nums">
                     {quantity}
@@ -630,7 +639,10 @@ function ProductDetailPage({
                     className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center text-dark/50 transition-colors duration-200 hover:text-dark active:text-dark"
                     aria-label="Augmenter la quantité"
                   >
-                    <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2} />
+                    <Plus
+                      className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                      strokeWidth={2}
+                    />
                   </button>
                 </div>
 
@@ -644,7 +656,10 @@ function ProductDetailPage({
                       : "bg-primary text-background hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98]"
                   }`}
                 >
-                  <ShoppingBag className="h-4 w-4 sm:h-4.5 sm:w-4.5" strokeWidth={2} />
+                  <ShoppingBag
+                    className="h-4 w-4 sm:h-4.5 sm:w-4.5"
+                    strokeWidth={2}
+                  />
                   {addedToCart ? "Ajouté !" : "Ajouter au panier"}
                 </button>
 
@@ -682,7 +697,10 @@ function ProductDetailPage({
               {/* Trust badges */}
               <div className="grid grid-cols-3 gap-2 sm:gap-4">
                 <div className="flex flex-col items-center text-center gap-1 sm:gap-2 py-2 sm:py-3">
-                  <Truck className="h-4 w-4 sm:h-5 sm:w-5 text-dark/40" strokeWidth={1.6} />
+                  <Truck
+                    className="h-4 w-4 sm:h-5 sm:w-5 text-dark/40"
+                    strokeWidth={1.6}
+                  />
                   <span className="font-poppins text-[0.52rem] sm:text-[0.62rem] leading-snug text-dark/50">
                     Livraison gratuite
                     <br />

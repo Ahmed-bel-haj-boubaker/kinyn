@@ -92,7 +92,7 @@ export default function FeaturedCollection() {
             <Link
               key={col.id}
               href={col.href}
-              className={`group relative block overflow-hidden rounded-xl transition-all duration-700 ease-out ${
+              className={`group relative block overflow-hidden rounded-t-full transition-all duration-700 ease-out ${
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-12"

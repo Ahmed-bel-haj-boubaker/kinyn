@@ -363,8 +363,8 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
             <Image
               src="/images/logo.png"
               alt="Kinyn"
-              width={80}
-              height={80}
+              width={400}
+              height={400}
               className="object-contain w-20 h-20"
               priority
             />
@@ -376,6 +376,7 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
 
         {/* ─── Icon cluster — far right ─── */}
         <div className="flex items-center gap-3 sm:gap-4 lg:gap-5">
+          <UserDropdown />
           <button
             type="button"
             onClick={onSearchClick}
@@ -387,7 +388,6 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
               strokeWidth={1.4}
             />
           </button>
-          <UserDropdown />
           <button
             type="button"
             onClick={onCartClick}
@@ -441,8 +441,8 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
           <Image
             src="/images/logo.png"
             alt="Kinyn"
-            width={110}
-            height={110}
+            width={400}
+            height={400}
             className="object-contain
               lg:translate-y-[60px]
               lg:w-[110px] lg:h-[110px]"

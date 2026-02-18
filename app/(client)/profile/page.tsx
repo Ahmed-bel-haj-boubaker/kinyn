@@ -10,11 +10,11 @@ import {
   Heart,
   ShoppingBag,
 } from "lucide-react";
-import ProfileSidebar, { type ProfileSection } from "./ProfileSidebar";
-import ProfileInfo from "./ProfileInfo";
-import AddressModal from "./AddressModal";
-import OrdersList from "./OrdersList";
-import WishlistGrid from "./WishlistGrid";
+import ProfileSidebar, { type ProfileSection } from "../component/profile/ProfileSidebar";
+import ProfileInfo from "../component/profile/ProfileInfo";
+import AddressModal from "../component/profile/AddressModal";
+import OrdersList from "../component/profile/OrdersList";
+import WishlistGrid from "../component/profile/WishlistGrid";
 
 /* ─────────── Mock Addresses ─────────── */
 

@@ -5,6 +5,59 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 
+// Animated counter hook
+function useCounter(
+  target: number,
+  isActive: boolean,
+  duration: number = 2000,
+) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!isActive) return;
+
+    let startTime: number | null = null;
+    let animationFrame: number;
+
+    const animate = (currentTime: number) => {
+      if (!startTime) startTime = currentTime;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+
+      // Easing function (easeOutQuart)
+      const eased = 1 - Math.pow(1 - progress, 4);
+      setCount(Math.floor(eased * target));
+
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [isActive, target, duration]);
+
+  return count;
+}
+
+// Counter display component
+function AnimatedCounter({
+  value,
+  suffix = "",
+  isVisible,
+}: {
+  value: number;
+  suffix?: string;
+  isVisible: boolean;
+}) {
+  const count = useCounter(value, isVisible);
+  return (
+    <>
+      {count.toLocaleString()}
+      {suffix}
+    </>
+  );
+}
+
 export default function KinynSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -128,20 +181,42 @@ export default function KinynSection() {
 
             {/* stats row */}
             <div className="grid grid-cols-3 gap-4 mb-10">
-              {[
-                { value: "500+", label: "Créations" },
-                { value: "15k+", label: "Clients" },
-                { value: "100%", label: "Qualité" },
-              ].map((stat) => (
-                <div key={stat.label} className="text-center lg:text-left">
-                  <span className="block font-poppins text-primary text-2xl sm:text-3xl">
-                    {stat.value}
-                  </span>
-                  <span className="font-poppins text-dark/50 text-xs sm:text-sm">
-                    {stat.label}
-                  </span>
-                </div>
-              ))}
+              <div className="text-center lg:text-left">
+                <span className="block font-poppins text-primary text-2xl sm:text-3xl font-semibold tabular-nums">
+                  <AnimatedCounter
+                    value={500}
+                    suffix="+"
+                    isVisible={isVisible}
+                  />
+                </span>
+                <span className="font-poppins text-dark/50 text-xs sm:text-sm">
+                  Créations
+                </span>
+              </div>
+              <div className="text-center lg:text-left">
+                <span className="block font-poppins text-primary text-2xl sm:text-3xl font-semibold tabular-nums">
+                  <AnimatedCounter
+                    value={15}
+                    suffix="k+"
+                    isVisible={isVisible}
+                  />
+                </span>
+                <span className="font-poppins text-dark/50 text-xs sm:text-sm">
+                  Clients
+                </span>
+              </div>
+              <div className="text-center lg:text-left">
+                <span className="block font-poppins text-primary text-2xl sm:text-3xl font-semibold tabular-nums">
+                  <AnimatedCounter
+                    value={100}
+                    suffix="%"
+                    isVisible={isVisible}
+                  />
+                </span>
+                <span className="font-poppins text-dark/50 text-xs sm:text-sm">
+                  Qualité
+                </span>
+              </div>
             </div>
 
             {/* CTA */}

@@ -24,8 +24,8 @@ export default function LogoMarquee() {
                 <Image
                   src="/images/logo.png"
                   alt="KINYN"
-                  width={120}
-                  height={40}
+                  width={400}
+                  height={400}
                   className="h-8 w-auto object-contain transition-all duration-500 hover:opacity-100   sm:h-9 md:h-10 lg:h-12"
                   draggable={false}
                 />

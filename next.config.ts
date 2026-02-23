@@ -9,6 +9,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
+  /* ── Security: Disable x-powered-by header ── */
+  poweredByHeader: false,
+
+  /* ── Strict-mode for catching bugs early ── */
+  reactStrictMode: true,
+
+  /* ── Server external packages (mongoose uses native deps) ── */
+  serverExternalPackages: ["mongoose"],
 };
 
 export default nextConfig;

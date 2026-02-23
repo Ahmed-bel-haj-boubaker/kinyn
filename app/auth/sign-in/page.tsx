@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useCallback, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 
@@ -28,10 +29,13 @@ const initialForm: FormState = {
 };
 
 export default function SignInPage() {
+  const router = useRouter();
   const [form, setForm] = useState<FormState>(initialForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   /* ── Field change handler ── */
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,17 +67,50 @@ export default function SignInPage() {
 
   /* ── Submit ── */
   const handleSubmit = useCallback(
-    (e: FormEvent) => {
+    async (e: FormEvent) => {
       e.preventDefault();
       const validationErrors = validate();
       setErrors(validationErrors);
+      setApiError(null);
 
-      if (Object.keys(validationErrors).length === 0) {
+      if (Object.keys(validationErrors).length > 0) return;
+
+      setLoading(true);
+      try {
+        const res = await fetch("/api/auth/sign-in", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: form.email,
+            password: form.password,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setApiError(data.error ?? "Une erreur est survenue.");
+          return;
+        }
+
         setSubmitted(true);
-        /* Placeholder — no backend logic */
+
+        /* Redirect based on role */
+        const role = data.user?.role;
+        setTimeout(() => {
+          if (role === "admin" || role === "super_admin") {
+            router.push("/admin");
+          } else {
+            router.push("/");
+          }
+        }, 1200);
+      } catch {
+        setApiError("Erreur de connexion au serveur. Réessayez plus tard.");
+      } finally {
+        setLoading(false);
       }
     },
-    [validate],
+    [validate, form, router],
   );
 
   /* ── Reusable input renderer ── */
@@ -282,10 +319,45 @@ export default function SignInPage() {
                 {/* Submit */}
                 <button
                   type="submit"
-                  className="w-full rounded-lg bg-primary py-3.5 font-poppins text-sm font-semibold tracking-wide text-white transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 active:scale-[0.98]"
+                  disabled={loading}
+                  className="w-full rounded-lg bg-primary py-3.5 font-poppins text-sm font-semibold tracking-wide text-white transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
-                  Se connecter
+                  {loading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <svg
+                        className="h-4 w-4 animate-spin"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        />
+                      </svg>
+                      Connexion en cours…
+                    </span>
+                  ) : (
+                    "Se connecter"
+                  )}
                 </button>
+
+                {/* API Error */}
+                {apiError && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-center">
+                    <p className="font-poppins text-sm text-red-700">
+                      {apiError}
+                    </p>
+                  </div>
+                )}
 
                 {/* Divider */}
                 <div className="flex items-center gap-3">

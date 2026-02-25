@@ -37,7 +37,7 @@ export default function HeroSection() {
 
           <div className="pt-2">
             <Link
-              href="/shop"
+              href="/femme"
               className="inline-block rounded-full bg-primary px-10 py-3.5 font-poppins text-[0.82rem] font-semibold tracking-wide text-background transition-transform duration-200 ease-out hover:scale-105 active:scale-[0.98]"
             >
               Découvrir la collection

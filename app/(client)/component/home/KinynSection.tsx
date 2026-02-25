@@ -221,7 +221,7 @@ export default function KinynSection() {
 
             {/* CTA */}
             <Link
-              href="/shop"
+              href="/femme"
               aria-label="Découvrir la collection Kinyn"
               className="group inline-flex items-center gap-3 self-start
                          bg-primary text-white font-poppins font-semibold

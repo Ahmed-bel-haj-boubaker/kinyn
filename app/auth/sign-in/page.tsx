@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useCallback, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 
@@ -30,6 +30,8 @@ const initialForm: FormState = {
 
 export default function SignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
   const [form, setForm] = useState<FormState>(initialForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
@@ -101,7 +103,7 @@ export default function SignInPage() {
           if (role === "admin" || role === "super_admin") {
             router.push("/admin");
           } else {
-            router.push("/");
+            router.push(redirectTo);
           }
         }, 1200);
       } catch {
@@ -110,7 +112,7 @@ export default function SignInPage() {
         setLoading(false);
       }
     },
-    [validate, form, router],
+    [validate, form, router, redirectTo],
   );
 
   /* ── Reusable input renderer ── */
@@ -401,7 +403,11 @@ export default function SignInPage() {
               <p className="mt-8 text-center font-poppins text-sm text-dark/60">
                 Vous n&apos;avez pas de compte ?{" "}
                 <Link
-                  href="/auth/sign-up"
+                  href={
+                    redirectTo !== "/"
+                      ? `/auth/sign-up?redirect=${encodeURIComponent(redirectTo)}`
+                      : "/auth/sign-up"
+                  }
                   className="font-semibold text-primary underline-offset-2 transition-colors hover:underline"
                 >
                   Créer un compte

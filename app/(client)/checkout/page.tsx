@@ -1,7 +1,12 @@
+﻿/* eslint-disable react/no-unescaped-entities */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Loader2, CheckCircle2 } from "lucide-react";
+import { useCart } from "@/lib/cart";
 
 interface FormData {
   firstName: string;
@@ -27,161 +32,309 @@ interface FormErrors {
   postalCode?: string;
 }
 
-interface CartItem {
-  id: string;
-  name: string;
-  image: string;
-  price: number;
-  quantity: number;
+interface SavedAddress {
+  country: string;
+  city: string;
+  address: string;
+  postalCode: string;
+  isDefault: boolean;
+}
+
+interface AuthUser {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  addresses?: SavedAddress[];
 }
 
 export default function CheckoutPage() {
+  const router = useRouter();
+  const { items: cartItems, subtotal, clearCart } = useCart();
+
+  /* â”€â”€ Auth state â”€â”€ */
+  const [authLoading, setAuthLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isGuest, setIsGuest] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
+
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-    country: "",
+    country: "Tunisie",
     city: "",
     address: "",
     postalCode: "",
     shippingMethod: "standard",
-    paymentMethod: "card",
+    paymentMethod: "cod",
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-  // Mock cart data
-  const cartItems: CartItem[] = [
-    {
-      id: "1",
-      name: "Robe élégante en soie",
-      image: "/images/placeholder.jpg",
-      price: 450,
-      quantity: 1,
-    },
-    {
-      id: "2",
-      name: "Sac à main en cuir",
-      image: "/images/placeholder.jpg",
-      price: 320,
-      quantity: 1,
-    },
-  ];
+  /* â”€â”€ Check auth on mount, redirect if not logged in â”€â”€ */
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (!res.ok) {
+          setIsGuest(true);
+          setAuthLoading(false);
+          return;
+        }
+        const data = await res.json();
+        const u: AuthUser = data.user;
+        setUser(u);
+
+        /* Pre-fill personal info */
+        const defaultAddr =
+          u.addresses?.find((a) => a.isDefault) ?? u.addresses?.[0];
+        setFormData((prev) => ({
+          ...prev,
+          firstName: u.firstName ?? "",
+          lastName: u.lastName ?? "",
+          email: u.email ?? "",
+          phone: u.phone ?? "",
+          country: defaultAddr?.country || prev.country,
+          city: defaultAddr?.city || prev.city,
+          address: defaultAddr?.address || prev.address,
+          postalCode: defaultAddr?.postalCode || prev.postalCode,
+        }));
+      } catch {
+        setIsGuest(true);
+      } finally {
+        setAuthLoading(false);
+      }
+    }
+    checkAuth();
+  }, [router]);
 
   const shippingCosts = {
-    standard: 15,
-    express: 35,
+    standard: 8,
+    express: 20,
   };
 
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
   const shipping = shippingCosts[formData.shippingMethod];
   const total = subtotal + shipping;
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
+      if (errors[name as keyof FormErrors]) {
+        setErrors((prev) => ({ ...prev, [name]: undefined }));
+      }
+    },
+    [errors],
+  );
 
-    // Clear error when user starts typing
-    if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
-  };
-
-  const handleBlur = (
-    e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    const { name } = e.target;
-    setTouched((prev) => ({ ...prev, [name]: true }));
-    validateField(name, formData[name as keyof FormData] as string);
-  };
+  const handleBlur = useCallback(
+    (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+      const { name } = e.target;
+      setTouched((prev) => ({ ...prev, [name]: true }));
+      validateField(name, formData[name as keyof FormData] as string);
+    },
+    [formData],
+  );
 
   const validateField = (name: string, value: string) => {
     let error = "";
-
     if (!value.trim()) {
       error = "Ce champ est requis";
     } else if (name === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
       error = "Email invalide";
-    } else if (name === "phone" && !/^[0-9+\s-()]+$/.test(value)) {
-      error = "Numéro de téléphone invalide";
+    } else if (name === "phone" && !/^[0-9+\s\-()]{6,20}$/.test(value)) {
+      error = "Numéro invalide";
     } else if (
       name === "postalCode" &&
       !/^[0-9]{4,10}$/.test(value.replace(/\s/g, ""))
     ) {
       error = "Code postal invalide";
     }
-
-    setErrors((prev) => ({ ...prev, [name]: error }));
+    setErrors((prev) => ({ ...prev, [name]: error || undefined }));
     return error === "";
   };
 
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
     let isValid = true;
-
     const requiredFields: (keyof FormData)[] = [
       "firstName",
       "lastName",
       "email",
       "phone",
-      "country",
       "city",
       "address",
       "postalCode",
     ];
-
     requiredFields.forEach((field) => {
       const value = formData[field] as string;
-      if (!validateField(field, value)) {
-        isValid = false;
-      }
+      if (!validateField(field, value)) isValid = false;
     });
-
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-    // Mark all fields as touched
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     const allTouched: Record<string, boolean> = {};
-    Object.keys(formData).forEach((key) => {
-      allTouched[key] = true;
-    });
+    Object.keys(formData).forEach((k) => (allTouched[k] = true));
     setTouched(allTouched);
 
-    if (validateForm()) {
-      // Handle order submission
-      console.log("Order submitted:", { formData, cartItems, total });
-      alert("Commande passée avec succès !");
+    if (!validateForm()) return;
+    if (cartItems.length === 0) return;
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: cartItems.map((item) => ({
+            productId: item.productId,
+            name: item.name,
+            image: item.image,
+            price: item.promoPrice ?? item.price,
+            quantity: item.quantity,
+            size: item.size || "",
+            color: item.color || "",
+          })),
+          shippingAddress: {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            phone: formData.phone,
+            country: formData.country,
+            city: formData.city,
+            address: formData.address,
+            postalCode: formData.postalCode,
+          },
+          shippingMethod: formData.shippingMethod,
+          paymentMethod: formData.paymentMethod,
+          /* Guest info — only used if not authenticated */
+          ...(isGuest && {
+            guest: {
+              firstName: formData.firstName,
+              lastName: formData.lastName,
+              email: formData.email,
+              phone: formData.phone,
+            },
+          }),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setSubmitError(data.error ?? "Une erreur est survenue.");
+        return;
+      }
+
+      clearCart();
+      setOrderSuccess(true);
+    } catch {
+      setSubmitError("Erreur de connexion. Veuillez réessayer.");
+    } finally {
+      setSubmitting(false);
     }
   };
+
+  /* â”€â”€ Input class helper â”€â”€ */
+  const inputCls = (field: keyof FormErrors) =>
+    `w-full font-poppins px-4 py-3 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 ${
+      touched[field] && errors[field]
+        ? "border-red-400 focus:ring-red-200"
+        : "border-gray-200 focus:border-primary focus:ring-primary/20"
+    } text-dark placeholder:text-gray-400 bg-white`;
+
+  /* â”€â”€ Auth loading skeleton â”€â”€ */
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-dark/40">
+          <Loader2 className="h-8 w-8 animate-spin" strokeWidth={1.5} />
+          <p className="font-poppins text-sm">Vérification en cours</p>
+        </div>
+      </div>
+    );
+  }
+
+  /* â”€â”€ Order success screen â”€â”€ */
+  if (orderSuccess) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="max-w-md w-full text-center">
+          <CheckCircle2
+            className="h-16 w-16 text-green-500 mx-auto mb-6"
+            strokeWidth={1.2}
+          />
+          <h1 className="font-erotique text-3xl sm:text-4xl text-dark mb-3">
+            Commande confirmée !
+          </h1>
+          <p className="font-poppins text-dark/50 text-sm mb-4">
+            Merci {user?.firstName || formData.firstName}. Votre commande a été
+            passée avec succès.
+          </p>
+
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center rounded-full bg-primary px-8 py-3 font-poppins text-sm font-semibold text-white transition-all duration-200 hover:bg-primary/90"
+          >
+            Retour à la boutique
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background py-8 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Page Title */}
-        <h1 className="font-erotique text-4xl sm:text-5xl lg:text-6xl text-dark mb-8 sm:mb-12">
-          Finaliser la commande
-        </h1>
+        <div className="mb-8 sm:mb-12">
+          <h1 className="font-erotique text-4xl sm:text-5xl lg:text-6xl text-dark">
+            Finaliser la commande
+          </h1>
+        </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-            {/* Left Column - Checkout Forms */}
+        <form onSubmit={handleSubmit} noValidate>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
+            {/* â”€â”€â”€â”€â”€â”€ Left Column â”€â”€â”€â”€â”€â”€ */}
             <div className="lg:col-span-7 space-y-6">
               {/* Personal Information */}
               <section className="bg-white rounded-2xl shadow-sm p-6 sm:p-8">
-                <h2 className="font-erotique text-2xl sm:text-3xl text-dark mb-6">
-                  Informations personnelles
-                </h2>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-erotique text-2xl sm:text-3xl text-dark">
+                    Informations personnelles
+                  </h2>
+                  {isGuest && (
+                    <Link
+                      href="/auth/sign-in?redirect=/checkout"
+                      className="inline-flex items-center gap-1.5 font-poppins text-sm font-semibold text-primary hover:text-primary/80 transition-colors shrink-0"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
+                        />
+                      </svg>
+                      Se connecter
+                    </Link>
+                  )}
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* First Name */}
                   <div>
                     <label
                       htmlFor="firstName"
@@ -196,22 +349,17 @@ export default function CheckoutPage() {
                       value={formData.firstName}
                       onChange={handleInputChange}
                       onBlur={handleBlur}
-                      aria-label="Prénom"
-                      aria-required="true"
-                      aria-invalid={!!(touched.firstName && errors.firstName)}
-                      className={`w-full font-poppins px-4 py-3 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 ${
-                        touched.firstName && errors.firstName
-                          ? "border-red-500 focus:ring-red-200"
-                          : "border-gray-300 focus:border-primary focus:ring-primary/20"
-                      } text-dark placeholder:text-gray-400`}
+                      className={inputCls("firstName")}
                       placeholder="Jean"
+                      autoComplete="given-name"
                     />
                     {touched.firstName && errors.firstName && (
-                      <p className="font-poppins text-sm text-red-500 mt-1">
+                      <p className="font-poppins text-xs text-red-500 mt-1">
                         {errors.firstName}
                       </p>
                     )}
                   </div>
+                  {/* Last Name */}
                   <div>
                     <label
                       htmlFor="lastName"
@@ -226,22 +374,17 @@ export default function CheckoutPage() {
                       value={formData.lastName}
                       onChange={handleInputChange}
                       onBlur={handleBlur}
-                      aria-label="Nom"
-                      aria-required="true"
-                      aria-invalid={!!(touched.lastName && errors.lastName)}
-                      className={`w-full font-poppins px-4 py-3 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 ${
-                        touched.lastName && errors.lastName
-                          ? "border-red-500 focus:ring-red-200"
-                          : "border-gray-300 focus:border-primary focus:ring-primary/20"
-                      } text-dark placeholder:text-gray-400`}
+                      className={inputCls("lastName")}
                       placeholder="Dupont"
+                      autoComplete="family-name"
                     />
                     {touched.lastName && errors.lastName && (
-                      <p className="font-poppins text-sm text-red-500 mt-1">
+                      <p className="font-poppins text-xs text-red-500 mt-1">
                         {errors.lastName}
                       </p>
                     )}
                   </div>
+                  {/* Email */}
                   <div>
                     <label
                       htmlFor="email"
@@ -256,22 +399,17 @@ export default function CheckoutPage() {
                       value={formData.email}
                       onChange={handleInputChange}
                       onBlur={handleBlur}
-                      aria-label="Email"
-                      aria-required="true"
-                      aria-invalid={!!(touched.email && errors.email)}
-                      className={`w-full font-poppins px-4 py-3 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 ${
-                        touched.email && errors.email
-                          ? "border-red-500 focus:ring-red-200"
-                          : "border-gray-300 focus:border-primary focus:ring-primary/20"
-                      } text-dark placeholder:text-gray-400`}
-                      placeholder="jean.dupont@example.com"
+                      className={inputCls("email")}
+                      placeholder="jean@exemple.com"
+                      autoComplete="email"
                     />
                     {touched.email && errors.email && (
-                      <p className="font-poppins text-sm text-red-500 mt-1">
+                      <p className="font-poppins text-xs text-red-500 mt-1">
                         {errors.email}
                       </p>
                     )}
                   </div>
+                  {/* Phone */}
                   <div>
                     <label
                       htmlFor="phone"
@@ -286,18 +424,12 @@ export default function CheckoutPage() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       onBlur={handleBlur}
-                      aria-label="Téléphone"
-                      aria-required="true"
-                      aria-invalid={!!(touched.phone && errors.phone)}
-                      className={`w-full font-poppins px-4 py-3 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 ${
-                        touched.phone && errors.phone
-                          ? "border-red-500 focus:ring-red-200"
-                          : "border-gray-300 focus:border-primary focus:ring-primary/20"
-                      } text-dark placeholder:text-gray-400`}
+                      className={inputCls("phone")}
                       placeholder="+216 28 111 222"
+                      autoComplete="tel"
                     />
                     {touched.phone && errors.phone && (
-                      <p className="font-poppins text-sm text-red-500 mt-1">
+                      <p className="font-poppins text-xs text-red-500 mt-1">
                         {errors.phone}
                       </p>
                     )}
@@ -311,6 +443,26 @@ export default function CheckoutPage() {
                   Adresse de livraison
                 </h2>
                 <div className="space-y-4">
+                  {/* Country */}
+                  <div>
+                    <label
+                      htmlFor="country"
+                      className="block font-poppins text-sm font-medium text-dark mb-2"
+                    >
+                      Pays *
+                    </label>
+                    <input
+                      type="text"
+                      id="country"
+                      name="country"
+                      value={formData.country}
+                      onChange={handleInputChange}
+                      className="w-full font-poppins px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:border-primary focus:ring-primary/20 text-dark placeholder:text-gray-400 bg-white transition-all duration-200"
+                      placeholder="Tunisie"
+                      autoComplete="country-name"
+                    />
+                  </div>
+                  {/* City + Postal code */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label
@@ -326,23 +478,42 @@ export default function CheckoutPage() {
                         value={formData.city}
                         onChange={handleInputChange}
                         onBlur={handleBlur}
-                        aria-label="Ville"
-                        aria-required="true"
-                        aria-invalid={!!(touched.city && errors.city)}
-                        className={`w-full font-poppins px-4 py-3 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 ${
-                          touched.city && errors.city
-                            ? "border-red-500 focus:ring-red-200"
-                            : "border-gray-300 focus:border-primary focus:ring-primary/20"
-                        } text-dark placeholder:text-gray-400`}
-                        placeholder="Paris"
+                        className={inputCls("city")}
+                        placeholder="Tunis"
+                        autoComplete="address-level2"
                       />
                       {touched.city && errors.city && (
-                        <p className="font-poppins text-sm text-red-500 mt-1">
+                        <p className="font-poppins text-xs text-red-500 mt-1">
                           {errors.city}
                         </p>
                       )}
                     </div>
+                    <div>
+                      <label
+                        htmlFor="postalCode"
+                        className="block font-poppins text-sm font-medium text-dark mb-2"
+                      >
+                        Code postal *
+                      </label>
+                      <input
+                        type="text"
+                        id="postalCode"
+                        name="postalCode"
+                        value={formData.postalCode}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        className={inputCls("postalCode")}
+                        placeholder="1000"
+                        autoComplete="postal-code"
+                      />
+                      {touched.postalCode && errors.postalCode && (
+                        <p className="font-poppins text-xs text-red-500 mt-1">
+                          {errors.postalCode}
+                        </p>
+                      )}
+                    </div>
                   </div>
+                  {/* Street address */}
                   <div>
                     <label
                       htmlFor="address"
@@ -357,49 +528,13 @@ export default function CheckoutPage() {
                       value={formData.address}
                       onChange={handleInputChange}
                       onBlur={handleBlur}
-                      aria-label="Adresse"
-                      aria-required="true"
-                      aria-invalid={!!(touched.address && errors.address)}
-                      className={`w-full font-poppins px-4 py-3 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 ${
-                        touched.address && errors.address
-                          ? "border-red-500 focus:ring-red-200"
-                          : "border-gray-300 focus:border-primary focus:ring-primary/20"
-                      } text-dark placeholder:text-gray-400`}
-                      placeholder="123 Rue de la Paix"
+                      className={inputCls("address")}
+                      placeholder="123 Avenue Habib Bourguiba"
+                      autoComplete="street-address"
                     />
                     {touched.address && errors.address && (
-                      <p className="font-poppins text-sm text-red-500 mt-1">
+                      <p className="font-poppins text-xs text-red-500 mt-1">
                         {errors.address}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="postalCode"
-                      className="block font-poppins text-sm font-medium text-dark mb-2"
-                    >
-                      Code postal *
-                    </label>
-                    <input
-                      type="text"
-                      id="postalCode"
-                      name="postalCode"
-                      value={formData.postalCode}
-                      onChange={handleInputChange}
-                      onBlur={handleBlur}
-                      aria-label="Code postal"
-                      aria-required="true"
-                      aria-invalid={!!(touched.postalCode && errors.postalCode)}
-                      className={`w-full font-poppins px-4 py-3 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 ${
-                        touched.postalCode && errors.postalCode
-                          ? "border-red-500 focus:ring-red-200"
-                          : "border-gray-300 focus:border-primary focus:ring-primary/20"
-                      } text-dark placeholder:text-gray-400`}
-                      placeholder="75001"
-                    />
-                    {touched.postalCode && errors.postalCode && (
-                      <p className="font-poppins text-sm text-red-500 mt-1">
-                        {errors.postalCode}
                       </p>
                     )}
                   </div>
@@ -407,7 +542,6 @@ export default function CheckoutPage() {
               </section>
             </div>
 
-            {/* Right Column - Order Summary */}
             <div className="lg:col-span-5">
               <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 sticky top-8">
                 <h2 className="font-erotique text-2xl sm:text-3xl text-dark mb-6">
@@ -415,69 +549,118 @@ export default function CheckoutPage() {
                 </h2>
 
                 {/* Cart Items */}
-                <div className="space-y-4 mb-6 pb-6 border-b border-gray-200">
-                  {cartItems.map((item) => (
-                    <div key={item.id} className="flex gap-4">
-                      <div className="relative w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-poppins">
-                          Image
+                <div className="space-y-4 mb-6 pb-6 border-b border-gray-100">
+                  {cartItems.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="font-poppins text-gray-400 mb-3 text-sm">
+                        Votre panier est vide
+                      </p>
+                      <Link
+                        href="/"
+                        className="font-poppins text-sm text-primary underline underline-offset-2 hover:text-primary/80"
+                      >
+                        Retour à la boutique"
+                      </Link>
+                    </div>
+                  ) : (
+                    cartItems.map((item) => {
+                      const unitPrice = item.promoPrice ?? item.price;
+                      const variant = [item.color, item.size]
+                        .filter(Boolean)
+                        .join(" — ");
+                      return (
+                        <div
+                          key={`${item.productId}__${item.color}__${item.size}`}
+                          className="flex gap-4"
+                        >
+                          <div className="relative w-20 h-20 shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                            <Image
+                              src={item.image}
+                              alt={item.name}
+                              fill
+                              className="object-cover"
+                              sizes="80px"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-poppins text-sm font-semibold text-dark truncate">
+                              {item.name}
+                            </h3>
+                            {variant && (
+                              <p className="font-poppins text-xs text-gray-400 mt-0.5">
+                                {variant}
+                              </p>
+                            )}
+                            <p className="font-poppins text-xs text-gray-500 mt-0.5">
+                              Qté : {item.quantity}
+                            </p>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <p className="font-poppins text-sm font-semibold text-dark">
+                              {(unitPrice * item.quantity)
+                                .toFixed(2)
+                                .replace(".", ",")}{" "}
+                              TND
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-poppins font-medium text-dark mb-1 truncate">
-                          {item.name}
-                        </h3>
-                        <p className="font-poppins text-sm text-gray-600">
-                          Quantité: {item.quantity}
-                        </p>
-                      </div>
-                      <div className="flex-shrink-0">
-                        <p className="font-poppins font-semibold text-dark">
-                          {item.price} TND
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    })
+                  )}
                 </div>
 
-                {/* Order Totals */}
-                <div className="space-y-3 mb-6">
-                  <div className="flex justify-between font-poppins">
-                    <span className="text-gray-600">Sous-total</span>
+                {/* Totals */}
+                <div className="space-y-2.5 mb-6">
+                  <div className="flex justify-between font-poppins text-sm">
+                    <span className="text-dark/50">Sous-total</span>
                     <span className="font-medium text-dark">
-                      {subtotal} TND
+                      {subtotal.toFixed(2).replace(".", ",")} TND
                     </span>
                   </div>
-                  <div className="flex justify-between font-poppins">
-                    <span className="text-gray-600">Livraison</span>
+                  <div className="flex justify-between font-poppins text-sm">
+                    <span className="text-dark/50">Livraison</span>
                     <span className="font-medium text-dark">
-                      {shipping} TND
+                      {shipping.toFixed(2).replace(".", ",")} TND
                     </span>
                   </div>
-                  <div className="pt-3 border-t border-gray-200">
-                    <div className="flex justify-between font-poppins">
-                      <span className="text-lg font-semibold text-dark">
-                        Total
-                      </span>
-                      <span className="text-lg font-bold text-dark">
-                        {total} TND
-                      </span>
-                    </div>
+                  <div className="pt-3 border-t border-gray-100 flex justify-between font-poppins">
+                    <span className="text-base font-semibold text-dark">
+                      Total
+                    </span>
+                    <span className="text-base font-bold text-dark">
+                      {total.toFixed(2).replace(".", ",")} TND
+                    </span>
                   </div>
                 </div>
 
-                {/* Submit Button */}
+                {/* Submit Error */}
+                {submitError && (
+                  <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                    <p className="font-poppins text-xs text-red-600">
+                      {submitError}
+                    </p>
+                  </div>
+                )}
+
+                {/* Submit */}
                 <button
                   type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-white font-poppins font-semibold py-4 px-6 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 active:scale-[0.98]"
-                  aria-label="Passer la commande"
+                  disabled={cartItems.length === 0 || submitting}
+                  className="w-full bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed text-white font-poppins font-semibold py-4 px-6 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 active:scale-[0.98] flex items-center justify-center gap-2"
                 >
-                  Passer la commande
+                  {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {submitting ? "Traitement en cours…" : "Passer la commande"}
                 </button>
 
-                <p className="font-poppins text-xs text-gray-500 text-center mt-4">
-                  En passant commande, vous acceptez nos conditions générales de
-                  vente
+                <p className="font-poppins text-[0.68rem] text-gray-400 text-center mt-4 leading-relaxed">
+                  En passant commande, vous acceptez nos{" "}
+                  <Link
+                    href="/cgv"
+                    className="underline hover:text-primary transition-colors"
+                  >
+                    conditions générales de vente
+                  </Link>
+                  .
                 </p>
               </div>
             </div>

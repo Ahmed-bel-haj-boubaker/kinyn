@@ -1,205 +1,60 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Search, ShoppingBag, Menu, X, ChevronDown } from "lucide-react";
 import UserDropdown from "./UserDropdown";
+import { useCart } from "@/lib/cart";
 
-/* ─────────────────────── Navigation Data ─────────────────────── */
+/* ─────────────────────── Types ─────────────────────── */
 
-interface SubCategory {
+interface SubCategoryItem {
   label: string;
   href: string;
 }
 
-interface Category {
+interface MegaCategory {
   label: string;
-  items: SubCategory[];
-}
-
-interface ChildGroup {
-  label: string;
-  categories: Category[];
+  items: SubCategoryItem[];
 }
 
 interface NavLink {
   label: string;
   href: string;
-  categories?: Category[];
-  childGroups?: ChildGroup[];
+  categories?: MegaCategory[];
 }
 
-const femmeCategories: Category[] = [
-  {
-    label: "Hauts",
-    items: [
-      { label: "T-shirt", href: "/femme/t-shirt" },
-      { label: "Chemise", href: "/femme/chemise" },
-      { label: "Blouse", href: "/femme/blouse" },
-      { label: "Pull / Sweater", href: "/femme/pull-sweater" },
-      { label: "Sweat à capuche", href: "/femme/sweat-a-capuche-hoodie" },
-      { label: "Gilet", href: "/femme/gilet" },
-      { label: "Débardeur", href: "/femme/debardeur" },
-      { label: "Polo", href: "/femme/polo" },
-      { label: "Veste légère", href: "/femme/veste-legere" },
-      { label: "Manteau / Parka", href: "/femme/manteau-parka" },
-    ],
-  },
-  {
-    label: "Bas",
-    items: [
-      { label: "Pantalon", href: "/femme/pantalon" },
-      { label: "Jean", href: "/femme/jean" },
-      { label: "Short", href: "/femme/short" },
-      { label: "Jupe", href: "/femme/jupe" },
-      { label: "Legging", href: "/femme/legging" },
-      { label: "Chino", href: "/femme/chino" },
-      { label: "Pantalon de jogging", href: "/femme/pantalon-de-jogging" },
-    ],
-  },
-  {
-    label: "Robes",
-    items: [
-      { label: "Robe courte", href: "/femme/robe-courte" },
-      { label: "Robe longue", href: "/femme/robe-longue" },
-      { label: "Robe de soirée", href: "/femme/robe-de-soiree" },
-      { label: "Robe de cocktail", href: "/femme/robe-de-cocktail" },
-    ],
-  },
-];
+/* ─────────── Static links that always appear ─────────── */
 
-const enfantChildGroups: ChildGroup[] = [
-  {
-    label: "Bébé Fille",
-    categories: [
-      {
-        label: "Hauts",
-        items: [
-          { label: "T-shirt", href: "/enfant/t-shirt" },
-          { label: "Pull / Sweater", href: "/enfant/pull-sweater" },
-          { label: "Sweat à capuche", href: "/enfant/sweat-a-capuche" },
-          { label: "Gilet", href: "/enfant/gilet" },
-        ],
-      },
-      {
-        label: "Bas",
-        items: [
-          { label: "Pantalon", href: "/enfant/pantalon" },
-          { label: "Legging", href: "/enfant/legging" },
-          { label: "Jean", href: "/enfant/jean" },
-          { label: "Short", href: "/enfant/short" },
-        ],
-      },
-      {
-        label: "Robes",
-        items: [
-          { label: "Robe courte", href: "/enfant/robe-courte" },
-          { label: "Robe longue", href: "/enfant/robe-longue" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Bébé Garçon",
-    categories: [
-      {
-        label: "Hauts",
-        items: [
-          { label: "T-shirt", href: "/enfant/t-shirt" },
-          { label: "Pull / Sweater", href: "/enfant/pull-sweater" },
-          { label: "Sweat à capuche", href: "/enfant/sweat-a-capuche" },
-          { label: "Gilet", href: "/enfant/gilet" },
-        ],
-      },
-      {
-        label: "Bas",
-        items: [
-          { label: "Pantalon", href: "/enfant/pantalon" },
-          { label: "Jean", href: "/enfant/jean" },
-          { label: "Short", href: "/enfant/short" },
-          { label: "Pantalon de jogging", href: "/enfant/pantalon-de-jogging" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Fille",
-    categories: [
-      {
-        label: "Hauts",
-        items: [
-          { label: "T-shirt", href: "/enfant/t-shirt" },
-          { label: "Chemise", href: "/enfant/chemise" },
-          { label: "Blouse", href: "/enfant/blouse" },
-          { label: "Pull / Sweater", href: "/enfant/pull-sweater" },
-          { label: "Sweat à capuche", href: "/enfant/sweat-a-capuche" },
-          { label: "Gilet", href: "/enfant/gilet" },
-          { label: "Débardeur", href: "/enfant/debardeur" },
-          { label: "Veste légère", href: "/enfant/veste-legere" },
-          { label: "Manteau / Parka", href: "/enfant/manteau-parka" },
-        ],
-      },
-      {
-        label: "Bas",
-        items: [
-          { label: "Pantalon", href: "/enfant/pantalon" },
-          { label: "Jean", href: "/enfant/jean" },
-          { label: "Short", href: "/enfant/short" },
-          { label: "Jupe", href: "/enfant/jupe" },
-          { label: "Legging", href: "/enfant/legging" },
-          { label: "Chino", href: "/enfant/chino" },
-          { label: "Pantalon de jogging", href: "/enfant/pantalon-de-jogging" },
-        ],
-      },
-      {
-        label: "Robes",
-        items: [
-          { label: "Robe courte", href: "/enfant/robe-courte" },
-          { label: "Robe longue", href: "/enfant/robe-longue" },
-          { label: "Robe de soirée", href: "/enfant/robe-de-soiree" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Garçon",
-    categories: [
-      {
-        label: "Hauts",
-        items: [
-          { label: "T-shirt", href: "/enfant/t-shirt" },
-          { label: "Chemise", href: "/enfant/chemise" },
-          { label: "Pull / Sweater", href: "/enfant/pull-sweater" },
-          { label: "Sweat à capuche", href: "/enfant/sweat-a-capuche" },
-          { label: "Gilet", href: "/enfant/gilet" },
-          { label: "Débardeur", href: "/enfant/debardeur" },
-          { label: "Polo", href: "/enfant/polo" },
-          { label: "Veste légère", href: "/enfant/veste-legere" },
-          { label: "Manteau / Parka", href: "/enfant/manteau-parka" },
-        ],
-      },
-      {
-        label: "Bas",
-        items: [
-          { label: "Pantalon", href: "/enfant/pantalon" },
-          { label: "Jean", href: "/enfant/jean" },
-          { label: "Short", href: "/enfant/short" },
-          { label: "Chino", href: "/enfant/chino" },
-          { label: "Pantalon de jogging", href: "/enfant/pantalon-de-jogging" },
-        ],
-      },
-    ],
-  },
-];
-
-const navLinks: NavLink[] = [
-  { label: "Accueil", href: "/" },
-  { label: "Femme", href: "/femme", categories: femmeCategories },
-  { label: "Enfant", href: "/enfant", childGroups: enfantChildGroups },
+const staticBefore: NavLink[] = [{ label: "Accueil", href: "/" }];
+const staticAfter: NavLink[] = [
   { label: "À propos de nous", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
+
+/* ─────────── API response shapes ─────────── */
+
+interface ApiFinale {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface ApiSous {
+  id: string;
+  name: string;
+  slug: string;
+  items: ApiFinale[];
+}
+
+interface ApiMere {
+  id: string;
+  name: string;
+  slug: string;
+  subcategories: ApiSous[];
+}
 
 /* ─────────────────────── Props ─────────────────────── */
 
@@ -214,10 +69,60 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDesktop, setActiveDesktop] = useState<string | null>(null);
   const [expandedMobile, setExpandedMobile] = useState<string | null>(null);
-  const [expandedMobileChild, setExpandedMobileChild] = useState<string | null>(
-    null,
-  );
+  const [navLinks, setNavLinks] = useState<NavLink[]>([
+    ...staticBefore,
+    ...staticAfter,
+  ]);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { totalItems } = useCart();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  /* ── Fetch categories from DB and build nav links ── */
+  const buildNavLinks = useCallback((meres: ApiMere[]): NavLink[] => {
+    const dynamic: NavLink[] = meres.map((mere) => {
+      const categories: MegaCategory[] = mere.subcategories.map((sous) => ({
+        label: sous.name,
+        items: sous.items.map((fin) => ({
+          label: fin.name,
+          href: `/${mere.slug}/${fin.slug}`,
+        })),
+      }));
+
+      return {
+        label: mere.name,
+        href: `/${mere.slug}`,
+        ...(categories.length > 0 ? { categories } : {}),
+      };
+    });
+
+    return [...staticBefore, ...dynamic, ...staticAfter];
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchCategories() {
+      try {
+        const res = await fetch("/api/categories");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && data.categories) {
+          setNavLinks(buildNavLinks(data.categories));
+        }
+      } catch {
+        /* keep static fallback */
+      }
+    }
+
+    fetchCategories();
+    return () => {
+      cancelled = true;
+    };
+  }, [buildNavLinks]);
 
   /* Lock body scroll when mobile menu is open */
   useEffect(() => {
@@ -238,11 +143,16 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
   };
 
   const hasDropdown = (link: NavLink) =>
-    !!(link.categories || link.childGroups);
+    !!(link.categories && link.categories.length > 0);
 
-  /* ─────── Render flat mega menu (Femme) ─────── */
-  const renderFlatMega = (categories: Category[]) => (
-    <div className="grid grid-cols-3 gap-12 px-10 py-8">
+  /* ─────── Render flat mega menu ─────── */
+  const renderFlatMega = (categories: MegaCategory[]) => (
+    <div
+      className="grid gap-12 px-10 py-8"
+      style={{
+        gridTemplateColumns: `repeat(${Math.min(categories.length, 4)}, minmax(0, 1fr))`,
+      }}
+    >
       {categories.map((cat) => (
         <div key={cat.label}>
           <h4 className="font-poppins text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2C2C2C] mb-4">
@@ -266,49 +176,9 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
     </div>
   );
 
-  /* ─────── Render grouped mega menu (Enfant) ─────── */
-  const renderGroupedMega = (groups: ChildGroup[]) => (
-    <div className="flex gap-0 divide-x divide-[#EEECE7] px-2 py-8">
-      {groups.map((group) => (
-        <div key={group.label} className="flex-1 px-8 first:pl-10 last:pr-10">
-          <h3 className="font-poppins text-[11.5px] font-bold uppercase tracking-[0.12em] text-[#2C2C2C] mb-5 pb-2 border-b border-[#E8E6E1]">
-            {group.label}
-          </h3>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-6">
-            {group.categories.map((cat) => (
-              <div key={cat.label}>
-                <h4 className="font-poppins text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[#888] mb-2.5">
-                  {cat.label}
-                </h4>
-                <ul className="flex flex-col gap-1.5">
-                  {cat.items.map((item) => (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        onClick={() => setActiveDesktop(null)}
-                        className="font-poppins text-[12px] text-[#555] transition-colors duration-200 hover:text-[#111]"
-                      >
-                        {item.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
   /* ─────── Mobile accordion helpers ─────── */
   const toggleMobileSection = (label: string) => {
     setExpandedMobile((prev) => (prev === label ? null : label));
-    setExpandedMobileChild(null);
-  };
-
-  const toggleMobileChild = (label: string) => {
-    setExpandedMobileChild((prev) => (prev === label ? null : label));
   };
 
   return (
@@ -392,12 +262,17 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
             type="button"
             onClick={onCartClick}
             aria-label="Shopping bag"
-            className="cursor-pointer text-[#2C2C2C] transition-colors duration-200 hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-2 rounded-sm"
+            className="relative cursor-pointer text-[#2C2C2C] transition-colors duration-200 hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-2 rounded-sm"
           >
             <ShoppingBag
               className="h-4 w-4 sm:h-[18px] sm:w-[18px]"
               strokeWidth={1.4}
             />
+            {mounted && totalItems > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold font-poppins text-white leading-none">
+                {totalItems > 99 ? "99+" : totalItems}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -421,7 +296,6 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
             >
               <div className="mx-auto max-w-6xl">
                 {link.categories && renderFlatMega(link.categories)}
-                {link.childGroups && renderGroupedMega(link.childGroups)}
               </div>
             </div>
           ),
@@ -515,7 +389,7 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
                   </Link>
                 )}
 
-                {/* Femme-style flat accordion */}
+                {/* Flat accordion */}
                 {link.categories && expandedMobile === link.label && (
                   <div className="pb-4 pl-3 ">
                     {link.categories.map((cat) => (
@@ -536,56 +410,6 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
                             </li>
                           ))}
                         </ul>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Enfant-style grouped accordion */}
-                {link.childGroups && expandedMobile === link.label && (
-                  <div className="pb-4 pl-2">
-                    {link.childGroups.map((group) => (
-                      <div key={group.label} className="mb-1">
-                        <button
-                          type="button"
-                          onClick={() => toggleMobileChild(group.label)}
-                          className="flex w-full items-center justify-between py-2.5 font-poppins text-[12px] font-semibold uppercase tracking-[0.08em] text-[#2C2C2C]/80 transition-colors duration-200 hover:text-[#111]"
-                        >
-                          <span>{group.label}</span>
-                          <ChevronDown
-                            className={`h-3.5 w-3.5 text-[#2C2C2C]/30 transition-transform duration-200 ${
-                              expandedMobileChild === group.label
-                                ? "rotate-180"
-                                : ""
-                            }`}
-                            strokeWidth={1.8}
-                          />
-                        </button>
-
-                        {expandedMobileChild === group.label && (
-                          <div className="pb-3 pl-3">
-                            {group.categories.map((cat) => (
-                              <div key={cat.label} className="mb-3 last:mb-0">
-                                <h4 className="font-poppins text-[10px] font-semibold uppercase tracking-[0.12em] text-[#999] mb-1.5">
-                                  {cat.label}
-                                </h4>
-                                <ul className="flex flex-col gap-1 pl-1.5">
-                                  {cat.items.map((item) => (
-                                    <li key={item.href}>
-                                      <Link
-                                        href={item.href}
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className="font-poppins text-[12px] text-[#555] transition-colors duration-200 hover:text-[#111]"
-                                      >
-                                        {item.label}
-                                      </Link>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ))}
-                          </div>
-                        )}
                       </div>
                     ))}
                   </div>

@@ -345,6 +345,90 @@ export async function getCurrentUser(
   }
 }
 
+/* ──────────────── Update Current User Profile ──────────────── */
+
+interface UpdateProfileInput {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+}
+
+export async function updateProfile(
+  req: NextRequest,
+  input: UpdateProfileInput,
+): Promise<ServiceResult<SafeUser>> {
+  try {
+    /* Extract token */
+    const authHeader = req.headers.get("authorization");
+    let token: string | undefined;
+
+    if (authHeader?.startsWith("Bearer ")) {
+      token = authHeader.slice(7);
+    } else {
+      token = req.cookies.get(COOKIE_NAME)?.value;
+    }
+
+    if (!token) {
+      return { success: false, error: "Non authentifié.", status: 401 };
+    }
+
+    const payload = verifyToken(token);
+    if (!payload) {
+      return {
+        success: false,
+        error: "Session expirée ou invalide.",
+        status: 401,
+      };
+    }
+
+    await connectDB();
+
+    const user = await User.findById(payload.userId);
+    if (!user) {
+      return {
+        success: false,
+        error: "Utilisateur introuvable.",
+        status: 404,
+      };
+    }
+
+    if (user.status !== "active") {
+      return {
+        success: false,
+        error: "Votre compte n'est plus actif.",
+        status: 403,
+      };
+    }
+
+    /* Update allowed fields */
+    if (input.firstName?.trim()) user.firstName = input.firstName.trim();
+    if (input.lastName?.trim()) user.lastName = input.lastName.trim();
+    if (input.phone !== undefined) user.phone = input.phone.trim();
+
+    await user.save();
+
+    return { success: true, data: user.toSafeObject() };
+  } catch (error) {
+    console.error("[Auth Service] Update profile error:", error);
+
+    if (error instanceof Error && error.name === "ValidationError") {
+      const messages = Object.values(
+        (error as unknown as { errors: Record<string, { message: string }> })
+          .errors,
+      )
+        .map((e) => e.message)
+        .join(" ");
+      return { success: false, error: messages, status: 400 };
+    }
+
+    return {
+      success: false,
+      error: "Une erreur interne est survenue.",
+      status: 500,
+    };
+  }
+}
+
 /* ──────────────── Admin: Create Admin ──────────────── */
 
 interface CreateAdminInput {

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   MapPin,
   Pencil,
@@ -17,6 +18,22 @@ import ProfileInfo from "../component/profile/ProfileInfo";
 import AddressModal from "../component/profile/AddressModal";
 import OrdersList from "../component/profile/OrdersList";
 import WishlistGrid from "../component/profile/WishlistGrid";
+
+/* ─────────── User type (matches SafeUser from API) ─────────── */
+
+export interface UserProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  role: string;
+  status: string;
+  avatar: string;
+  isEmailVerified: boolean;
+  lastLogin: string | null;
+  createdAt: string;
+}
 
 /* ─────────── Mock Addresses ─────────── */
 
@@ -56,11 +73,51 @@ const overviewStats = [
 /* ─────────── Component ─────────── */
 
 export default function ProfilePage() {
+  const router = useRouter();
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
   const [section, setSection] = useState<ProfileSection>("overview");
   const [addresses, setAddresses] = useState<Address[]>(initialAddresses);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [modalKey, setModalKey] = useState(0);
+
+  /* ── Fetch connected user ── */
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (!res.ok) {
+          router.push("/auth/sign-in");
+          return;
+        }
+        const json = await res.json();
+        setUser(json.user);
+      } catch {
+        router.push("/auth/sign-in");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchUser();
+  }, [router]);
+
+  /* ── Handle user update from ProfileInfo ── */
+
+  const handleUserUpdate = useCallback((updated: UserProfile) => {
+    setUser(updated);
+  }, []);
+
+  /* ── Logout ── */
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await fetch("/api/auth/sign-out", { method: "POST" });
+    } finally {
+      router.push("/auth/sign-in");
+    }
+  }, [router]);
 
   const openAddModal = () => {
     setEditingAddress(null);
@@ -103,7 +160,7 @@ export default function ProfilePage() {
       {/* Welcome header */}
       <div className="mb-6 sm:mb-10">
         <h2 className="font-erotique text-xl sm:text-2xl lg:text-3xl text-dark mb-1.5 sm:mb-2">
-          Bienvenue, Amira
+          Bienvenue, {user?.firstName ?? ""}
         </h2>
         <p className="font-poppins text-[12.5px] sm:text-[13.5px] text-[#888] leading-relaxed">
           Gérez vos informations personnelles, vos adresses et suivez vos
@@ -251,7 +308,7 @@ export default function ProfilePage() {
 
   const sectionContent: Record<ProfileSection, React.ReactNode> = {
     overview: renderOverview(),
-    info: <ProfileInfo />,
+    info: <ProfileInfo user={user} onUpdate={handleUserUpdate} />,
     addresses: renderAddresses(),
     orders: <OrdersList />,
     wishlist: <WishlistGrid />,
@@ -260,16 +317,50 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-12 py-8 sm:py-12 lg:py-20">
-        {/* Page title */}
-        <h1 className="font-erotique text-2xl sm:text-3xl lg:text-4xl text-dark mb-6 sm:mb-10 lg:mb-14">
-          Mon Compte
-        </h1>
+        {/* Loading state */}
+        {loading ? (
+          <div className="flex items-center justify-center py-24">
+            <div className="flex flex-col items-center gap-3">
+              <svg
+                className="w-8 h-8 text-primary animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+              <p className="font-poppins text-sm text-dark/40">Chargement…</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Page title */}
+            <h1 className="font-erotique text-2xl sm:text-3xl lg:text-4xl text-dark mb-6 sm:mb-10 lg:mb-14">
+              Mon Compte
+            </h1>
 
-        {/* Layout: sidebar + content */}
-        <div className="flex flex-col lg:flex-row lg:gap-12">
-          <ProfileSidebar active={section} onChange={setSection} />
-          <div className="flex-1 min-w-0">{sectionContent[section]}</div>
-        </div>
+            {/* Layout: sidebar + content */}
+            <div className="flex flex-col lg:flex-row lg:gap-12">
+              <ProfileSidebar
+                active={section}
+                onChange={setSection}
+                onLogout={handleLogout}
+              />
+              <div className="flex-1 min-w-0">{sectionContent[section]}</div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Address Modal */}

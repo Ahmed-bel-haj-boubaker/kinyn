@@ -109,7 +109,7 @@ export function middleware(req: NextRequest) {
       process.env.NODE_ENV === "development"
         ? "connect-src 'self' ws://127.0.0.1:* ws://localhost:*"
         : "connect-src 'self'",
-      "frame-ancestors 'none'",
+      "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self'",
     ].join("; "),

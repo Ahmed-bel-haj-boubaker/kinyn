@@ -5,12 +5,20 @@ import type { Product, ProductStatus } from "./ProductTable";
 
 type ModalMode = "create" | "edit";
 
+interface CategoryOption {
+  id: string;
+  name: string;
+}
+
 interface ProductModalProps {
   isOpen: boolean;
   mode: ModalMode;
   initialData?: Product | null;
   onClose: () => void;
   onSave: (product: Omit<Product, "id"> & { id?: string }) => void;
+  saving?: boolean;
+  categories: CategoryOption[];
+  getCategoryChildren: (parentId: string) => CategoryOption[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -22,6 +30,9 @@ interface FormInnerProps {
   initialData?: Product | null;
   onClose: () => void;
   onSave: (product: Omit<Product, "id"> & { id?: string }) => void;
+  saving?: boolean;
+  categories: CategoryOption[];
+  getCategoryChildren: (parentId: string) => CategoryOption[];
 }
 
 type Section = "general" | "category" | "pricing" | "images" | "variants";
@@ -124,23 +135,6 @@ const SECTIONS: { key: Section; label: string; icon: ReactNode }[] = [
   },
 ];
 
-const CATEGORY_TREE = {
-  Femme: {
-    Vêtements: ["Robes", "Jupes", "Pantalons", "Tops"],
-    Chaussures: ["Talons", "Bottines", "Sneakers"],
-    Accessoires: ["Sacs", "Bijoux", "Ceintures"],
-  },
-  Homme: {
-    Vêtements: ["Chemises", "Pantalons", "Vestes"],
-    Chaussures: ["Mocassins", "Sneakers", "Boots"],
-    Accessoires: ["Montres", "Portefeuilles"],
-  },
-  Enfant: {
-    Vêtements: ["Hauts", "Bas", "Combinaisons"],
-    Chaussures: ["Baskets", "Sandales"],
-  },
-} as Record<string, Record<string, string[]>>;
-
 const ALL_SIZES = [
   "XS",
   "S",
@@ -175,6 +169,9 @@ function ProductFormInner({
   initialData,
   onClose,
   onSave,
+  saving,
+  categories,
+  getCategoryChildren,
 }: FormInnerProps) {
   const [section, setSection] = useState<Section>("general");
 
@@ -204,17 +201,20 @@ function ProductFormInner({
   const [images, setImages] = useState<string[]>(initialData?.images ?? []);
   const [sizes, setSizes] = useState<string[]>(initialData?.sizes ?? []);
   const [colors, setColors] = useState<string[]>(initialData?.colors ?? []);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   /* Validation */
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const sousOptions = categoryMere
-    ? Object.keys(CATEGORY_TREE[categoryMere] ?? {})
-    : [];
-  const finaleOptions =
-    categoryMere && categorySous
-      ? (CATEGORY_TREE[categoryMere]?.[categorySous] ?? [])
-      : [];
+  const sousOptions = categoryMere ? getCategoryChildren(categoryMere) : [];
+  const finaleOptions = categorySous ? getCategoryChildren(categorySous) : [];
+
+  /* Resolve category names for display */
+  const mereName = categories.find((c) => c.id === categoryMere)?.name ?? "";
+  const sousName = sousOptions.find((c) => c.id === categorySous)?.name ?? "";
+  const finaleName =
+    finaleOptions.find((c) => c.id === categoryFinale)?.name ?? "";
 
   const validate = (): boolean => {
     const e: Record<string, string> = {};
@@ -236,11 +236,15 @@ function ProductFormInner({
     onSave({
       ...(initialData?.id ? { id: initialData.id } : {}),
       name: name.trim(),
+      slug: "",
       description: description.trim(),
       sku: sku.trim(),
       categoryMere,
-      categorySous,
-      categoryFinale,
+      categoryMereName: mereName,
+      categorySous: categorySous || null,
+      categorySousName: sousName || null,
+      categoryFinale: categoryFinale || null,
+      categoryFinaleName: finaleName || null,
       price: Number(price),
       promoPrice: promoPrice ? Number(promoPrice) : undefined,
       stock: Number(stock),
@@ -261,9 +265,30 @@ function ProductFormInner({
       prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
     );
 
-  const addImageSlot = () => setImages((prev) => [...prev, ""]);
   const removeImage = (i: number) =>
     setImages((prev) => prev.filter((_, idx) => idx !== i));
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      Array.from(files).forEach((f) => formData.append("images", f));
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const json = await res.json();
+      if (res.ok && json.urls) {
+        setImages((prev) => [...prev, ...json.urls]);
+      }
+    } catch {
+      /* silently fail upload */
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const fieldClass = (field: string) =>
     `w-full px-4 py-2.5 rounded-xl border ${
@@ -412,9 +437,9 @@ function ProductFormInner({
                 className={selectClass("categoryMere")}
               >
                 <option value="">Sélectionner…</option>
-                {Object.keys(CATEGORY_TREE).map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
                   </option>
                 ))}
               </select>
@@ -440,8 +465,8 @@ function ProductFormInner({
                 >
                   <option value="">Sélectionner…</option>
                   {sousOptions.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
+                    <option key={c.id} value={c.id}>
+                      {c.name}
                     </option>
                   ))}
                 </select>
@@ -460,8 +485,8 @@ function ProductFormInner({
                 >
                   <option value="">Sélectionner…</option>
                   {finaleOptions.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
+                    <option key={c.id} value={c.id}>
+                      {c.name}
                     </option>
                   ))}
                 </select>
@@ -475,12 +500,12 @@ function ProductFormInner({
                   Chemin de catégorie
                 </p>
                 <p className="font-poppins text-sm text-dark font-medium">
-                  {categoryMere}
-                  {categorySous && (
-                    <span className="text-dark/40"> › {categorySous}</span>
+                  {mereName}
+                  {sousName && (
+                    <span className="text-dark/40"> › {sousName}</span>
                   )}
-                  {categoryFinale && (
-                    <span className="text-dark/40"> › {categoryFinale}</span>
+                  {finaleName && (
+                    <span className="text-dark/40"> › {finaleName}</span>
                   )}
                 </p>
               </div>
@@ -583,14 +608,29 @@ function ProductFormInner({
         {/* ========== IMAGES ========== */}
         {section === "images" && (
           <>
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+              multiple
+              className="hidden"
+              onChange={(e) => handleFileUpload(e.target.files)}
+            />
+
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {images.map((img, i) => (
                 <div
                   key={i}
-                  className="relative aspect-square rounded-xl border-2 border-dashed border-gray-200 bg-dark/2 flex items-center justify-center group"
+                  className="relative aspect-square rounded-xl border-2 border-dashed border-gray-200 bg-dark/2 flex items-center justify-center group overflow-hidden"
                 >
                   {img ? (
-                    <div className="w-full h-full rounded-xl bg-dark/10" />
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={img}
+                      alt={`Image ${i + 1}`}
+                      className="w-full h-full object-cover rounded-xl"
+                    />
                   ) : (
                     <svg
                       className="w-8 h-8 text-dark/15"
@@ -634,33 +674,56 @@ function ProductFormInner({
                 </div>
               ))}
 
-              {/* Add slot */}
+              {/* Upload button */}
               <button
                 type="button"
-                onClick={addImageSlot}
-                className="aspect-square rounded-xl border-2 border-dashed border-gray-200 hover:border-primary/40 bg-dark/2 hover:bg-primary/2 flex flex-col items-center justify-center gap-1.5 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="aspect-square rounded-xl border-2 border-dashed border-gray-200 hover:border-primary/40 bg-dark/2 hover:bg-primary/2 flex flex-col items-center justify-center gap-1.5 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
               >
-                <svg
-                  className="w-6 h-6 text-dark/20"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
+                {uploading ? (
+                  <svg
+                    className="w-6 h-6 text-dark/30 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-6 h-6 text-dark/20"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                )}
                 <span className="font-poppins text-xs text-dark/30">
-                  Ajouter
+                  {uploading ? "Envoi…" : "Ajouter"}
                 </span>
               </button>
             </div>
             <p className="font-poppins text-xs text-dark/30">
-              La première image sera utilisée comme image principale. Glissez
-              pour réorganiser.
+              La première image sera utilisée comme image principale. Max 5 Mo
+              par image. Formats : JPEG, PNG, WebP, AVIF, GIF.
             </p>
           </>
         )}
@@ -763,9 +826,14 @@ function ProductFormInner({
           <button
             type="button"
             onClick={handleSubmit}
-            className="px-5 py-2.5 rounded-xl bg-primary text-white font-poppins text-sm font-medium hover:bg-primary/90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            disabled={saving}
+            className="px-5 py-2.5 rounded-xl bg-primary text-white font-poppins text-sm font-medium hover:bg-primary/90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
           >
-            {mode === "create" ? "Créer le produit" : "Enregistrer"}
+            {saving
+              ? "Enregistrement…"
+              : mode === "create"
+                ? "Créer le produit"
+                : "Enregistrer"}
           </button>
         </div>
       </div>
@@ -783,6 +851,9 @@ export default function ProductModal({
   initialData,
   onClose,
   onSave,
+  saving,
+  categories,
+  getCategoryChildren,
 }: ProductModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -835,6 +906,9 @@ export default function ProductModal({
             initialData={initialData}
             onClose={onClose}
             onSave={onSave}
+            saving={saving}
+            categories={categories}
+            getCategoryChildren={getCategoryChildren}
           />
         )}
       </div>

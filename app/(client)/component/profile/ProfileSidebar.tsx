@@ -19,6 +19,7 @@ export type ProfileSection =
 interface ProfileSidebarProps {
   active: ProfileSection;
   onChange: (section: ProfileSection) => void;
+  onLogout?: () => void;
 }
 
 const menuItems: {
@@ -39,6 +40,7 @@ const menuItems: {
 export default function ProfileSidebar({
   active,
   onChange,
+  onLogout,
 }: ProfileSidebarProps) {
   return (
     <>
@@ -56,7 +58,11 @@ export default function ProfileSidebar({
                   <button
                     type="button"
                     onClick={() => {
-                      if (!isLogout) onChange(item.key as ProfileSection);
+                      if (isLogout) {
+                        onLogout?.();
+                      } else {
+                        onChange(item.key as ProfileSection);
+                      }
                     }}
                     className={`flex w-full cursor-pointer items-center gap-3 rounded-lg px-4 py-3 font-poppins text-[13px] transition-all duration-200 ${
                       isLogout

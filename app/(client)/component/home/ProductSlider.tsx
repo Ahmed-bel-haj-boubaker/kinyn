@@ -20,6 +20,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { createPortal } from "react-dom";
+import { useCart } from "@/lib/cart";
 
 interface Product {
   id: number;
@@ -144,6 +145,7 @@ function QuickViewModal({
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
+  const { addItem } = useCart();
 
   /* Enter animation */
   useEffect(() => {
@@ -186,9 +188,35 @@ function QuickViewModal({
       return;
     }
     setSizeError(false);
+
+    /* Parse price string like "89.000 DT" → 89 */
+    const parsePrice = (s: string) =>
+      parseFloat(s.replace(/[^0-9.,]/g, "").replace(",", ".")) || 0;
+    const price = parsePrice(product.price);
+    const promoPrice = product.originalPrice ? parsePrice(product.price) : null;
+    const originalPrice = product.originalPrice
+      ? parsePrice(product.originalPrice)
+      : price;
+
+    /* Extract category slug from href e.g. "/homme/t-shirt" → "homme" */
+    const parts = product.href.split("/").filter(Boolean);
+
+    addItem({
+      productId: String(product.id),
+      name: product.name,
+      slug: parts[parts.length - 1] || String(product.id),
+      image: product.image,
+      price: product.originalPrice ? originalPrice : price,
+      promoPrice: promoPrice,
+      color: selectedColor,
+      size: selectedSize || "",
+      categorySlug: parts[0] || "",
+      quantity: quantity,
+    });
+
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2200);
-  }, [selectedSize]);
+  }, [selectedSize, selectedColor, quantity, product, addItem]);
 
   const isVisible = phase === "visible";
   const isExiting = phase === "exit";
@@ -203,7 +231,7 @@ function QuickViewModal({
     <div
       ref={backdropRef}
       onClick={handleBackdropClick}
-      className={`fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 transition-all duration-500 ${
+      className={`fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-3 md:p-5 lg:p-6 transition-all duration-500 ${
         isVisible
           ? "bg-dark/50 backdrop-blur-sm"
           : isExiting
@@ -212,7 +240,7 @@ function QuickViewModal({
       }`}
     >
       <div
-        className={`relative w-full sm:max-w-[1020px] h-[95dvh] sm:h-auto sm:max-h-[92vh] overflow-y-auto overflow-x-hidden rounded-t-2xl sm:rounded-2xl bg-background shadow-2xl transition-all duration-500 ease-out ${
+        className={`relative w-full sm:max-w-[540px] md:max-w-[760px] lg:max-w-[940px] xl:max-w-[1060px] h-[92dvh] sm:h-auto sm:max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-t-2xl sm:rounded-2xl bg-background shadow-2xl transition-all duration-500 ease-out ${
           isVisible
             ? "opacity-100 scale-100 translate-y-0"
             : isExiting
@@ -245,7 +273,7 @@ function QuickViewModal({
             style={stagger(100)}
           >
             {/* Main image */}
-            <div className="relative aspect-square sm:aspect-[3/4] overflow-hidden group">
+            <div className="relative aspect-[4/5] sm:aspect-[3/4] overflow-hidden group">
               <Image
                 key={selectedImage}
                 src={images[selectedImage]}
@@ -330,10 +358,10 @@ function QuickViewModal({
           </div>
 
           {/* ════════════ RIGHT: Product Details ════════════ */}
-          <div className="flex flex-col px-4 py-5 sm:px-6 sm:py-7 md:px-8 md:py-9 overflow-y-auto">
+          <div className="flex flex-col px-4 py-4 sm:px-5 sm:py-5 md:px-7 md:py-7 lg:px-8 lg:py-8 xl:px-9 xl:py-9 overflow-y-auto md:max-h-[90vh]">
             {/* Category breadcrumb */}
             <div
-              className={`flex items-center gap-2 mb-5 transition-all duration-500 ease-out ${
+              className={`flex items-center gap-2 mb-3 sm:mb-4 lg:mb-5 transition-all duration-500 ease-out ${
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-3"
@@ -349,7 +377,7 @@ function QuickViewModal({
 
             {/* Product name */}
             <h3
-              className={`font-erotique text-xl sm:text-2xl md:text-3xl text-dark leading-[1.08] mb-2 sm:mb-3 transition-all duration-600 ease-out ${
+              className={`font-erotique text-lg sm:text-xl md:text-2xl lg:text-[1.75rem] xl:text-3xl text-dark leading-[1.08] mb-1.5 sm:mb-2 lg:mb-3 transition-all duration-600 ease-out ${
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-6"
@@ -361,22 +389,22 @@ function QuickViewModal({
 
             {/* Accent line */}
             <div
-              className={`h-[1.5px] rounded-full bg-primary/50 mb-5 transition-all duration-700 ease-out origin-left ${
-                isVisible ? "w-10" : "w-0"
+              className={`h-[1.5px] rounded-full bg-primary/50 mb-3 sm:mb-4 lg:mb-5 transition-all duration-700 ease-out origin-left ${
+                isVisible ? "w-8 sm:w-10" : "w-0"
               }`}
               style={stagger(320)}
             />
 
             {/* Price */}
             <div
-              className={`flex items-baseline gap-2 sm:gap-3 mb-4 sm:mb-5 transition-all duration-500 ease-out ${
+              className={`flex items-baseline flex-wrap gap-1.5 sm:gap-2 lg:gap-3 mb-3 sm:mb-4 lg:mb-5 transition-all duration-500 ease-out ${
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-4"
               }`}
               style={stagger(340)}
             >
-              <span className="font-poppins text-lg sm:text-xl md:text-2xl font-semibold text-dark">
+              <span className="font-poppins text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-dark">
                 {product.price}
               </span>
               {product.originalPrice && (
@@ -388,7 +416,7 @@ function QuickViewModal({
 
             {/* Description — hidden on very small to save space, shown from sm up */}
             <p
-              className={`hidden sm:block font-poppins text-[0.72rem] sm:text-[0.74rem] leading-[1.7] sm:leading-[1.8] text-dark/45 mb-4 sm:mb-6 transition-all duration-500 ease-out ${
+              className={`font-poppins text-[0.68rem] sm:text-[0.72rem] lg:text-[0.76rem] leading-[1.6] sm:leading-[1.7] lg:leading-[1.8] text-dark/45 mb-3 sm:mb-4 lg:mb-6 line-clamp-2 sm:line-clamp-3 lg:line-clamp-4 transition-all duration-500 ease-out ${
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-4"
@@ -404,26 +432,26 @@ function QuickViewModal({
 
             {/* ── Color Selector ── */}
             <div
-              className={`mb-4 sm:mb-5 transition-all duration-500 ease-out ${
+              className={`mb-3 sm:mb-4 lg:mb-5 transition-all duration-500 ease-out ${
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-4"
               }`}
               style={stagger(420)}
             >
-              <p className="font-poppins text-[0.68rem] sm:text-[0.72rem] font-medium text-dark mb-2">
+              <p className="font-poppins text-[0.65rem] sm:text-[0.7rem] lg:text-[0.74rem] font-medium text-dark mb-1.5 sm:mb-2">
                 Couleur :{" "}
                 <span className="font-normal text-dark/50">
                   {selectedColor}
                 </span>
               </p>
-              <div className="flex items-center gap-2 sm:gap-2.5">
+              <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-2.5 flex-wrap">
                 {MODAL_COLORS.map((color) => (
                   <button
                     key={color.name}
                     type="button"
                     onClick={() => setSelectedColor(color.name)}
-                    className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full border-2 transition-all duration-200 ${
+                    className={`h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 rounded-full border-2 transition-all duration-200 ${
                       selectedColor === color.name
                         ? "border-primary ring-2 ring-primary/20 scale-110"
                         : "border-dark/12 hover:border-dark/25"
@@ -437,14 +465,14 @@ function QuickViewModal({
 
             {/* ── Size Selector ── */}
             <div
-              className={`mb-4 sm:mb-5 transition-all duration-500 ease-out ${
+              className={`mb-3 sm:mb-4 lg:mb-5 transition-all duration-500 ease-out ${
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-4"
               }`}
               style={stagger(460)}
             >
-              <p className="font-poppins text-[0.68rem] sm:text-[0.72rem] font-medium text-dark mb-2">
+              <p className="font-poppins text-[0.65rem] sm:text-[0.7rem] lg:text-[0.74rem] font-medium text-dark mb-1.5 sm:mb-2">
                 Taille{" "}
                 {selectedSize && (
                   <span className="font-normal text-dark/50">
@@ -461,7 +489,7 @@ function QuickViewModal({
                       setSelectedSize(size);
                       setSizeError(false);
                     }}
-                    className={`min-w-[2.4rem] sm:min-w-[2.8rem] rounded-lg border px-2.5 sm:px-3.5 py-1.5 sm:py-2 font-poppins text-[0.66rem] sm:text-[0.7rem] font-medium transition-all duration-200 active:scale-95 ${
+                    className={`min-w-[2.2rem] sm:min-w-[2.6rem] lg:min-w-[2.8rem] rounded-lg border px-2 sm:px-3 lg:px-3.5 py-1 sm:py-1.5 lg:py-2 font-poppins text-[0.62rem] sm:text-[0.68rem] lg:text-[0.72rem] font-medium transition-all duration-200 active:scale-95 ${
                       selectedSize === size
                         ? "border-primary bg-primary text-background"
                         : "border-dark/12 text-dark/60 hover:border-dark/25"
@@ -482,7 +510,7 @@ function QuickViewModal({
 
             {/* ── Quantity + Add to Cart + Wishlist ── */}
             <div
-              className={`flex flex-col gap-2.5 sm:gap-3 mb-4 sm:mb-5 transition-all duration-500 ease-out ${
+              className={`flex flex-col gap-2 sm:gap-2.5 lg:gap-3 mb-3 sm:mb-4 lg:mb-5 transition-all duration-500 ease-out ${
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-6"
@@ -490,13 +518,13 @@ function QuickViewModal({
               style={stagger(500)}
             >
               {/* Row: Quantity + Cart + Wishlist */}
-              <div className="flex gap-2 sm:gap-2.5">
+              <div className="flex gap-1.5 sm:gap-2 lg:gap-2.5">
                 {/* Quantity */}
                 <div className="flex items-center border border-dark/12 rounded-lg shrink-0">
                   <button
                     type="button"
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="flex h-10 w-9 sm:h-11 sm:w-10 items-center justify-center text-dark/40 transition-colors duration-200 hover:text-dark active:text-dark"
+                    className="flex h-9 w-8 sm:h-10 sm:w-9 lg:h-11 lg:w-10 items-center justify-center text-dark/40 transition-colors duration-200 hover:text-dark active:text-dark"
                     aria-label="Diminuer la quantité"
                   >
                     <Minus
@@ -504,13 +532,13 @@ function QuickViewModal({
                       strokeWidth={2}
                     />
                   </button>
-                  <span className="flex h-10 w-7 sm:h-11 sm:w-8 items-center justify-center font-poppins text-[0.72rem] sm:text-[0.78rem] font-medium text-dark tabular-nums">
+                  <span className="flex h-9 w-6 sm:h-10 sm:w-7 lg:h-11 lg:w-8 items-center justify-center font-poppins text-[0.68rem] sm:text-[0.74rem] lg:text-[0.78rem] font-medium text-dark tabular-nums">
                     {quantity}
                   </span>
                   <button
                     type="button"
                     onClick={() => setQuantity((q) => Math.min(10, q + 1))}
-                    className="flex h-10 w-9 sm:h-11 sm:w-10 items-center justify-center text-dark/40 transition-colors duration-200 hover:text-dark active:text-dark"
+                    className="flex h-9 w-8 sm:h-10 sm:w-9 lg:h-11 lg:w-10 items-center justify-center text-dark/40 transition-colors duration-200 hover:text-dark active:text-dark"
                     aria-label="Augmenter la quantité"
                   >
                     <Plus
@@ -524,7 +552,7 @@ function QuickViewModal({
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className={`flex-1 flex items-center justify-center gap-2 sm:gap-2.5 rounded-lg py-2.5 sm:py-3 font-poppins text-[0.65rem] sm:text-[0.72rem] font-semibold uppercase tracking-[0.06em] sm:tracking-[0.08em] transition-all duration-300 ${
+                  className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 lg:gap-2.5 rounded-lg py-2 sm:py-2.5 lg:py-3 font-poppins text-[0.6rem] sm:text-[0.68rem] lg:text-[0.74rem] font-semibold uppercase tracking-[0.04em] sm:tracking-[0.06em] lg:tracking-[0.08em] transition-all duration-300 ${
                     addedToCart
                       ? "bg-green-600 text-background"
                       : "bg-primary text-background hover:bg-dark active:scale-[0.97]"
@@ -534,10 +562,10 @@ function QuickViewModal({
                     className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                     strokeWidth={1.6}
                   />
-                  <span className="hidden xs:inline">
+                  <span className="hidden sm:inline">
                     {addedToCart ? "Ajouté !" : "Ajouter au panier"}
                   </span>
-                  <span className="xs:hidden">
+                  <span className="sm:hidden">
                     {addedToCart ? "Ajouté !" : "Ajouter"}
                   </span>
                 </button>
@@ -546,7 +574,7 @@ function QuickViewModal({
                 <button
                   type="button"
                   onClick={() => setIsWishlisted(!isWishlisted)}
-                  className={`flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 active:scale-90 ${
+                  className={`flex h-9 w-9 sm:h-10 sm:w-10 lg:h-11 lg:w-11 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 active:scale-90 ${
                     isWishlisted
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-dark/12 text-dark/35 hover:border-primary hover:text-primary"
@@ -556,7 +584,7 @@ function QuickViewModal({
                   }
                 >
                   <Heart
-                    className={`h-4 w-4 sm:h-[18px] sm:w-[18px] transition-all duration-200 ${
+                    className={`h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-4.5 lg:w-4.5 transition-all duration-200 ${
                       isWishlisted ? "fill-primary" : ""
                     }`}
                     strokeWidth={1.8}
@@ -567,7 +595,7 @@ function QuickViewModal({
               {/* View full product page */}
               <Link
                 href={product.href}
-                className="group flex items-center justify-center gap-2 sm:gap-2.5 w-full border border-dark/12 py-2.5 sm:py-3 rounded-lg font-poppins text-[0.62rem] sm:text-[0.66rem] font-medium uppercase tracking-[0.1em] text-dark/50 transition-all duration-300 hover:border-dark/30 hover:text-dark active:scale-[0.97]"
+                className="group flex items-center justify-center gap-1.5 sm:gap-2 lg:gap-2.5 w-full border border-dark/12 py-2 sm:py-2.5 lg:py-3 rounded-lg font-poppins text-[0.58rem] sm:text-[0.64rem] lg:text-[0.68rem] font-medium uppercase tracking-[0.08em] sm:tracking-[0.1em] text-dark/50 transition-all duration-300 hover:border-dark/30 hover:text-dark active:scale-[0.97]"
               >
                 <Eye
                   className="h-3 w-3 sm:h-3.5 sm:w-3.5 transition-transform duration-300 group-hover:scale-110"
@@ -579,39 +607,39 @@ function QuickViewModal({
 
             {/* ── Trust badges ── */}
             <div
-              className={`grid grid-cols-3 gap-1 sm:gap-2 pt-3 sm:pt-4 border-t border-dark/[0.06] transition-all duration-500 ease-out ${
+              className={`grid grid-cols-3 gap-1 sm:gap-1.5 lg:gap-2 pt-2.5 sm:pt-3 lg:pt-4 border-t border-dark/6 transition-all duration-500 ease-out ${
                 isVisible ? "opacity-100" : "opacity-0"
               }`}
               style={stagger(580)}
             >
-              <div className="flex flex-col items-center text-center gap-1 sm:gap-1.5 py-1.5 sm:py-2">
+              <div className="flex flex-col items-center text-center gap-0.5 sm:gap-1 lg:gap-1.5 py-1 sm:py-1.5 lg:py-2">
                 <Truck
-                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-dark/30"
+                  className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 text-dark/30"
                   strokeWidth={1.5}
                 />
-                <span className="font-poppins text-[0.46rem] sm:text-[0.52rem] leading-snug text-dark/40">
+                <span className="font-poppins text-[0.42rem] sm:text-[0.48rem] lg:text-[0.52rem] leading-snug text-dark/40">
                   Livraison gratuite
                   <br />
                   dès 200 TND
                 </span>
               </div>
-              <div className="flex flex-col items-center text-center gap-1 sm:gap-1.5 py-1.5 sm:py-2">
+              <div className="flex flex-col items-center text-center gap-0.5 sm:gap-1 lg:gap-1.5 py-1 sm:py-1.5 lg:py-2">
                 <RotateCcw
-                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-dark/30"
+                  className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 text-dark/30"
                   strokeWidth={1.5}
                 />
-                <span className="font-poppins text-[0.46rem] sm:text-[0.52rem] leading-snug text-dark/40">
+                <span className="font-poppins text-[0.42rem] sm:text-[0.48rem] lg:text-[0.52rem] leading-snug text-dark/40">
                   Retours gratuits
                   <br />
                   sous 14 jours
                 </span>
               </div>
-              <div className="flex flex-col items-center text-center gap-1 sm:gap-1.5 py-1.5 sm:py-2">
+              <div className="flex flex-col items-center text-center gap-0.5 sm:gap-1 lg:gap-1.5 py-1 sm:py-1.5 lg:py-2">
                 <ShieldCheck
-                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-dark/30"
+                  className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 text-dark/30"
                   strokeWidth={1.5}
                 />
-                <span className="font-poppins text-[0.46rem] sm:text-[0.52rem] leading-snug text-dark/40">
+                <span className="font-poppins text-[0.42rem] sm:text-[0.48rem] lg:text-[0.52rem] leading-snug text-dark/40">
                   Paiement
                   <br />
                   100% sécurisé

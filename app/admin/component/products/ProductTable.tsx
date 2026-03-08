@@ -5,11 +5,15 @@ export type ProductStatus = "active" | "draft" | "outofstock";
 export interface Product {
   id: string;
   name: string;
+  slug: string;
   description: string;
   sku: string;
   categoryMere: string;
-  categorySous: string;
-  categoryFinale: string;
+  categoryMereName: string;
+  categorySous: string | null;
+  categorySousName: string | null;
+  categoryFinale: string | null;
+  categoryFinaleName: string | null;
   price: number;
   promoPrice?: number;
   stock: number;
@@ -114,7 +118,12 @@ export default function ProductTable({
                   <div className="flex items-center gap-3">
                     <div className="w-11 h-11 rounded-lg bg-dark/5 shrink-0 flex items-center justify-center overflow-hidden">
                       {p.images[0] ? (
-                        <div className="w-full h-full bg-dark/10" />
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={p.images[0]}
+                          alt={p.name}
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <svg
                           className="w-5 h-5 text-dark/20"
@@ -144,14 +153,17 @@ export default function ProductTable({
                 {/* Category */}
                 <td className="px-4 py-3.5">
                   <div className="font-poppins text-sm text-dark/70">
-                    <span>{p.categoryMere}</span>
-                    {p.categorySous && (
-                      <span className="text-dark/30"> / {p.categorySous}</span>
+                    <span>{p.categoryMereName}</span>
+                    {p.categorySousName && (
+                      <span className="text-dark/30">
+                        {" "}
+                        / {p.categorySousName}
+                      </span>
                     )}
                   </div>
-                  {p.categoryFinale && (
+                  {p.categoryFinaleName && (
                     <p className="font-poppins text-xs text-dark/40 mt-0.5">
-                      {p.categoryFinale}
+                      {p.categoryFinaleName}
                     </p>
                   )}
                 </td>

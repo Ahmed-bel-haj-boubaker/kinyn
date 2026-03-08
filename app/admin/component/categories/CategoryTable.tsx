@@ -5,9 +5,12 @@ import type { CategoryLevel, CategoryStatus } from "./CategoryModal";
 export interface Category {
   id: string;
   name: string;
+  slug: string;
   level: CategoryLevel;
-  parent: string;
+  parent: string | null;
+  parentName: string;
   status: CategoryStatus;
+  order: number;
 }
 
 interface CategoryTableProps {
@@ -115,7 +118,7 @@ export default function CategoryTable({
                 </td>
                 <td className="px-6 py-3.5">
                   <span className="font-poppins text-sm text-dark/50">
-                    {cat.parent || "—"}
+                    {cat.parentName || "—"}
                   </span>
                 </td>
                 <td className="px-6 py-3.5">
@@ -232,9 +235,9 @@ export default function CategoryTable({
               >
                 {LEVEL_LABELS[cat.level]}
               </span>
-              {cat.parent && (
+              {cat.parentName && (
                 <span className="font-poppins text-xs text-dark/40">
-                  Parent : {cat.parent}
+                  Parent : {cat.parentName}
                 </span>
               )}
             </div>

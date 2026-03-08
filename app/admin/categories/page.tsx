@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import CategoryTable from "../component/categories/CategoryTable";
 import CategoryModal from "../component/categories/CategoryModal";
 import DeleteConfirmModal from "../component/shared/DeleteConfirmModal";
@@ -12,58 +13,28 @@ import type {
   CategoryLevel,
 } from "../component/categories/CategoryModal";
 
-const INITIAL_CATEGORIES: Category[] = [
-  { id: "1", name: "Femme", level: "mere", parent: "", status: "active" },
-  { id: "2", name: "Hauts", level: "sous", parent: "Femme", status: "active" },
-  {
-    id: "3",
-    name: "T-shirt",
-    level: "finale",
-    parent: "Hauts",
-    status: "active",
-  },
-  {
-    id: "4",
-    name: "Chemise",
-    level: "finale",
-    parent: "Hauts",
-    status: "active",
-  },
-  { id: "5", name: "Bas", level: "sous", parent: "Femme", status: "active" },
-  {
-    id: "6",
-    name: "Pantalon",
-    level: "finale",
-    parent: "Bas",
-    status: "active",
-  },
-  { id: "7", name: "Jean", level: "finale", parent: "Bas", status: "hidden" },
-  { id: "8", name: "Robes", level: "sous", parent: "Femme", status: "active" },
-  {
-    id: "9",
-    name: "Robe courte",
-    level: "finale",
-    parent: "Robes",
-    status: "active",
-  },
-  {
-    id: "10",
-    name: "Robe longue",
-    level: "finale",
-    parent: "Robes",
-    status: "active",
-  },
-  { id: "11", name: "Homme", level: "mere", parent: "", status: "active" },
-  { id: "12", name: "Hauts", level: "sous", parent: "Homme", status: "active" },
-  {
-    id: "13",
-    name: "Polo",
-    level: "finale",
-    parent: "Hauts",
-    status: "active",
-  },
-  { id: "14", name: "Enfant", level: "mere", parent: "", status: "hidden" },
-];
+/* ──────────── API helpers ──────────── */
+
+const API_BASE = "/api/admin/categories";
+
+async function apiFetch<T>(
+  url: string,
+  opts?: RequestInit,
+): Promise<{ ok: boolean; data?: T; error?: string }> {
+  try {
+    const res = await fetch(url, {
+      headers: { "Content-Type": "application/json" },
+      ...opts,
+    });
+    const json = await res.json();
+    if (!res.ok) return { ok: false, error: json.error ?? "Erreur serveur." };
+    return { ok: true, data: json as T };
+  } catch {
+    return { ok: false, error: "Erreur réseau." };
+  }
+}
+
+/* ──────────── Sort categories into hierarchy for display ──────────── */
 
 function buildSortedCategories(cats: Category[]): Category[] {
   const meres = cats.filter((c) => c.level === "mere");
@@ -71,13 +42,11 @@ function buildSortedCategories(cats: Category[]): Category[] {
 
   meres.forEach((mere) => {
     sorted.push(mere);
-    const subs = cats.filter(
-      (c) => c.level === "sous" && c.parent === mere.name,
-    );
+    const subs = cats.filter((c) => c.level === "sous" && c.parent === mere.id);
     subs.forEach((sub) => {
       sorted.push(sub);
       const finales = cats.filter(
-        (c) => c.level === "finale" && c.parent === sub.name,
+        (c) => c.level === "finale" && c.parent === sub.id,
       );
       finales.forEach((f) => sorted.push(f));
     });
@@ -86,23 +55,75 @@ function buildSortedCategories(cats: Category[]): Category[] {
   return sorted;
 }
 
+/* ──────────── Page ──────────── */
+
+interface APIListResponse {
+  categories: Category[];
+  total: number;
+  stats: {
+    total: number;
+    active: number;
+    mereCount: number;
+    sousCount: number;
+    finaleCount: number;
+  } | null;
+}
+
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [stats, setStats] = useState<{
+    total: number;
+    active: number;
+    mereCount: number;
+  }>({ total: 0, active: 0, mereCount: 0 });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
   const { toasts, addToast, removeToast } = useToast();
 
+  /* ── Fetch categories from API ── */
+
+  const fetchCategories = useCallback(async () => {
+    setLoading(true);
+    const result = await apiFetch<APIListResponse>(API_BASE);
+    if (result.ok && result.data) {
+      setCategories(result.data.categories);
+      if (result.data.stats) {
+        setStats({
+          total: result.data.stats.total,
+          active: result.data.stats.active,
+          mereCount: result.data.stats.mereCount,
+        });
+      }
+    } else {
+      addToast(
+        "error",
+        result.error ?? "Impossible de charger les catégories.",
+      );
+    }
+    setLoading(false);
+  }, [addToast]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
   const sortedCategories = buildSortedCategories(categories);
+
+  /* ── Parent options for modal (value = ID) ── */
 
   const parentOptions = categories
     .filter((c) => c.level === "mere" || c.level === "sous")
     .map((c) => ({
-      value: c.name,
+      value: c.id,
       label: c.name,
       level: c.level as CategoryLevel,
     }));
+
+  /* ── Handlers ── */
 
   const handleCreate = useCallback(() => {
     setEditingCategory(null);
@@ -121,49 +142,80 @@ export default function CategoriesPage() {
   }, []);
 
   const handleModalSave = useCallback(
-    (data: CategoryFormData) => {
+    async (data: CategoryFormData) => {
+      setSaving(true);
+
       if (modalMode === "create") {
-        const newCat: Category = {
-          id: `${Date.now()}`,
+        const body: Record<string, unknown> = {
           name: data.name,
           level: data.level,
-          parent: data.parent,
           status: data.status,
         };
-        setCategories((prev) => [...prev, newCat]);
-        addToast("success", `Catégorie "${data.name}" créée avec succès`);
+        if (data.level !== "mere" && data.parent) {
+          body.parent = data.parent;
+        }
+
+        const result = await apiFetch<{ category: Category }>(API_BASE, {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+
+        if (result.ok) {
+          addToast("success", `Catégorie "${data.name}" créée avec succès`);
+          await fetchCategories();
+        } else {
+          addToast("error", result.error ?? "Erreur lors de la création.");
+        }
       } else if (editingCategory) {
-        setCategories((prev) =>
-          prev.map((c) =>
-            c.id === editingCategory.id
-              ? {
-                  ...c,
-                  name: data.name,
-                  level: data.level,
-                  parent: data.parent,
-                  status: data.status,
-                }
-              : c,
-          ),
+        const body: Record<string, unknown> = {
+          name: data.name,
+          level: data.level,
+          status: data.status,
+        };
+        if (data.level !== "mere") {
+          body.parent = data.parent || null;
+        }
+
+        const result = await apiFetch<{ category: Category }>(
+          `${API_BASE}/${editingCategory.id}`,
+          {
+            method: "PUT",
+            body: JSON.stringify(body),
+          },
         );
-        addToast("success", `Catégorie "${data.name}" modifiée avec succès`);
+
+        if (result.ok) {
+          addToast("success", `Catégorie "${data.name}" modifiée avec succès`);
+          await fetchCategories();
+        } else {
+          addToast("error", result.error ?? "Erreur lors de la modification.");
+        }
       }
+
+      setSaving(false);
       setModalOpen(false);
       setEditingCategory(null);
     },
-    [modalMode, editingCategory, addToast],
+    [modalMode, editingCategory, addToast, fetchCategories],
   );
 
-  const handleConfirmDelete = useCallback(() => {
+  const handleConfirmDelete = useCallback(async () => {
     if (!deleteTarget) return;
-    setCategories((prev) => prev.filter((c) => c.id !== deleteTarget.id));
-    addToast("success", `Catégorie "${deleteTarget.name}" supprimée`);
-    setDeleteTarget(null);
-  }, [deleteTarget, addToast]);
 
-  const totalCount = categories.length;
-  const activeCount = categories.filter((c) => c.status === "active").length;
-  const mereCount = categories.filter((c) => c.level === "mere").length;
+    const result = await apiFetch<{ deletedId: string }>(
+      `${API_BASE}/${deleteTarget.id}`,
+      { method: "DELETE" },
+    );
+
+    if (result.ok) {
+      addToast("success", `Catégorie "${deleteTarget.name}" supprimée`);
+      await fetchCategories();
+    } else {
+      addToast("error", result.error ?? "Erreur lors de la suppression.");
+    }
+
+    setDeleteTarget(null);
+  }, [deleteTarget, addToast, fetchCategories]);
 
   return (
     <>
@@ -208,7 +260,7 @@ export default function CategoriesPage() {
             Total
           </p>
           <p className="font-poppins text-2xl font-bold text-dark">
-            {totalCount}
+            {stats.total}
           </p>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-5">
@@ -216,7 +268,7 @@ export default function CategoriesPage() {
             Actives
           </p>
           <p className="font-poppins text-2xl font-bold text-emerald-600">
-            {activeCount}
+            {stats.active}
           </p>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-5">
@@ -224,28 +276,38 @@ export default function CategoriesPage() {
             Catégories mères
           </p>
           <p className="font-poppins text-2xl font-bold text-primary">
-            {mereCount}
+            {stats.mereCount}
           </p>
         </div>
       </div>
 
-      {/* Table */}
-      <CategoryTable
-        categories={sortedCategories}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      {/* Table / Loading */}
+      {loading ? (
+        <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+          <div className="inline-block w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
+          <p className="font-poppins text-sm text-dark/50">
+            Chargement des catégories...
+          </p>
+        </div>
+      ) : (
+        <CategoryTable
+          categories={sortedCategories}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
 
       {/* Category Modal */}
       <CategoryModal
         isOpen={modalOpen}
         mode={modalMode}
+        saving={saving}
         initialData={
           editingCategory
             ? {
                 name: editingCategory.name,
                 level: editingCategory.level,
-                parent: editingCategory.parent,
+                parent: editingCategory.parent ?? "",
                 status: editingCategory.status,
               }
             : undefined

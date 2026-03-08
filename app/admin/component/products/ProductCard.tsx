@@ -72,7 +72,12 @@ export default function ProductCard({
             <div className="flex items-start gap-3 mb-3">
               <div className="w-14 h-14 rounded-xl bg-dark/5 shrink-0 flex items-center justify-center overflow-hidden">
                 {p.images[0] ? (
-                  <div className="w-full h-full bg-dark/10" />
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={p.images[0]}
+                    alt={p.name}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <svg
                     className="w-6 h-6 text-dark/20"
@@ -110,9 +115,12 @@ export default function ProductCard({
               <div>
                 <p className="font-poppins text-xs text-dark/40">Catégorie</p>
                 <p className="font-poppins text-sm text-dark/70 mt-0.5">
-                  {p.categoryMere}
-                  {p.categorySous && (
-                    <span className="text-dark/40"> / {p.categorySous}</span>
+                  {p.categoryMereName}
+                  {p.categorySousName && (
+                    <span className="text-dark/40">
+                      {" "}
+                      / {p.categorySousName}
+                    </span>
                   )}
                 </p>
               </div>

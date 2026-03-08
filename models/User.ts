@@ -19,6 +19,47 @@ import bcrypt from "bcryptjs";
 
 export type UserRole = "user" | "admin" | "super_admin";
 export type UserStatus = "active" | "inactive" | "suspended";
+export type OrderStatus =
+  | "pending"
+  | "confirmed"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled"
+  | "returned";
+
+/* ─── Sub-document interfaces ─── */
+
+export interface IAddress {
+  _id?: mongoose.Types.ObjectId;
+  label: string;
+  country: string;
+  city: string;
+  address: string;
+  postalCode: string;
+  isDefault: boolean;
+}
+
+export interface IOrderItem {
+  product: mongoose.Types.ObjectId;
+  name: string;
+  image: string;
+  price: number;
+  quantity: number;
+  size?: string;
+  color?: string;
+}
+
+export interface IOrder {
+  _id?: mongoose.Types.ObjectId;
+  ref: string;
+  items: IOrderItem[];
+  totalAmount: number;
+  status: OrderStatus;
+  shippingAddress: IAddress;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export interface IUser extends Document {
   firstName: string;
@@ -30,6 +71,9 @@ export interface IUser extends Document {
   status: UserStatus;
   avatar: string;
   isEmailVerified: boolean;
+  addresses: IAddress[];
+  wishlist: mongoose.Types.ObjectId[];
+  orders: IOrder[];
   loginAttempts: number;
   lockUntil: Date | null;
   lastLogin: Date | null;
@@ -44,6 +88,39 @@ export interface IUser extends Document {
   toSafeObject(): SafeUser;
 }
 
+/* ─── Safe sub-document types ─── */
+
+export interface SafeAddress {
+  id: string;
+  label: string;
+  country: string;
+  city: string;
+  address: string;
+  postalCode: string;
+  isDefault: boolean;
+}
+
+export interface SafeOrderItem {
+  product: string;
+  name: string;
+  image: string;
+  price: number;
+  quantity: number;
+  size?: string;
+  color?: string;
+}
+
+export interface SafeOrder {
+  id: string;
+  ref: string;
+  items: SafeOrderItem[];
+  totalAmount: number;
+  status: OrderStatus;
+  shippingAddress: SafeAddress;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 /** User data safe for client responses (no password, no internals) */
 export interface SafeUser {
   id: string;
@@ -55,6 +132,9 @@ export interface SafeUser {
   status: UserStatus;
   avatar: string;
   isEmailVerified: boolean;
+  addresses: SafeAddress[];
+  wishlist: string[];
+  orders: SafeOrder[];
   lastLogin: Date | null;
   createdAt: Date;
 }
@@ -141,6 +221,103 @@ const userSchema = new Schema<IUser>(
       type: Date,
       default: null,
     },
+
+    /* ── Addresses ── */
+    addresses: [
+      {
+        label: {
+          type: String,
+          trim: true,
+          default: "Maison",
+          maxlength: [50, "Le label ne peut pas dépasser 50 caractères."],
+        },
+        country: {
+          type: String,
+          required: [true, "Le pays est requis."],
+          trim: true,
+        },
+        city: {
+          type: String,
+          required: [true, "La ville est requise."],
+          trim: true,
+        },
+        address: {
+          type: String,
+          required: [true, "L'adresse est requise."],
+          trim: true,
+        },
+        postalCode: {
+          type: String,
+          required: [true, "Le code postal est requis."],
+          trim: true,
+        },
+        isDefault: {
+          type: Boolean,
+          default: false,
+        },
+      },
+    ],
+
+    /* ── Wishlist (liked products) ── */
+    wishlist: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
+
+    /* ── Orders ── */
+    orders: [
+      {
+        ref: {
+          type: String,
+          required: true,
+        },
+        items: [
+          {
+            product: {
+              type: Schema.Types.ObjectId,
+              ref: "Product",
+              required: true,
+            },
+            name: { type: String, required: true },
+            image: { type: String, default: "" },
+            price: { type: Number, required: true, min: 0 },
+            quantity: { type: Number, required: true, min: 1 },
+            size: { type: String, default: "" },
+            color: { type: String, default: "" },
+          },
+        ],
+        totalAmount: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+        status: {
+          type: String,
+          enum: [
+            "pending",
+            "confirmed",
+            "processing",
+            "shipped",
+            "delivered",
+            "cancelled",
+            "returned",
+          ],
+          default: "pending",
+        },
+        shippingAddress: {
+          label: { type: String, default: "" },
+          country: { type: String, required: true },
+          city: { type: String, required: true },
+          address: { type: String, required: true },
+          postalCode: { type: String, required: true },
+          isDefault: { type: Boolean, default: false },
+        },
+        createdAt: { type: Date, default: Date.now },
+        updatedAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,
@@ -238,6 +415,48 @@ userSchema.methods.toSafeObject = function (): SafeUser {
     status: this.status,
     avatar: this.avatar,
     isEmailVerified: this.isEmailVerified,
+    addresses: (this.addresses ?? []).map(
+      (a: IAddress & { _id: mongoose.Types.ObjectId }) => ({
+        id: a._id.toString(),
+        label: a.label,
+        country: a.country,
+        city: a.city,
+        address: a.address,
+        postalCode: a.postalCode,
+        isDefault: a.isDefault,
+      }),
+    ),
+    wishlist: (this.wishlist ?? []).map((id: mongoose.Types.ObjectId) =>
+      id.toString(),
+    ),
+    orders: (this.orders ?? []).map(
+      (o: IOrder & { _id: mongoose.Types.ObjectId }) => ({
+        id: o._id.toString(),
+        ref: o.ref,
+        items: o.items.map((item: IOrderItem) => ({
+          product: item.product.toString(),
+          name: item.name,
+          image: item.image,
+          price: item.price,
+          quantity: item.quantity,
+          size: item.size,
+          color: item.color,
+        })),
+        totalAmount: o.totalAmount,
+        status: o.status,
+        shippingAddress: {
+          id: "",
+          label: o.shippingAddress.label ?? "",
+          country: o.shippingAddress.country,
+          city: o.shippingAddress.city,
+          address: o.shippingAddress.address,
+          postalCode: o.shippingAddress.postalCode,
+          isDefault: o.shippingAddress.isDefault ?? false,
+        },
+        createdAt: o.createdAt,
+        updatedAt: o.updatedAt,
+      }),
+    ),
     lastLogin: this.lastLogin,
     createdAt: this.createdAt,
   };

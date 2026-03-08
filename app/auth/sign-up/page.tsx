@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useCallback, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 
@@ -38,6 +39,8 @@ const initialForm: FormState = {
 };
 
 export default function SignUpPage() {
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
   const [form, setForm] = useState<FormState>(initialForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
@@ -217,7 +220,11 @@ export default function SignUpPage() {
                   Votre compte a été créé avec succès !
                 </p>
                 <Link
-                  href="/auth/sign-in"
+                  href={
+                    redirectTo !== "/"
+                      ? `/auth/sign-in?redirect=${encodeURIComponent(redirectTo)}`
+                      : "/auth/sign-in"
+                  }
                   className="mt-4 inline-block font-poppins text-sm font-semibold text-primary underline-offset-2 transition-colors hover:underline"
                 >
                   Se connecter

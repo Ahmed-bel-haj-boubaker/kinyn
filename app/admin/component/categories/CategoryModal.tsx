@@ -8,7 +8,7 @@ export type CategoryStatus = "active" | "hidden";
 export interface CategoryFormData {
   name: string;
   level: CategoryLevel;
-  parent: string;
+  parent: string; // parent ID (empty string for mère)
   status: CategoryStatus;
 }
 
@@ -19,6 +19,7 @@ interface CategoryModalProps {
   parentOptions: { value: string; label: string; level: CategoryLevel }[];
   onCancel: () => void;
   onSave: (data: CategoryFormData) => void;
+  saving?: boolean;
 }
 
 const LEVEL_OPTIONS: { value: CategoryLevel; label: string }[] = [
@@ -41,6 +42,7 @@ export default function CategoryModal({
   parentOptions,
   onCancel,
   onSave,
+  saving,
 }: CategoryModalProps) {
   // Derive a stable key from props to remount the inner form when modal opens/data changes
   const formKey = `${isOpen}-${mode}-${initialData?.name ?? ""}`;
@@ -98,6 +100,7 @@ export default function CategoryModal({
             parentOptions={parentOptions}
             onCancel={onCancel}
             onSave={onSave}
+            saving={saving}
           />
         )}
       </div>
@@ -113,6 +116,7 @@ function CategoryFormInner({
   parentOptions,
   onCancel,
   onSave,
+  saving,
 }: Omit<CategoryModalProps, "isOpen">) {
   const [form, setForm] = useState<CategoryFormData>(initialData ?? emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -321,9 +325,14 @@ function CategoryFormInner({
           </button>
           <button
             type="submit"
-            className="flex-1 px-4 py-2.5 rounded-lg bg-primary text-white font-poppins text-sm font-medium hover:bg-primary/90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            disabled={saving}
+            className="flex-1 px-4 py-2.5 rounded-lg bg-primary text-white font-poppins text-sm font-medium hover:bg-primary/90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {mode === "create" ? "Créer" : "Enregistrer"}
+            {saving
+              ? "Enregistrement..."
+              : mode === "create"
+                ? "Créer"
+                : "Enregistrer"}
           </button>
         </div>
       </form>

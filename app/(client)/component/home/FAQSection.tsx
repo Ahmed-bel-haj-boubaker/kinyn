@@ -21,11 +21,7 @@ const FAQS: FaqItem[] = [
     answer:
       "Bien sûr. Vous disposez de 14 jours après réception pour retourner ou échanger tout article non porté, dans son emballage d'origine et avec ses étiquettes. Les frais de retour sont à la charge du client, sauf en cas de défaut ou d'erreur de notre part.",
   },
-  {
-    question: "Comment choisir la bonne taille ?",
-    answer:
-      "Chaque fiche produit dispose d'un guide des tailles détaillé avec les mesures en centimètres. Si vous hésitez entre deux tailles, nous vous conseillons de prendre la taille supérieure pour un confort optimal. Notre équipe est également disponible par e-mail pour vous aider.",
-  },
+ 
   {
     question: "Les matières utilisées sont-elles de qualité ?",
     answer:

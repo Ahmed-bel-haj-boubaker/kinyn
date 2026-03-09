@@ -175,7 +175,7 @@ export default function UserDropdown() {
             {/* Nav items */}
             <div className="py-1.5">
               <Link
-                href="/profile"
+                href="/profile?tab=overview"
                 role="menuitem"
                 tabIndex={open ? 0 : -1}
                 onClick={() => setOpen(false)}

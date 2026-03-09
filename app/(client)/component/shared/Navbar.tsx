@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, ShoppingBag, Menu, X, ChevronDown } from "lucide-react";
+import { Search, ShoppingBag, Heart, Menu, X, ChevronDown } from "lucide-react";
 import UserDropdown from "./UserDropdown";
 import { useCart } from "@/lib/cart";
 
@@ -258,6 +258,16 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
               strokeWidth={1.4}
             />
           </button>
+          <Link
+            href="/profile?tab=wishlist"
+            aria-label="Wishlist"
+            className="cursor-pointer text-[#2C2C2C] transition-colors duration-200 hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-2 rounded-sm"
+          >
+            <Heart
+              className="h-4 w-4 sm:h-[18px] sm:w-[18px]"
+              strokeWidth={1.4}
+            />
+          </Link>
           <button
             type="button"
             onClick={onCartClick}

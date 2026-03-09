@@ -4,13 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Eye,
   Filter,
-  Heart,
   Minus,
   Plus,
   RotateCcw,
@@ -24,6 +24,7 @@ import {
 
 import { COLORS, SIZES, SORT_OPTIONS, slugify } from "@/lib/categories";
 import { useCart } from "@/lib/cart";
+import WishlistButton from "./WishlistButton";
 
 /* ──────────────────────────── Types ──────────────────────────── */
 
@@ -119,6 +120,7 @@ function QuickViewModal({
   const [phase, setPhase] = useState<"enter" | "visible" | "exit">("enter");
   const backdropRef = useRef<HTMLDivElement>(null);
   const { addItem } = useCart();
+  const router = useRouter();
 
   /* Image gallery */
   const [selectedImage, setSelectedImage] = useState(0);
@@ -134,7 +136,6 @@ function QuickViewModal({
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
 
   /* Computed */
@@ -224,6 +225,33 @@ function QuickViewModal({
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2200);
   }, [selectedSize, product, selectedColor, quantity, categorySlug, addItem]);
+
+  /* Buy now — add to cart then go to checkout */
+  const handleBuyNow = useCallback(() => {
+    if (product.sizes.length > 0 && !selectedSize) {
+      setSizeError(true);
+      return;
+    }
+    setSizeError(false);
+    addItem({
+      productId: product.id,
+      name: product.name,
+      slug: product.slug,
+      image:
+        product.image ||
+        (product.images.length > 0
+          ? product.images[0]
+          : "/images/placeholder.png"),
+      price: product.price,
+      promoPrice: product.promoPrice,
+      color: selectedColor,
+      size: selectedSize || "",
+      quantity,
+      categorySlug,
+    });
+    onClose();
+    router.push("/checkout");
+  }, [selectedSize, product, selectedColor, quantity, categorySlug, addItem, onClose, router]);
 
   const isVisible = phase === "visible";
   const isExiting = phase === "exit";
@@ -602,25 +630,13 @@ function QuickViewModal({
                 </button>
 
                 {/* Wishlist */}
-                <button
-                  type="button"
-                  onClick={() => setIsWishlisted(!isWishlisted)}
-                  className={`flex h-9 w-9 sm:h-10 sm:w-10 lg:h-11 lg:w-11 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 active:scale-90 ${
-                    isWishlisted
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-dark/12 text-dark/35 hover:border-primary hover:text-primary"
-                  }`}
-                  aria-label={
-                    isWishlisted ? "Retirer des favoris" : "Ajouter aux favoris"
-                  }
-                >
-                  <Heart
-                    className={`h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-4.5 lg:w-4.5 transition-all duration-200 ${
-                      isWishlisted ? "fill-primary" : ""
-                    }`}
-                    strokeWidth={1.8}
-                  />
-                </button>
+                <WishlistButton
+                  productId={product.id}
+                  className="flex h-9 w-9 sm:h-10 sm:w-10 lg:h-11 lg:w-11 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 active:scale-90"
+                  activeClassName="border-primary bg-primary/10 text-primary"
+                  inactiveClassName="border-dark/12 text-dark/35 hover:border-primary hover:text-primary"
+                  iconClassName="h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-4.5 lg:w-4.5"
+                />
               </div>
 
               {/* View full product page */}
@@ -635,6 +651,15 @@ function QuickViewModal({
                 />
                 Voir tous les détails
               </Link>
+
+              {/* Buy now */}
+              <button
+                type="button"
+                onClick={handleBuyNow}
+                className="flex items-center justify-center gap-1.5 sm:gap-2 lg:gap-2.5 w-full rounded-lg border-2 border-primary py-2 sm:py-2.5 lg:py-3 font-poppins text-[0.58rem] sm:text-[0.64rem] lg:text-[0.68rem] font-semibold uppercase tracking-[0.08em] sm:tracking-[0.1em] text-primary transition-all duration-300 hover:bg-primary hover:text-background active:scale-[0.97]"
+              >
+                Acheter maintenant
+              </button>
             </div>
 
             {/* ── Trust badges ── */}
@@ -1298,17 +1323,11 @@ export default function ProductsListing({
                           )}
 
                           {/* Wishlist heart */}
-                          <button
-                            type="button"
-                            onClick={(e) => e.stopPropagation()}
-                            className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-dark/40 shadow-sm lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:text-primary hover:scale-110 active:scale-95"
-                            aria-label="Ajouter aux favoris"
-                          >
-                            <Heart
-                              className="h-3 w-3 sm:h-4 sm:w-4"
-                              strokeWidth={2}
-                            />
-                          </button>
+                          <WishlistButton
+                            productId={product.id}
+                            className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-dark/40 shadow-sm lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95"
+                            iconClassName="h-3 w-3 sm:h-4 sm:w-4"
+                          />
 
                           {/* Mobile/tablet: view details icon */}
                           <Link
@@ -1342,11 +1361,11 @@ export default function ProductsListing({
                               }}
                               className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-2.5 font-poppins text-[0.72rem] font-semibold text-background shadow-lg shadow-primary/20 transition-all duration-200 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.97]"
                             >
-                              <ShoppingBag
+                              <Eye
                                 className="h-3.5 w-3.5"
                                 strokeWidth={2.2}
                               />
-                              Ajouter au panier
+                              Choisir option
                             </button>
                             <Link
                               href={`/${categorySlug}/${product.slug}`}
@@ -1391,7 +1410,7 @@ export default function ProductsListing({
                           </div>
                         </Link>
 
-                        {/* Mobile/tablet: add to cart button */}
+                        {/* Mobile/tablet: choose option button */}
                         <div className="px-2.5 pb-2.5 sm:px-4 sm:pb-4 lg:hidden">
                           <button
                             type="button"
@@ -1402,11 +1421,11 @@ export default function ProductsListing({
                             }}
                             className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary py-2 sm:py-2.5 font-poppins text-[0.6rem] sm:text-[0.72rem] font-semibold text-background shadow-sm transition-all duration-200 active:scale-[0.97]"
                           >
-                            <ShoppingBag
+                            <Eye
                               className="h-3 w-3 sm:h-3.5 sm:w-3.5"
                               strokeWidth={2.2}
                             />
-                            Ajouter au panier
+                            Choisir option
                           </button>
                         </div>
                       </div>

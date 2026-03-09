@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { X } from "lucide-react";
 
 interface AddressFormData {
+  label: string;
   country: string;
   city: string;
   address: string;
@@ -19,6 +20,7 @@ interface AddressModalProps {
 }
 
 const emptyForm: AddressFormData = {
+  label: "",
   country: "",
   city: "",
   address: "",
@@ -30,6 +32,7 @@ const fieldDefs: {
   label: string;
   placeholder: string;
 }[] = [
+  { key: "label", label: "Étiquette", placeholder: "Maison, Bureau…" },
   { key: "country", label: "Pays", placeholder: "Tunisie" },
   { key: "city", label: "Ville", placeholder: "Tunis" },
   { key: "address", label: "Adresse", placeholder: "12 Rue de la Liberté" },

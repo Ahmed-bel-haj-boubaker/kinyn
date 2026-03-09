@@ -7,7 +7,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
-  Heart,
   Minus,
   Plus,
   Ruler,
@@ -24,6 +23,7 @@ import type {
   ClientProduct,
   ClientSubCategory,
 } from "../../component/shared/ProductsListing";
+import WishlistButton from "../../component/shared/WishlistButton";
 import { useCart } from "@/lib/cart";
 
 /* ════════════════════════════════════════════════════════════════
@@ -252,7 +252,6 @@ function ProductDetailPage({
   );
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(
     "description",
   );
@@ -526,13 +525,7 @@ function ProductDetailPage({
                         </span>
                       )}
                     </p>
-                    <button
-                      type="button"
-                      className="flex items-center gap-1 font-poppins text-[0.62rem] sm:text-[0.68rem] text-dark/50 hover:text-primary transition-colors duration-200"
-                    >
-                      <Ruler className="h-3.5 w-3.5" strokeWidth={2} />
-                      Guide des tailles
-                    </button>
+                
                   </div>
                   <div className="flex flex-wrap gap-2 sm:gap-2.5">
                     {p.sizes.map((size) => (
@@ -610,23 +603,13 @@ function ProductDetailPage({
                 </button>
 
                 {/* Wishlist */}
-                <button
-                  type="button"
-                  onClick={() => setIsWishlisted(!isWishlisted)}
-                  className={`flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 active:scale-90 ${
-                    isWishlisted
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-dark/15 text-dark/40 hover:border-primary hover:text-primary"
-                  }`}
-                  aria-label={
-                    isWishlisted ? "Retirer des favoris" : "Ajouter aux favoris"
-                  }
-                >
-                  <Heart
-                    className={`h-4.5 w-4.5 sm:h-5 sm:w-5 transition-all duration-200 ${isWishlisted ? "fill-primary" : ""}`}
-                    strokeWidth={2}
-                  />
-                </button>
+                <WishlistButton
+                  productId={p.id}
+                  className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 active:scale-90"
+                  activeClassName="border-primary bg-primary/10 text-primary"
+                  inactiveClassName="border-dark/15 text-dark/40 hover:border-primary hover:text-primary"
+                  iconClassName="h-4.5 w-4.5 sm:h-5 sm:w-5"
+                />
               </div>
 
               {/* Share */}

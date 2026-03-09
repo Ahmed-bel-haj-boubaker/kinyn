@@ -30,8 +30,7 @@ const SERVICE = [
   { label: "Contactez-nous", href: "/contact" },
   { label: "FAQ", href: "/faq" },
   { label: "Livraison & Retours", href: "/livraison" },
-  { label: "Guide des tailles", href: "/guide-tailles" },
-  { label: "Suivi de commande", href: "/suivi" },
+   { label: "Suivi de commande", href: "/suivi" },
   { label: "Politique de confidentialité", href: "/confidentialite" },
 ];
 

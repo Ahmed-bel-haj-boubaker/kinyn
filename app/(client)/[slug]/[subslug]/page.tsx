@@ -525,7 +525,6 @@ function ProductDetailPage({
                         </span>
                       )}
                     </p>
-                
                   </div>
                   <div className="flex flex-wrap gap-2 sm:gap-2.5">
                     {p.sizes.map((size) => (

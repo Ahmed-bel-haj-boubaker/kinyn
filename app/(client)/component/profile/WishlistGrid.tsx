@@ -96,7 +96,10 @@ export default function WishlistGrid() {
               </button>
 
               {/* Image + Info — both clickable */}
-              <Link href={`/${slugify(item.categoryMereName)}/${item.slug}`} className="block">
+              <Link
+                href={`/${slugify(item.categoryMereName)}/${item.slug}`}
+                className="block"
+              >
                 <div className="relative aspect-4/5 w-full overflow-hidden bg-[#F5F4F1]">
                   <Image
                     src={item.images[0] || "/images/placeholder.jpg"}
@@ -109,7 +112,10 @@ export default function WishlistGrid() {
               </Link>
 
               {/* Info */}
-              <Link href={`/${slugify(item.categoryMereName)}/${item.slug}`} className="block p-3 sm:p-4">
+              <Link
+                href={`/${slugify(item.categoryMereName)}/${item.slug}`}
+                className="block p-3 sm:p-4"
+              >
                 <p className="font-poppins text-[9.5px] sm:text-[10.5px] uppercase tracking-wide text-[#999] mb-0.5 sm:mb-1">
                   {item.categoryMereName}
                 </p>

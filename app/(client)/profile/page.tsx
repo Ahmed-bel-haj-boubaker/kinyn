@@ -290,7 +290,10 @@ export default function ProfilePage() {
             </div>
             <div className="text-center sm:text-left">
               {statsLoading && value === null ? (
-                <Loader2 className="h-4 w-4 animate-spin text-dark/20 mx-auto sm:mx-0 mb-0.5" strokeWidth={2} />
+                <Loader2
+                  className="h-4 w-4 animate-spin text-dark/20 mx-auto sm:mx-0 mb-0.5"
+                  strokeWidth={2}
+                />
               ) : (
                 <p className="font-poppins text-[18px] sm:text-[22px] font-semibold text-dark leading-none mb-0.5">
                   {value ?? 0}
@@ -322,7 +325,10 @@ export default function ProfilePage() {
 
         {statsLoading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-5 w-5 animate-spin text-dark/20" strokeWidth={1.5} />
+            <Loader2
+              className="h-5 w-5 animate-spin text-dark/20"
+              strokeWidth={1.5}
+            />
           </div>
         ) : recentOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#DDD] py-8 text-center">
@@ -340,14 +346,20 @@ export default function ProfilePage() {
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-primary/8 text-primary shrink-0">
-                    <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={1.5} />
+                    <Package
+                      className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                      strokeWidth={1.5}
+                    />
                   </div>
                   <div className="min-w-0">
                     <p className="font-poppins text-[12px] sm:text-[12.5px] font-medium text-dark truncate">
                       #{order.ref}
                     </p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <Clock className="h-3 w-3 text-[#999] shrink-0" strokeWidth={1.5} />
+                      <Clock
+                        className="h-3 w-3 text-[#999] shrink-0"
+                        strokeWidth={1.5}
+                      />
                       <p className="font-poppins text-[10.5px] sm:text-[11px] text-[#999]">
                         {new Date(order.createdAt).toLocaleDateString("fr-FR", {
                           day: "numeric",
@@ -361,7 +373,8 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
                   <span
                     className={`inline-flex items-center rounded-full border px-2 py-0.5 font-poppins text-[9.5px] sm:text-[10.5px] font-medium ${
-                      statusStyles[order.status] ?? "bg-gray-50 text-gray-600 border-gray-200"
+                      statusStyles[order.status] ??
+                      "bg-gray-50 text-gray-600 border-gray-200"
                     }`}
                   >
                     {statusLabels[order.status] ?? order.status}
@@ -377,40 +390,44 @@ export default function ProfilePage() {
       </div>
 
       {/* Default address */}
-      {addresses.length > 0 && (() => {
-        const def = addresses.find((a) => a.isDefault) ?? addresses[0];
-        return (
-          <div>
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h3 className="font-erotique text-base sm:text-lg text-dark">
-                Adresse par défaut
-              </h3>
-              <button
-                type="button"
-                onClick={() => setSection("addresses")}
-                className="flex items-center gap-1 font-poppins text-[11px] sm:text-[12px] text-primary transition-colors hover:text-primary/70"
-              >
-                Gérer
-                <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
-              </button>
-            </div>
-            <div className="flex items-start gap-3 rounded-xl bg-white border border-[#EEECE7] shadow-[0_2px_12px_rgba(0,0,0,0.03)] px-4 sm:px-6 py-4 sm:py-5">
-              <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" strokeWidth={1.5} />
-              <div className="min-w-0">
-                <p className="font-poppins text-[12.5px] sm:text-[13px] font-medium text-dark">
-                  {def.label}
-                </p>
-                <p className="font-poppins text-[12.5px] sm:text-[13.5px] text-dark mt-0.5">
-                  {def.address}
-                </p>
-                <p className="font-poppins text-[11px] sm:text-[12px] text-[#999] mt-0.5">
-                  {def.city}, {def.postalCode} — {def.country}
-                </p>
+      {addresses.length > 0 &&
+        (() => {
+          const def = addresses.find((a) => a.isDefault) ?? addresses[0];
+          return (
+            <div>
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <h3 className="font-erotique text-base sm:text-lg text-dark">
+                  Adresse par défaut
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setSection("addresses")}
+                  className="flex items-center gap-1 font-poppins text-[11px] sm:text-[12px] text-primary transition-colors hover:text-primary/70"
+                >
+                  Gérer
+                  <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
+                </button>
+              </div>
+              <div className="flex items-start gap-3 rounded-xl bg-white border border-[#EEECE7] shadow-[0_2px_12px_rgba(0,0,0,0.03)] px-4 sm:px-6 py-4 sm:py-5">
+                <MapPin
+                  className="h-4 w-4 text-primary shrink-0 mt-0.5"
+                  strokeWidth={1.5}
+                />
+                <div className="min-w-0">
+                  <p className="font-poppins text-[12.5px] sm:text-[13px] font-medium text-dark">
+                    {def.label}
+                  </p>
+                  <p className="font-poppins text-[12.5px] sm:text-[13.5px] text-dark mt-0.5">
+                    {def.address}
+                  </p>
+                  <p className="font-poppins text-[11px] sm:text-[12px] text-[#999] mt-0.5">
+                    {def.city}, {def.postalCode} — {def.country}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       {/* Quick actions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -434,7 +451,10 @@ export default function ProfilePage() {
           onClick={() => setSection("orders")}
           className="cursor-pointer flex items-center gap-3 rounded-xl bg-white border border-[#EEECE7] shadow-[0_2px_12px_rgba(0,0,0,0.03)] px-4 py-4 sm:px-6 sm:py-5 text-left transition-all duration-200 hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:border-primary/20 active:scale-[0.98]"
         >
-          <Package className="h-4 w-4 text-primary shrink-0" strokeWidth={1.5} />
+          <Package
+            className="h-4 w-4 text-primary shrink-0"
+            strokeWidth={1.5}
+          />
           <div className="min-w-0">
             <p className="font-poppins text-[12.5px] sm:text-[13px] font-medium text-dark">
               Suivre mes Commandes

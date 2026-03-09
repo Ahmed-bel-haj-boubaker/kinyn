@@ -251,7 +251,16 @@ function QuickViewModal({
     });
     onClose();
     router.push("/checkout");
-  }, [selectedSize, product, selectedColor, quantity, categorySlug, addItem, onClose, router]);
+  }, [
+    selectedSize,
+    product,
+    selectedColor,
+    quantity,
+    categorySlug,
+    addItem,
+    onClose,
+    router,
+  ]);
 
   const isVisible = phase === "visible";
   const isExiting = phase === "exit";
@@ -1361,10 +1370,7 @@ export default function ProductsListing({
                               }}
                               className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-2.5 font-poppins text-[0.72rem] font-semibold text-background shadow-lg shadow-primary/20 transition-all duration-200 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.97]"
                             >
-                              <Eye
-                                className="h-3.5 w-3.5"
-                                strokeWidth={2.2}
-                              />
+                              <Eye className="h-3.5 w-3.5" strokeWidth={2.2} />
                               Choisir option
                             </button>
                             <Link

@@ -18,6 +18,12 @@ import mongoose, { Schema, type Document, type Model } from "mongoose";
 
 export type ProductStatus = "active" | "draft" | "outofstock";
 
+export interface IProductImage {
+  url: string;
+  color: string; // empty string = no color assigned
+  colorHex: string; // hex value for custom colors, empty = use default lookup
+}
+
 export interface IProduct extends Document {
   name: string;
   slug: string;
@@ -30,7 +36,7 @@ export interface IProduct extends Document {
   promoPrice: number | null;
   stock: number;
   status: ProductStatus;
-  images: string[];
+  images: IProductImage[];
   sizes: string[];
   colors: string[];
   createdAt: Date;
@@ -54,7 +60,7 @@ export interface SafeProduct {
   promoPrice: number | null;
   stock: number;
   status: ProductStatus;
-  images: string[];
+  images: IProductImage[];
   sizes: string[];
   colors: string[];
   createdAt: Date;
@@ -141,7 +147,13 @@ const productSchema = new Schema<IProduct>(
       default: "draft",
     },
     images: {
-      type: [String],
+      type: [
+        {
+          url: { type: String, required: true },
+          color: { type: String, default: "" },
+          colorHex: { type: String, default: "" },
+        },
+      ],
       default: [],
     },
     sizes: {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, type ReactNode } from "react";
-import type { Product, ProductStatus } from "./ProductTable";
+import type { Product, ProductImage, ProductStatus } from "./ProductTable";
 
 type ModalMode = "create" | "edit";
 
@@ -181,6 +181,28 @@ function ProductFormInner({
     initialData?.description ?? "",
   );
   const [sku, setSku] = useState(initialData?.sku ?? "");
+  const isNewProduct = !initialData?.id;
+
+  /* Auto-generate SKU from name for new products */
+  const generateSku = (productName: string) => {
+    const base = productName
+      .toUpperCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^A-Z0-9\s]/g, "")
+      .trim()
+      .split(/\s+/)
+      .slice(0, 3)
+      .map((w) => w.slice(0, 4))
+      .join("-");
+    const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+    return base ? `${base}-${rand}` : "";
+  };
+
+  const handleNameChange = (value: string) => {
+    setName(value);
+    if (isNewProduct) setSku(generateSku(value));
+  };
   const [categoryMere, setCategoryMere] = useState(
     initialData?.categoryMere ?? "",
   );
@@ -198,9 +220,10 @@ function ProductFormInner({
   const [status, setStatus] = useState<ProductStatus>(
     initialData?.status ?? "draft",
   );
-  const [images, setImages] = useState<string[]>(initialData?.images ?? []);
+  const [images, setImages] = useState<ProductImage[]>(
+    initialData?.images ?? [],
+  );
   const [sizes, setSizes] = useState<string[]>(initialData?.sizes ?? []);
-  const [colors, setColors] = useState<string[]>(initialData?.colors ?? []);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -233,6 +256,10 @@ function ProductFormInner({
 
   const handleSubmit = () => {
     if (!validate()) return;
+    /* Derive colors from image color assignments */
+    const derivedColors = Array.from(
+      new Set(images.map((img) => img.color).filter(Boolean)),
+    );
     onSave({
       ...(initialData?.id ? { id: initialData.id } : {}),
       name: name.trim(),
@@ -251,7 +278,7 @@ function ProductFormInner({
       status,
       images,
       sizes,
-      colors,
+      colors: derivedColors,
     });
   };
 
@@ -260,13 +287,26 @@ function ProductFormInner({
       prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s],
     );
 
-  const toggleColor = (c: string) =>
-    setColors((prev) =>
-      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
-    );
-
   const removeImage = (i: number) =>
     setImages((prev) => prev.filter((_, idx) => idx !== i));
+
+  const setImageColor = (i: number, color: string, colorHex?: string) =>
+    setImages((prev) =>
+      prev.map((img, idx) => {
+        if (idx !== i) return img;
+        const hex =
+          colorHex ??
+          ALL_COLORS.find((c) => c.name === color)?.hex ??
+          img.colorHex ??
+          "";
+        return { ...img, color, colorHex: hex };
+      }),
+    );
+
+  const setImageColorHex = (i: number, hex: string) =>
+    setImages((prev) =>
+      prev.map((img, idx) => (idx === i ? { ...img, colorHex: hex } : img)),
+    );
 
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -280,7 +320,10 @@ function ProductFormInner({
       });
       const json = await res.json();
       if (res.ok && json.urls) {
-        setImages((prev) => [...prev, ...json.urls]);
+        setImages((prev) => [
+          ...prev,
+          ...json.urls.map((url: string) => ({ url, color: "", colorHex: "" })),
+        ]);
       }
     } catch {
       /* silently fail upload */
@@ -360,7 +403,7 @@ function ProductFormInner({
               <input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="ex: Robe Élégante Noire"
                 className={fieldClass("name")}
               />
@@ -387,13 +430,16 @@ function ProductFormInner({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block font-poppins text-xs font-medium text-dark/60 mb-1.5">
-                  SKU <span className="text-primary">*</span>
+                  SKU{" "}
+                  <span className="text-dark/30 font-normal text-[10px]">
+                    (auto-g&#233;n&#233;r&#233;, modifiable)
+                  </span>
                 </label>
                 <input
                   type="text"
                   value={sku}
                   onChange={(e) => setSku(e.target.value)}
-                  placeholder="ex: ROBE-ELG-001"
+                  placeholder="Ex : ROBE-ELEG-4F2A"
                   className={fieldClass("sku")}
                 />
                 {errors.sku && (
@@ -622,30 +668,63 @@ function ProductFormInner({
               {images.map((img, i) => (
                 <div
                   key={i}
-                  className="relative aspect-square rounded-xl border-2 border-dashed border-gray-200 bg-dark/2 flex items-center justify-center group overflow-hidden"
+                  className="relative rounded-xl border-2 border-dashed border-gray-200 bg-dark/2 group overflow-hidden"
                 >
-                  {img ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={img}
-                      alt={`Image ${i + 1}`}
-                      className="w-full h-full object-cover rounded-xl"
-                    />
-                  ) : (
-                    <svg
-                      className="w-8 h-8 text-dark/15"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  <div className="aspect-square flex items-center justify-center">
+                    {img.url ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={img.url}
+                        alt={`Image ${i + 1}`}
+                        className="w-full h-full object-cover rounded-t-xl"
                       />
-                    </svg>
-                  )}
+                    ) : (
+                      <svg
+                        className="w-8 h-8 text-dark/15"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  {/* Color selector for this image */}
+                  <div className="px-1.5 py-1.5 border-t border-gray-100 bg-white rounded-b-xl">
+                    <div className="flex items-center gap-1">
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          value={img.color}
+                          onChange={(e) => setImageColor(i, e.target.value)}
+                          list={`color-suggestions-${i}`}
+                          placeholder="Couleur…"
+                          className="w-full px-2 py-1 rounded-lg border border-gray-200 bg-white font-poppins text-[11px] text-dark/70 focus:outline-none focus:border-primary/50 pr-2"
+                        />
+                        <datalist id={`color-suggestions-${i}`}>
+                          {ALL_COLORS.map((c) => (
+                            <option key={c.name} value={c.name} />
+                          ))}
+                        </datalist>
+                      </div>
+                      <input
+                        type="color"
+                        value={
+                          img.colorHex ||
+                          ALL_COLORS.find((c) => c.name === img.color)?.hex ||
+                          "#cccccc"
+                        }
+                        onChange={(e) => setImageColorHex(i, e.target.value)}
+                        className="w-6 h-6 rounded-md border border-gray-200 cursor-pointer p-0 bg-transparent shrink-0"
+                        title="Choisir la couleur"
+                      />
+                    </div>
+                  </div>
                   <button
                     type="button"
                     onClick={() => removeImage(i)}
@@ -667,9 +746,20 @@ function ProductFormInner({
                     </svg>
                   </button>
                   {i === 0 && (
-                    <span className="absolute bottom-1 left-1 bg-dark/70 text-white font-poppins text-[10px] px-1.5 py-0.5 rounded-md">
+                    <span className="absolute top-1 left-1 bg-dark/70 text-white font-poppins text-[10px] px-1.5 py-0.5 rounded-md">
                       Principal
                     </span>
+                  )}
+                  {img.color && (
+                    <span
+                      className="absolute top-1 right-8 w-4 h-4 rounded-full border-2 border-white shadow-sm"
+                      style={{
+                        backgroundColor:
+                          img.colorHex ||
+                          (ALL_COLORS.find((c) => c.name === img.color)?.hex ??
+                            "#ccc"),
+                      }}
+                    />
                   )}
                 </div>
               ))}
@@ -722,7 +812,8 @@ function ProductFormInner({
               </button>
             </div>
             <p className="font-poppins text-xs text-dark/30">
-              La première image sera utilisée comme image principale. Max 5 Mo
+              La première image sera utilisée comme image principale. Vous
+              pouvez associer une couleur à chaque image (optionnel). Max 5 Mo
               par image. Formats : JPEG, PNG, WebP, AVIF, GIF.
             </p>
           </>
@@ -759,42 +850,6 @@ function ProductFormInner({
                 <p className="font-poppins text-xs text-dark/40 mt-2">
                   {sizes.length} taille{sizes.length > 1 ? "s" : ""}{" "}
                   sélectionnée{sizes.length > 1 ? "s" : ""}
-                </p>
-              )}
-            </div>
-
-            {/* Colors */}
-            <div>
-              <label className="block font-poppins text-xs font-medium text-dark/60 mb-2">
-                Couleurs
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {ALL_COLORS.map((c) => {
-                  const selected = colors.includes(c.name);
-                  return (
-                    <button
-                      key={c.name}
-                      type="button"
-                      onClick={() => toggleColor(c.name)}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-poppins text-xs font-medium border transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary/20 ${
-                        selected
-                          ? "bg-primary/5 text-primary border-primary/30"
-                          : "bg-white text-dark/50 border-gray-200 hover:border-primary/30"
-                      }`}
-                    >
-                      <span
-                        className="w-4 h-4 rounded-full border border-gray-200 shrink-0"
-                        style={{ backgroundColor: c.hex }}
-                      />
-                      {c.name}
-                    </button>
-                  );
-                })}
-              </div>
-              {colors.length > 0 && (
-                <p className="font-poppins text-xs text-dark/40 mt-2">
-                  {colors.length} couleur{colors.length > 1 ? "s" : ""}{" "}
-                  sélectionnée{colors.length > 1 ? "s" : ""}
                 </p>
               )}
             </div>

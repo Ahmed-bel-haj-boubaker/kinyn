@@ -28,6 +28,13 @@ import WishlistButton from "./WishlistButton";
 
 /* ──────────────────────────── Types ──────────────────────────── */
 
+/** Image shape with optional color association */
+export interface ClientProductImage {
+  url: string;
+  color: string;
+  colorHex?: string;
+}
+
 /** Product shape returned by the public /api/products endpoint */
 export interface ClientProduct {
   id: string;
@@ -38,7 +45,7 @@ export interface ClientProduct {
   promoPrice: number | null;
   stock: number;
   image: string;
-  images: string[];
+  images: ClientProductImage[];
   sizes: string[];
   colors: string[];
   categoryMere: string;
@@ -124,14 +131,34 @@ function QuickViewModal({
 
   /* Image gallery */
   const [selectedImage, setSelectedImage] = useState(0);
-  const images =
+  const imageUrls =
     product.images.length > 0
-      ? product.images
+      ? product.images.map((img) => img.url)
       : [product.image || "/images/placeholder.png"];
+  const images = imageUrls;
 
   /* Selectors */
   const [selectedColor, setSelectedColor] = useState(
     product.colors.length > 0 ? product.colors[0] : "",
+  );
+
+  /* Switch to first image matching the selected color */
+  const handleColorSelect = useCallback(
+    (color: string) => {
+      setSelectedColor(color);
+      const idx = product.images.findIndex((img) => img.color === color);
+      if (idx !== -1) setSelectedImage(idx);
+    },
+    [product.images],
+  );
+
+  /* Build dynamic color hex map from images (for custom colors) */
+  const resolveHex = useCallback(
+    (name: string) => {
+      const img = product.images.find((im) => im.color === name && im.colorHex);
+      return img?.colorHex || colorHex(name);
+    },
+    [product.images],
   );
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
@@ -213,7 +240,7 @@ function QuickViewModal({
       image:
         product.image ||
         (product.images.length > 0
-          ? product.images[0]
+          ? product.images[0]?.url
           : "/images/placeholder.png"),
       price: product.price,
       promoPrice: product.promoPrice,
@@ -240,7 +267,7 @@ function QuickViewModal({
       image:
         product.image ||
         (product.images.length > 0
-          ? product.images[0]
+          ? product.images[0]?.url
           : "/images/placeholder.png"),
       price: product.price,
       promoPrice: product.promoPrice,
@@ -294,7 +321,7 @@ function QuickViewModal({
         {/* ── Close button ── */}
         <button
           onClick={handleClose}
-          className={`absolute top-3 right-3 sm:top-4 sm:right-4 z-20 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-dark/5 text-dark/60 transition-all duration-300 hover:bg-dark/10 hover:text-dark sm:hover:rotate-90 ${
+          className={`absolute top-3 right-3 sm:top-4 sm:right-4 z-20 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-background sm:bg-dark/5 text-dark sm:text-dark/60 shadow-md sm:shadow-none transition-all duration-300 hover:bg-dark/10 hover:text-dark sm:hover:rotate-90 ${
             isVisible ? "opacity-100 scale-100" : "opacity-0 scale-50"
           }`}
           style={stagger(300)}
@@ -515,13 +542,13 @@ function QuickViewModal({
                     <button
                       key={color}
                       type="button"
-                      onClick={() => setSelectedColor(color)}
+                      onClick={() => handleColorSelect(color)}
                       className={`h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 rounded-full border-2 transition-all duration-200 ${
                         selectedColor === color
                           ? "border-primary ring-2 ring-primary/20 scale-110"
                           : "border-dark/12 hover:border-dark/25"
                       }`}
-                      style={{ backgroundColor: colorHex(color) }}
+                      style={{ backgroundColor: resolveHex(color) }}
                       aria-label={color}
                     />
                   ))}
@@ -619,11 +646,14 @@ function QuickViewModal({
                 {/* Add to cart */}
                 <button
                   type="button"
-                  onClick={handleAddToCart}
+                  onClick={product.stock === 0 ? undefined : handleAddToCart}
+                  disabled={product.stock === 0}
                   className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 lg:gap-2.5 rounded-lg py-2 sm:py-2.5 lg:py-3 font-poppins text-[0.6rem] sm:text-[0.68rem] lg:text-[0.74rem] font-semibold uppercase tracking-[0.04em] sm:tracking-[0.06em] lg:tracking-[0.08em] transition-all duration-300 ${
-                    addedToCart
-                      ? "bg-green-600 text-background"
-                      : "bg-primary text-background hover:bg-dark active:scale-[0.97]"
+                    product.stock === 0
+                      ? "bg-dark/10 text-dark/35 cursor-not-allowed"
+                      : addedToCart
+                        ? "bg-green-600 text-background"
+                        : "bg-primary text-background hover:bg-dark active:scale-[0.97]"
                   }`}
                 >
                   <ShoppingBag
@@ -631,10 +661,10 @@ function QuickViewModal({
                     strokeWidth={1.6}
                   />
                   <span className="hidden sm:inline">
-                    {addedToCart ? "Ajouté !" : "Ajouter au panier"}
+                    {product.stock === 0 ? "Hors stock" : addedToCart ? "Ajouté !" : "Ajouter au panier"}
                   </span>
                   <span className="sm:hidden">
-                    {addedToCart ? "Ajouté !" : "Ajouter"}
+                    {product.stock === 0 ? "Hors stock" : addedToCart ? "Ajouté !" : "Ajouter"}
                   </span>
                 </button>
 
@@ -664,10 +694,15 @@ function QuickViewModal({
               {/* Buy now */}
               <button
                 type="button"
-                onClick={handleBuyNow}
-                className="flex items-center justify-center gap-1.5 sm:gap-2 lg:gap-2.5 w-full rounded-lg border-2 border-primary py-2 sm:py-2.5 lg:py-3 font-poppins text-[0.58rem] sm:text-[0.64rem] lg:text-[0.68rem] font-semibold uppercase tracking-[0.08em] sm:tracking-[0.1em] text-primary transition-all duration-300 hover:bg-primary hover:text-background active:scale-[0.97]"
+                onClick={product.stock === 0 ? undefined : handleBuyNow}
+                disabled={product.stock === 0}
+                className={`flex items-center justify-center gap-1.5 sm:gap-2 lg:gap-2.5 w-full rounded-lg border-2 py-2 sm:py-2.5 lg:py-3 font-poppins text-[0.58rem] sm:text-[0.64rem] lg:text-[0.68rem] font-semibold uppercase tracking-[0.08em] sm:tracking-[0.1em] transition-all duration-300 ${
+                  product.stock === 0
+                    ? "border-dark/15 text-dark/30 cursor-not-allowed"
+                    : "border-primary text-primary hover:bg-primary hover:text-background active:scale-[0.97]"
+                }`}
               >
-                Acheter maintenant
+                {product.stock === 0 ? "Hors stock" : "Acheter maintenant"}
               </button>
             </div>
 
@@ -1322,15 +1357,6 @@ export default function ProductsListing({
                           {/* Gradient overlay on hover */}
                           <div className="absolute inset-0 bg-linear-to-t from-dark/50 via-dark/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                          {/* Promo badge */}
-                          {hasPromo && (
-                            <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10">
-                              <span className="inline-flex items-center rounded-full bg-primary px-1.5 py-px sm:px-2.5 sm:py-0.5 font-poppins text-[0.5rem] sm:text-[0.62rem] font-bold text-background shadow-lg shadow-primary/25">
-                                -{discount}%
-                              </span>
-                            </div>
-                          )}
-
                           {/* Wishlist heart */}
                           <WishlistButton
                             productId={product.id}
@@ -1338,49 +1364,14 @@ export default function ProductsListing({
                             iconClassName="h-3 w-3 sm:h-4 sm:w-4"
                           />
 
-                          {/* Mobile/tablet: view details icon */}
-                          <Link
-                            href={`/${categorySlug}/${product.slug}`}
-                            className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 z-10 flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-dark/50 shadow-sm transition-all duration-200 active:scale-90 lg:hidden"
-                            aria-label="Voir détails"
-                          >
-                            <Eye
-                              className="h-3.5 w-3.5 sm:h-4 sm:w-4"
-                              strokeWidth={2}
-                            />
-                          </Link>
-
                           {/* Out of stock overlay */}
                           {product.stock <= 0 && (
-                            <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60 backdrop-blur-[2px]">
+                            <div className="absolute inset-0 z-10 flex items-start justify-start p-2  ">
                               <span className="rounded-full bg-dark/80 px-3 py-1 sm:px-4 sm:py-1.5 font-poppins text-[0.58rem] sm:text-[0.68rem] font-semibold text-background">
                                 Rupture de stock
                               </span>
                             </div>
                           )}
-
-                          {/* Desktop hover action buttons */}
-                          <div className="hidden lg:flex absolute bottom-0 left-0 right-0 z-10 flex-col items-center gap-2 px-4 pb-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setQuickViewProduct(product);
-                              }}
-                              className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-2.5 font-poppins text-[0.72rem] font-semibold text-background shadow-lg shadow-primary/20 transition-all duration-200 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.97]"
-                            >
-                              <Eye className="h-3.5 w-3.5" strokeWidth={2.2} />
-                              Choisir option
-                            </button>
-                            <Link
-                              href={`/${categorySlug}/${product.slug}`}
-                              className="flex w-full items-center justify-center gap-2 rounded-lg bg-background/90 backdrop-blur-sm py-2.5 font-poppins text-[0.72rem] font-semibold text-dark border border-dark/10 transition-all duration-200 hover:bg-background hover:border-dark/20 active:scale-[0.97]"
-                            >
-                              <Eye className="h-3.5 w-3.5" strokeWidth={2.2} />
-                              Voir détails
-                            </Link>
-                          </div>
                         </div>
 
                         {/* ── Product info ── */}
@@ -1388,13 +1379,6 @@ export default function ProductsListing({
                           href={`/${categorySlug}/${product.slug}`}
                           className="flex flex-1 flex-col p-2.5 sm:p-4"
                         >
-                          {/* Category tag */}
-                          {product.categorySous && (
-                            <span className="mb-0.5 sm:mb-1 font-poppins text-[0.48rem] sm:text-[0.6rem] font-semibold uppercase tracking-[0.12em] sm:tracking-[0.15em] text-primary/70 truncate">
-                              {product.categorySous}
-                            </span>
-                          )}
-
                           {/* Name */}
                           <h3 className="font-poppins text-[0.68rem] sm:text-[0.82rem] font-medium text-dark leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-300">
                             {product.name}
@@ -1416,8 +1400,8 @@ export default function ProductsListing({
                           </div>
                         </Link>
 
-                        {/* Mobile/tablet: choose option button */}
-                        <div className="px-2.5 pb-2.5 sm:px-4 sm:pb-4 lg:hidden">
+                        {/* Choose option button */}
+                        <div className="px-2.5 pb-2.5 sm:px-4 sm:pb-4">
                           <button
                             type="button"
                             onClick={(e) => {
@@ -1425,7 +1409,7 @@ export default function ProductsListing({
                               e.stopPropagation();
                               setQuickViewProduct(product);
                             }}
-                            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary py-2 sm:py-2.5 font-poppins text-[0.6rem] sm:text-[0.72rem] font-semibold text-background shadow-sm transition-all duration-200 active:scale-[0.97]"
+                            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary py-2 sm:py-2.5 font-poppins text-[0.6rem] sm:text-[0.72rem] font-semibold text-background shadow-sm transition-all duration-200 hover:bg-primary/90 active:scale-[0.97]"
                           >
                             <Eye
                               className="h-3 w-3 sm:h-3.5 sm:w-3.5"

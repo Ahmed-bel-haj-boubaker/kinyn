@@ -6,6 +6,7 @@ interface ProductCardProps {
   products: Product[];
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
+  onView: (product: Product) => void;
 }
 
 const STATUS_CONFIG: Record<
@@ -33,6 +34,7 @@ export default function ProductCard({
   products,
   onEdit,
   onDelete,
+  onView,
 }: ProductCardProps) {
   if (products.length === 0) {
     return (
@@ -71,10 +73,10 @@ export default function ProductCard({
             {/* Header row */}
             <div className="flex items-start gap-3 mb-3">
               <div className="w-14 h-14 rounded-xl bg-dark/5 shrink-0 flex items-center justify-center overflow-hidden">
-                {p.images[0] ? (
+                {p.images[0]?.url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={p.images[0]}
+                    src={p.images[0].url}
                     alt={p.name}
                     className="w-full h-full object-cover"
                   />
@@ -142,9 +144,18 @@ export default function ProductCard({
               <div>
                 <p className="font-poppins text-xs text-dark/40">Stock</p>
                 <p
-                  className={`font-poppins text-sm font-medium mt-0.5 ${p.stock <= 5 ? "text-red-500" : "text-dark"}`}
+                  className={`font-poppins text-sm font-medium mt-0.5 ${p.stock === 0 ? "text-red-500" : p.stock < 5 ? "text-amber-500" : "text-dark"}`}
                 >
                   {p.stock}
+                  {p.stock === 0 ? (
+                    <span className="ml-1 text-[10px] text-red-500">
+                      Hors stock
+                    </span>
+                  ) : p.stock < 5 ? (
+                    <span className="ml-1 text-[10px] text-amber-500">
+                      Stock faible
+                    </span>
+                  ) : null}
                 </p>
               </div>
               {p.sizes.length > 0 && (
@@ -159,6 +170,31 @@ export default function ProductCard({
 
             {/* Actions */}
             <div className="flex items-center gap-2 border-t border-gray-50 pt-3">
+              <button
+                type="button"
+                onClick={() => onView(p)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-dark/5 text-dark/60 hover:bg-dark/10 font-poppins text-xs font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                Voir
+              </button>
               <button
                 type="button"
                 onClick={() => onEdit(p)}

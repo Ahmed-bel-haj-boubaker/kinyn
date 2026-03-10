@@ -2,6 +2,7 @@ import connectDB from "@/lib/mongodb";
 import Product, {
   type SafeProduct,
   type ProductStatus,
+  type IProductImage,
 } from "@/models/Product";
 import Category from "@/models/Category";
 import mongoose from "mongoose";
@@ -42,7 +43,7 @@ interface LeanProduct {
   promoPrice: number | null;
   stock: number;
   status: ProductStatus;
-  images: string[];
+  images: IProductImage[];
   sizes: string[];
   colors: string[];
   createdAt: Date;
@@ -201,7 +202,7 @@ interface CreateProductInput {
   promoPrice?: number | null;
   stock: number;
   status?: ProductStatus;
-  images?: string[];
+  images?: IProductImage[];
   sizes?: string[];
   colors?: string[];
 }
@@ -370,7 +371,7 @@ interface UpdateProductInput {
   promoPrice?: number | null;
   stock?: number;
   status?: ProductStatus;
-  images?: string[];
+  images?: IProductImage[];
   sizes?: string[];
   colors?: string[];
 }

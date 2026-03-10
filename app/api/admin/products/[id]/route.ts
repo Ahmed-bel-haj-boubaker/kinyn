@@ -59,7 +59,7 @@ export async function PUT(
     promoPrice?: number | null;
     stock?: number;
     status?: ProductStatus;
-    images?: string[];
+    images?: { url: string; color?: string; colorHex?: string }[];
     sizes?: string[];
     colors?: string[];
   }>(req);

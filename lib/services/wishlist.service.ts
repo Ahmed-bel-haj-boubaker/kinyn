@@ -1,7 +1,11 @@
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Product from "@/models/Product";
-import type { SafeProduct, ProductStatus } from "@/models/Product";
+import type {
+  SafeProduct,
+  ProductStatus,
+  IProductImage,
+} from "@/models/Product";
 import mongoose from "mongoose";
 
 /* ================================================================
@@ -39,7 +43,7 @@ interface LeanProduct {
   promoPrice: number | null;
   stock: number;
   status: ProductStatus;
-  images: string[];
+  images: IProductImage[];
   sizes: string[];
   colors: string[];
   createdAt: Date;

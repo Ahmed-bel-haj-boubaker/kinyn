@@ -34,7 +34,7 @@ interface LeanProduct {
   price: number;
   promoPrice: number | null;
   stock: number;
-  images: string[];
+  images: { url: string; color: string }[];
   sizes: string[];
   colors: string[];
   categoryMere: LeanCat | mongoose.Types.ObjectId;
@@ -181,6 +181,17 @@ export async function GET(req: NextRequest) {
       const sous = resolveCat(p.categorySous);
       const finale = resolveCat(p.categoryFinale);
 
+      const imgs = p.images ?? [];
+      const imageUrls = imgs.map((img) =>
+        typeof img === "string" ? img : img.url,
+      );
+      const imageColors = imgs
+        .filter((img) => typeof img !== "string" && img.color)
+        .map((img) => (typeof img === "string" ? "" : img.color));
+      const allColors = Array.from(
+        new Set([...(p.colors ?? []), ...imageColors]),
+      );
+
       return {
         id: String(p._id),
         name: p.name,
@@ -189,10 +200,19 @@ export async function GET(req: NextRequest) {
         price: p.price,
         promoPrice: p.promoPrice,
         stock: p.stock,
-        image: p.images?.[0] ?? "",
-        images: p.images ?? [],
+        image: imageUrls[0] ?? "",
+        images: imgs.map((img) =>
+          typeof img === "string"
+            ? { url: img, color: "", colorHex: "" }
+            : {
+                url: img.url,
+                color: img.color ?? "",
+                colorHex:
+                  ((img as Record<string, unknown>).colorHex as string) ?? "",
+              },
+        ),
         sizes: p.sizes ?? [],
-        colors: p.colors ?? [],
+        colors: allColors,
         categoryMere: mere.name,
         categoryMereSlug: mere.slug,
         categorySous: sous.name,

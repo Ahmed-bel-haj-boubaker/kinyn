@@ -2,6 +2,12 @@
 
 export type ProductStatus = "active" | "draft" | "outofstock";
 
+export interface ProductImage {
+  url: string;
+  color: string;
+  colorHex: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -18,7 +24,7 @@ export interface Product {
   promoPrice?: number;
   stock: number;
   status: ProductStatus;
-  images: string[];
+  images: ProductImage[];
   sizes: string[];
   colors: string[];
 }
@@ -27,6 +33,7 @@ interface ProductTableProps {
   products: Product[];
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
+  onView: (product: Product) => void;
 }
 
 const STATUS_CONFIG: Record<
@@ -54,6 +61,7 @@ export default function ProductTable({
   products,
   onEdit,
   onDelete,
+  onView,
 }: ProductTableProps) {
   if (products.length === 0) {
     return (
@@ -117,10 +125,10 @@ export default function ProductTable({
                 <td className="px-6 py-3.5">
                   <div className="flex items-center gap-3">
                     <div className="w-11 h-11 rounded-lg bg-dark/5 shrink-0 flex items-center justify-center overflow-hidden">
-                      {p.images[0] ? (
+                      {p.images[0]?.url ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img
-                          src={p.images[0]}
+                          src={p.images[0].url}
                           alt={p.name}
                           className="w-full h-full object-cover"
                         />
@@ -184,11 +192,22 @@ export default function ProductTable({
                 </td>
                 {/* Stock */}
                 <td className="px-4 py-3.5">
-                  <span
-                    className={`font-poppins text-sm font-medium ${p.stock <= 5 ? "text-red-500" : "text-dark"}`}
-                  >
-                    {p.stock}
-                  </span>
+                  <div className="flex flex-col">
+                    <span
+                      className={`font-poppins text-sm font-medium ${p.stock === 0 ? "text-red-500" : p.stock < 5 ? "text-amber-500" : "text-dark"}`}
+                    >
+                      {p.stock}
+                    </span>
+                    {p.stock === 0 ? (
+                      <span className="font-poppins text-[10px] font-medium text-red-500">
+                        Hors stock
+                      </span>
+                    ) : p.stock < 5 ? (
+                      <span className="font-poppins text-[10px] font-medium text-amber-500">
+                        Stock faible
+                      </span>
+                    ) : null}
+                  </div>
                 </td>
                 {/* Status */}
                 <td className="px-4 py-3.5">
@@ -202,6 +221,31 @@ export default function ProductTable({
                 {/* Actions */}
                 <td className="px-6 py-3.5">
                   <div className="flex items-center justify-end gap-1">
+                    <button
+                      type="button"
+                      onClick={() => onView(p)}
+                      className="p-2 rounded-lg text-dark/40 hover:text-primary hover:bg-primary/5 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      aria-label={`Voir ${p.name}`}
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    </button>
                     <button
                       type="button"
                       onClick={() => onEdit(p)}

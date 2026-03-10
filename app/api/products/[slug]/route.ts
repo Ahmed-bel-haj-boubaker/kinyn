@@ -24,7 +24,7 @@ interface LeanProduct {
   price: number;
   promoPrice: number | null;
   stock: number;
-  images: string[];
+  images: { url: string; color: string }[];
   sizes: string[];
   colors: string[];
   categoryMere: LeanCat | mongoose.Types.ObjectId;
@@ -74,6 +74,17 @@ export async function GET(
     const sous = resolveCat(product.categorySous);
     const finale = resolveCat(product.categoryFinale);
 
+    const imgs = product.images ?? [];
+    const imageUrls = imgs.map((img) =>
+      typeof img === "string" ? img : img.url,
+    );
+    const imageColors = imgs
+      .filter((img) => typeof img !== "string" && img.color)
+      .map((img) => (typeof img === "string" ? "" : img.color));
+    const allColors = Array.from(
+      new Set([...(product.colors ?? []), ...imageColors]),
+    );
+
     return NextResponse.json(
       {
         product: {
@@ -84,10 +95,19 @@ export async function GET(
           price: product.price,
           promoPrice: product.promoPrice,
           stock: product.stock,
-          image: product.images?.[0] ?? "",
-          images: product.images ?? [],
+          image: imageUrls[0] ?? "",
+          images: imgs.map((img) =>
+            typeof img === "string"
+              ? { url: img, color: "", colorHex: "" }
+              : {
+                  url: img.url,
+                  color: img.color ?? "",
+                  colorHex:
+                    ((img as Record<string, unknown>).colorHex as string) ?? "",
+                },
+          ),
           sizes: product.sizes ?? [],
-          colors: product.colors ?? [],
+          colors: allColors,
           categoryMere: mere.name,
           categoryMereSlug: mere.slug,
           categorySous: sous.name,

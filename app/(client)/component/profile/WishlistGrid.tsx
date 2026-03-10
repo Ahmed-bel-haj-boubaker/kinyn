@@ -11,7 +11,7 @@ interface WishlistProduct {
   slug: string;
   price: number;
   promoPrice: number | null;
-  images: string[];
+  images: { url: string; color: string }[];
   categoryMereName: string;
 }
 
@@ -102,7 +102,7 @@ export default function WishlistGrid() {
               >
                 <div className="relative aspect-4/5 w-full overflow-hidden bg-[#F5F4F1]">
                   <Image
-                    src={item.images[0] || "/images/placeholder.jpg"}
+                    src={item.images[0]?.url || "/images/placeholder.jpg"}
                     alt={item.name}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"

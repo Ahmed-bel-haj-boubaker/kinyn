@@ -5,6 +5,7 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 import ProductTable from "../component/products/ProductTable";
 import ProductCard from "../component/products/ProductCard";
 import ProductModal from "../component/products/ProductModal";
+import ProductDetailModal from "../component/products/ProductDetailModal";
 import DeleteProductModal from "../component/products/DeleteProductModal";
 import Toast from "../component/shared/Toast";
 import { useToast } from "../hooks/useToast";
@@ -91,6 +92,7 @@ export default function ProductsPage() {
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const [viewProduct, setViewProduct] = useState<Product | null>(null);
   const { toasts, addToast, removeToast } = useToast();
 
   /* Filters */
@@ -178,6 +180,10 @@ export default function ProductsPage() {
   }, [products, search, filterCategory, filterStatus]);
 
   /* Handlers */
+  const handleView = useCallback((product: Product) => {
+    setViewProduct(product);
+  }, []);
+
   const handleCreate = useCallback(() => {
     setEditingProduct(null);
     setModalMode("create");
@@ -601,6 +607,7 @@ export default function ProductsPage() {
         products={filtered}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onView={handleView}
       />
 
       {/* Product List — Mobile Cards */}
@@ -608,6 +615,7 @@ export default function ProductsPage() {
         products={filtered}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onView={handleView}
       />
 
       {/* Product Modal */}
@@ -623,6 +631,17 @@ export default function ProductsPage() {
         saving={saving}
         categories={mereCategories}
         getCategoryChildren={getCategoryChildren}
+      />
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        isOpen={!!viewProduct}
+        product={viewProduct}
+        onClose={() => setViewProduct(null)}
+        onEdit={(product) => {
+          setViewProduct(null);
+          handleEdit(product);
+        }}
       />
 
       {/* Delete Confirm Modal */}

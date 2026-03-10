@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, notFound } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -230,14 +230,37 @@ function ProductDetailPage({
   const categoryLabel = p.categoryMere || slug;
   const { addItem } = useCart();
 
-  /* Build image list from DB strings */
-  const images =
-    p.images.length > 0
-      ? p.images.map((src, i) => ({
-          src,
-          alt: i === 0 ? "Vue principale" : `Vue ${i + 1}`,
-        }))
-      : [{ src: "/images/placeholder.png", alt: "Aucune image" }];
+  /* Build image list from DB objects */
+  const images = useMemo(
+    () =>
+      p.images.length > 0
+        ? p.images.map((img, i) => ({
+            src: typeof img === "string" ? img : img.url,
+            color: typeof img === "string" ? "" : img.color || "",
+            colorHex: typeof img === "string" ? "" : img.colorHex || "",
+            alt: i === 0 ? "Vue principale" : `Vue ${i + 1}`,
+          }))
+        : [
+            {
+              src: "/images/placeholder.png",
+              color: "",
+              colorHex: "",
+              alt: "Aucune image",
+            },
+          ],
+    [p.images],
+  );
+
+  /* Build dynamic color hex map from images (for custom colors) */
+  const dynamicColorHex = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const img of images) {
+      if (img.color && img.colorHex) map[img.color] = img.colorHex;
+    }
+    return map;
+  }, [images]);
+
+  const resolveHex = (name: string) => dynamicColorHex[name] || colorHex(name);
 
   /* ── Computed ── */
   const effectivePrice = p.promoPrice ?? p.price;
@@ -249,6 +272,16 @@ function ProductDetailPage({
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState(
     p.colors.length > 0 ? p.colors[0] : "",
+  );
+
+  /* Switch to first image matching the selected color */
+  const handleColorSelect = useCallback(
+    (color: string) => {
+      setSelectedColor(color);
+      const idx = images.findIndex((img) => img.color === color);
+      if (idx !== -1) setSelectedImage(idx);
+    },
+    [images],
   );
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -280,7 +313,11 @@ function ProductDetailPage({
       slug: p.slug,
       image:
         p.image ||
-        (p.images.length > 0 ? p.images[0] : "/images/placeholder.png"),
+        (p.images.length > 0
+          ? typeof p.images[0] === "string"
+            ? p.images[0]
+            : p.images[0]?.url
+          : "/images/placeholder.png"),
       price: p.price,
       promoPrice: p.promoPrice,
       color: selectedColor,
@@ -499,13 +536,13 @@ function ProductDetailPage({
                       <button
                         key={color}
                         type="button"
-                        onClick={() => setSelectedColor(color)}
+                        onClick={() => handleColorSelect(color)}
                         className={`h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 rounded-full border-2 transition-all duration-200 ${
                           selectedColor === color
                             ? "border-primary ring-2 ring-primary/25 scale-110"
                             : "border-dark/15 hover:border-dark/30"
                         }`}
-                        style={{ backgroundColor: colorHex(color) }}
+                        style={{ backgroundColor: resolveHex(color) }}
                         aria-label={color}
                       />
                     ))}
@@ -587,18 +624,21 @@ function ProductDetailPage({
                 {/* Add to cart */}
                 <button
                   type="button"
-                  onClick={handleAddToCart}
+                  onClick={p.stock === 0 ? undefined : handleAddToCart}
+                  disabled={p.stock === 0}
                   className={`flex-1 flex items-center justify-center gap-2 sm:gap-2.5 rounded-lg py-3 sm:py-3.5 font-poppins text-[0.72rem] sm:text-[0.78rem] md:text-[0.82rem] font-semibold transition-all duration-300 ${
-                    addedToCart
-                      ? "bg-green-600 text-background"
-                      : "bg-primary text-background hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98]"
+                    p.stock === 0
+                      ? "bg-dark/10 text-dark/35 cursor-not-allowed"
+                      : addedToCart
+                        ? "bg-green-600 text-background"
+                        : "bg-primary text-background hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98]"
                   }`}
                 >
                   <ShoppingBag
                     className="h-4 w-4 sm:h-4.5 sm:w-4.5"
                     strokeWidth={2}
                   />
-                  {addedToCart ? "Ajouté !" : "Ajouter au panier"}
+                  {p.stock === 0 ? "Hors stock" : addedToCart ? "Ajouté !" : "Ajouter au panier"}
                 </button>
 
                 {/* Wishlist */}

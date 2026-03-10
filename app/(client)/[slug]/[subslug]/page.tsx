@@ -638,7 +638,11 @@ function ProductDetailPage({
                     className="h-4 w-4 sm:h-4.5 sm:w-4.5"
                     strokeWidth={2}
                   />
-                  {p.stock === 0 ? "Hors stock" : addedToCart ? "Ajouté !" : "Ajouter au panier"}
+                  {p.stock === 0
+                    ? "Hors stock"
+                    : addedToCart
+                      ? "Ajouté !"
+                      : "Ajouter au panier"}
                 </button>
 
                 {/* Wishlist */}

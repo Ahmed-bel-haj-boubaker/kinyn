@@ -661,10 +661,18 @@ function QuickViewModal({
                     strokeWidth={1.6}
                   />
                   <span className="hidden sm:inline">
-                    {product.stock === 0 ? "Hors stock" : addedToCart ? "Ajouté !" : "Ajouter au panier"}
+                    {product.stock === 0
+                      ? "Hors stock"
+                      : addedToCart
+                        ? "Ajouté !"
+                        : "Ajouter au panier"}
                   </span>
                   <span className="sm:hidden">
-                    {product.stock === 0 ? "Hors stock" : addedToCart ? "Ajouté !" : "Ajouter"}
+                    {product.stock === 0
+                      ? "Hors stock"
+                      : addedToCart
+                        ? "Ajouté !"
+                        : "Ajouter"}
                   </span>
                 </button>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useCallback, type FormEvent } from "react";
+import { useState, useCallback, type FormEvent, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
@@ -38,7 +38,7 @@ const initialForm: FormState = {
   acceptTerms: false,
 };
 
-export default function SignUpPage() {
+function SignUpPageInner() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/";
   const [form, setForm] = useState<FormState>(initialForm);
@@ -589,5 +589,13 @@ export default function SignUpPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignUpPageInner />
+    </Suspense>
   );
 }

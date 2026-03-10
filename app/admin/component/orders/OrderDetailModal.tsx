@@ -117,7 +117,7 @@ export default function OrderDetailModal({
 
   return (
     <div
-      className={`fixed inset-0 z-90 flex items-end sm:items-start justify-center overflow-y-auto sm:px-4 sm:py-10 transition-all duration-300 ${
+      className={`fixed inset-0 z-90 flex items-end sm:items-center justify-center transition-all duration-300 ${
         isOpen
           ? "opacity-100 pointer-events-auto"
           : "opacity-0 pointer-events-none"
@@ -136,12 +136,12 @@ export default function OrderDetailModal({
       {/* Modal */}
       <div
         ref={modalRef}
-        className={`relative w-full sm:max-w-3xl bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl transition-all duration-300 ${
+        className={`relative w-full sm:max-w-2xl flex flex-col bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl transition-all duration-300 max-h-[92dvh] sm:max-h-[90vh] sm:mx-4 ${
           isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"
         }`}
       >
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-white rounded-t-2xl border-b border-gray-100 px-4 sm:px-6 py-3 sm:py-4">
+        {/* Header — sticky inside the card */}
+        <div className="shrink-0 bg-white rounded-t-2xl border-b border-gray-100 px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <h2 className="font-poppins text-base sm:text-lg font-semibold text-dark truncate">
@@ -188,68 +188,76 @@ export default function OrderDetailModal({
         </div>
 
         {/* Body */}
-        <div className="px-4 sm:px-6 py-4 sm:py-5 space-y-5">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 sm:py-5 space-y-5">
           {/* ─── Status Timeline ─── */}
           {!isCancelled && !isReturned && (
             <div className="bg-background rounded-xl p-4">
               <p className="font-poppins text-xs font-semibold text-dark/40 uppercase tracking-wider mb-4">
                 Progression
               </p>
-              <div className="flex items-center justify-between">
+              <div className="grid grid-cols-5">
                 {STATUS_FLOW.map((s, i) => {
                   const cfg = ORDER_STATUS_CONFIG[s];
                   const isActive = i <= currentStep;
                   const isCurrent = i === currentStep;
+                  const leftActive = i > 0 && i <= currentStep;
+                  const rightActive = i < STATUS_FLOW.length - 1 && i < currentStep;
                   return (
-                    <div
-                      key={s}
-                      className="flex items-center flex-1 last:flex-none"
-                    >
-                      <div className="flex flex-col items-center">
+                    <div key={s} className="flex flex-col items-center relative">
+                      {/* Left connector half */}
+                      {i > 0 && (
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
-                            isCurrent
-                              ? `${cfg.badge} ring-2 ring-offset-2 ring-current`
-                              : isActive
-                                ? "bg-emerald-100 text-emerald-600"
-                                : "bg-gray-100 text-dark/20"
-                          }`}
-                        >
-                          {isActive && !isCurrent ? (
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={2.5}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                          ) : (
-                            <span className="font-poppins text-xs font-bold">
-                              {i + 1}
-                            </span>
-                          )}
-                        </div>
-                        <p
-                          className={`font-poppins text-[9px] sm:text-[10px] mt-1.5 text-center leading-tight max-w-13 ${
-                            isActive ? "text-dark font-medium" : "text-dark/30"
-                          }`}
-                        >
-                          {cfg.label}
-                        </p>
-                      </div>
-                      {i < STATUS_FLOW.length - 1 && (
-                        <div
-                          className={`flex-1 h-0.5 mx-2 rounded-full transition-colors duration-300 ${
-                            i < currentStep ? "bg-emerald-300" : "bg-gray-200"
+                          className={`absolute top-3.5 sm:top-4.5 left-0 right-1/2 h-0.5 transition-colors duration-300 ${
+                            leftActive ? "bg-emerald-300" : "bg-gray-200"
                           }`}
                         />
                       )}
+                      {/* Right connector half */}
+                      {i < STATUS_FLOW.length - 1 && (
+                        <div
+                          className={`absolute top-3.5 sm:top-4.5 left-1/2 right-0 h-0.5 transition-colors duration-300 ${
+                            rightActive ? "bg-emerald-300" : "bg-gray-200"
+                          }`}
+                        />
+                      )}
+                      {/* Circle */}
+                      <div
+                        className={`relative z-10 w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
+                          isCurrent
+                            ? `${cfg.badge} ring-2 ring-offset-2 ring-current`
+                            : isActive
+                              ? "bg-emerald-100 text-emerald-600"
+                              : "bg-gray-100 text-dark/20"
+                        }`}
+                      >
+                        {isActive && !isCurrent ? (
+                          <svg
+                            className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2.5}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        ) : (
+                          <span className="font-poppins text-[10px] sm:text-xs font-bold">
+                            {i + 1}
+                          </span>
+                        )}
+                      </div>
+                      {/* Label */}
+                      <p
+                        className={`font-poppins text-[8px] sm:text-[10px] mt-1 sm:mt-1.5 text-center leading-tight px-0.5 ${
+                          isActive ? "text-dark font-medium" : "text-dark/30"
+                        }`}
+                      >
+                        {cfg.label}
+                      </p>
                     </div>
                   );
                 })}

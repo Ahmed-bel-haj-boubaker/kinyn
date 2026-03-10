@@ -604,3 +604,33 @@ export async function getOrderStats(): Promise<ServiceResult<OrderStats>> {
     };
   }
 }
+
+/* ──────────────── Delete Order ──────────────── */
+
+export async function deleteOrder(
+  orderId: string,
+): Promise<ServiceResult<null>> {
+  try {
+    await connectDB();
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return { success: false, error: "Identifiant invalide.", status: 400 };
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return { success: false, error: "Commande introuvable.", status: 404 };
+    }
+
+    await Order.findByIdAndDelete(orderId);
+
+    return { success: true, data: null };
+  } catch (err) {
+    console.error("deleteOrder error:", err);
+    return {
+      success: false,
+      error: "Erreur lors de la suppression.",
+      status: 500,
+    };
+  }
+}

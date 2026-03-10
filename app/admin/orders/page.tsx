@@ -5,6 +5,7 @@ import OrderTable from "../component/orders/OrderTable";
 import OrderCard from "../component/orders/OrderCard";
 import OrderDetailModal from "../component/orders/OrderDetailModal";
 import StatusUpdateModal from "../component/orders/StatusUpdateModal";
+import DeleteOrderModal from "../component/orders/DeleteOrderModal";
 import Toast from "../component/shared/Toast";
 import { useToast } from "../hooks/useToast";
 import type { AdminOrder } from "../component/orders/OrderTable";
@@ -84,6 +85,8 @@ export default function AdminOrdersPage() {
   /* Modal state */
   const [viewingOrder, setViewingOrder] = useState<AdminOrder | null>(null);
   const [statusTarget, setStatusTarget] = useState<AdminOrder | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminOrder | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   /* ── Fetch orders ── */
 
@@ -165,6 +168,30 @@ export default function AdminOrdersPage() {
       }
     },
     [addToast, fetchOrders, viewingOrder],
+  );
+
+  /* ── Filter helpers ── */
+
+  const handleDelete = useCallback(
+    async (orderId: string) => {
+      setDeleting(true);
+      try {
+        const result = await apiFetch(`${ORDERS_API}/${orderId}`, {
+          method: "DELETE",
+        });
+        if (result.ok) {
+          addToast("success", "Commande supprimée avec succès.");
+          setOrders((prev) => prev.filter((o) => o.id !== orderId));
+          if (viewingOrder?.id === orderId) setViewingOrder(null);
+        } else {
+          addToast("error", result.error ?? "Erreur lors de la suppression.");
+        }
+      } finally {
+        setDeleting(false);
+        setDeleteTarget(null);
+      }
+    },
+    [addToast, viewingOrder],
   );
 
   /* ── Filter helpers ── */
@@ -493,6 +520,7 @@ export default function AdminOrdersPage() {
         orders={filtered}
         onView={handleView}
         onUpdateStatus={handleOpenStatusUpdate}
+        onDelete={setDeleteTarget}
       />
 
       {/* Order List — Mobile Cards */}
@@ -500,6 +528,7 @@ export default function AdminOrdersPage() {
         orders={filtered}
         onView={handleView}
         onUpdateStatus={handleOpenStatusUpdate}
+        onDelete={setDeleteTarget}
       />
 
       {/* Order Detail Modal */}
@@ -518,6 +547,15 @@ export default function AdminOrdersPage() {
         onClose={() => setStatusTarget(null)}
         onConfirm={handleUpdateStatus}
         saving={saving}
+      />
+
+      {/* Delete Order Modal */}
+      <DeleteOrderModal
+        isOpen={!!deleteTarget}
+        orderRef={deleteTarget?.ref ?? ""}
+        saving={deleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget.id)}
       />
     </>
   );

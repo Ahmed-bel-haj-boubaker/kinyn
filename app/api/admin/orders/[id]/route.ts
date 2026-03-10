@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/lib/auth";
 import { apiGuard, parseBody } from "@/lib/security";
-import { getOrderById, updateOrderStatus } from "@/lib/services/order.service";
+import { getOrderById, updateOrderStatus, deleteOrder } from "@/lib/services/order.service";
 import type { OrderStatus } from "@/models/Order";
 
 /* ================================================================
@@ -86,4 +86,26 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   }
 
   return NextResponse.json({ order: result.data }, { status: 200 });
+}
+
+/* ──────────────── DELETE /api/admin/orders/[id] ──────────────── */
+
+export async function DELETE(req: NextRequest, { params }: Params) {
+  const guardError = apiGuard(req, { csrf: false });
+  if (guardError) return guardError;
+
+  const auth = requireAdmin(req);
+  if ("error" in auth && auth.error) return auth.error;
+
+  const { id } = await params;
+  const result = await deleteOrder(id);
+
+  if (!result.success) {
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status ?? 500 },
+    );
+  }
+
+  return NextResponse.json({ success: true }, { status: 200 });
 }

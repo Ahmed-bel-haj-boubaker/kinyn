@@ -245,7 +245,7 @@ const sidebarSections: SidebarSection[] = [
       },
       {
         label: "Utilisateurs admin",
-        href: "/admin/users",
+        href: "/admin/admins",
         icon: (
           <svg
             className="w-5 h-5"

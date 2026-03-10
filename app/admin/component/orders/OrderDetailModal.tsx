@@ -201,9 +201,13 @@ export default function OrderDetailModal({
                   const isActive = i <= currentStep;
                   const isCurrent = i === currentStep;
                   const leftActive = i > 0 && i <= currentStep;
-                  const rightActive = i < STATUS_FLOW.length - 1 && i < currentStep;
+                  const rightActive =
+                    i < STATUS_FLOW.length - 1 && i < currentStep;
                   return (
-                    <div key={s} className="flex flex-col items-center relative">
+                    <div
+                      key={s}
+                      className="flex flex-col items-center relative"
+                    >
                       {/* Left connector half */}
                       {i > 0 && (
                         <div

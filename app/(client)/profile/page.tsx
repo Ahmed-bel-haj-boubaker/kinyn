@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   MapPin,
@@ -83,7 +83,7 @@ const statusStyles: Record<string, string> = {
 
 /* ─────────── Component ─────────── */
 
-export default function ProfilePage() {
+function ProfilePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { totalItems: cartCount } = useCart();
@@ -652,5 +652,13 @@ export default function ProfilePage() {
         resetKey={modalKey}
       />
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={null}>
+      <ProfilePageInner />
+    </Suspense>
   );
 }

@@ -5,6 +5,7 @@ import Order, {
   type OrderStatus,
   type PaymentMethod,
   type ShippingMethod,
+  type IOrderItem,
 } from "@/models/Order";
 import Product from "@/models/Product";
 import User from "@/models/User";
@@ -82,7 +83,7 @@ export async function createOrder(
     }
 
     /* Validate each product exists and has stock */
-    const orderItems = [];
+    const orderItems: IOrderItem[] = [];
     let subtotal = 0;
 
     for (const item of input.items) {
@@ -118,7 +119,7 @@ export async function createOrder(
       orderItems.push({
         product: product._id as mongoose.Types.ObjectId,
         name: product.name,
-        image: item.image || product.images[0] || "",
+        image: item.image || product.images[0]?.url || "",
         price: unitPrice,
         quantity: item.quantity,
         size: item.size || "",

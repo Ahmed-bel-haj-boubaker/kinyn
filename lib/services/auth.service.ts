@@ -636,6 +636,9 @@ export async function listAdmins(
       isEmailVerified: a.isEmailVerified,
       lastLogin: a.lastLogin,
       createdAt: a.createdAt,
+      addresses: [],
+      wishlist: [],
+      orders: [],
     }));
 
     return { success: true, data: { admins: safeAdmins, total } };

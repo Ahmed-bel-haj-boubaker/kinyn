@@ -20,8 +20,8 @@ export type ProductStatus = "active" | "draft" | "outofstock";
 
 export interface IProductImage {
   url: string;
-  color: string; // empty string = no color assigned
-  colorHex: string; // hex value for custom colors, empty = use default lookup
+  color?: string; // empty string = no color assigned
+  colorHex?: string; // hex value for custom colors, empty = use default lookup
 }
 
 export interface IProduct extends Document {

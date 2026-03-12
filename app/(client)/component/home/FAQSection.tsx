@@ -61,7 +61,9 @@ export default function FAQSection() {
           setFaqs(data.faqs);
         }
       })
-      .catch(() => {/* silently use fallback */});
+      .catch(() => {
+        /* silently use fallback */
+      });
   }, []);
 
   /* ---- intersection observer ---- */

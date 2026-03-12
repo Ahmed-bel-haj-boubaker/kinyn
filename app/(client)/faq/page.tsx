@@ -57,15 +57,12 @@ export default async function FAQPage() {
       : FALLBACK_FAQS;
 
   /* Group by category */
-  const grouped = allFaqs.reduce<Record<string, typeof allFaqs>>(
-    (acc, faq) => {
-      const key = faq.category || "Général";
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(faq);
-      return acc;
-    },
-    {},
-  );
+  const grouped = allFaqs.reduce<Record<string, typeof allFaqs>>((acc, faq) => {
+    const key = faq.category || "Général";
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(faq);
+    return acc;
+  }, {});
 
   const categories = Object.keys(grouped);
   const hasMultipleCategories = categories.length > 1;
@@ -129,7 +126,10 @@ export default async function FAQPage() {
             /* ─── Grouped by category ─── */
             <div className="space-y-16">
               {categories.map((cat) => (
-                <div key={cat} id={`cat-${cat.replace(/\s+/g, "-").toLowerCase()}`}>
+                <div
+                  key={cat}
+                  id={`cat-${cat.replace(/\s+/g, "-").toLowerCase()}`}
+                >
                   {/* Category header */}
                   <div className="mb-8 pb-4 border-b border-dark/8">
                     <span className="font-poppins text-[0.68rem] font-semibold uppercase tracking-[0.25em] text-primary">
@@ -242,8 +242,8 @@ export default async function FAQPage() {
                 Découvrir la collection
               </h3>
               <p className="mt-3 font-poppins text-[0.83rem] leading-relaxed text-dark/50">
-                Explorez nos pièces pensées pour sublimer chaque silhouette —
-                du quotidien aux occasions les plus précieuses.
+                Explorez nos pièces pensées pour sublimer chaque silhouette — du
+                quotidien aux occasions les plus précieuses.
               </p>
               <Link
                 href="/"

@@ -203,9 +203,7 @@ export default function FAQPage() {
         {/* ── Header ── */}
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="font-poppins text-2xl font-bold text-dark">
-              FAQ
-            </h1>
+            <h1 className="font-poppins text-2xl font-bold text-dark">FAQ</h1>
             <p className="font-poppins text-sm text-dark/50 mt-1">
               Gérez les questions fréquentes du site
             </p>
@@ -396,7 +394,9 @@ export default function FAQPage() {
                             }`}
                             title="Cliquer pour changer le statut"
                           >
-                            {faq.status === "published" ? "Publié" : "Brouillon"}
+                            {faq.status === "published"
+                              ? "Publié"
+                              : "Brouillon"}
                           </button>
                         </td>
                         <td className="px-5 py-4">
@@ -464,7 +464,9 @@ export default function FAQPage() {
                                 : "bg-gray-100 text-gray-600"
                             }`}
                           >
-                            {faq.status === "published" ? "Publié" : "Brouillon"}
+                            {faq.status === "published"
+                              ? "Publié"
+                              : "Brouillon"}
                           </button>
                         </div>
                       </div>

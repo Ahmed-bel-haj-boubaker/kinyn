@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listFAQs, createFAQ, listFAQCategories } from "@/lib/services/faq.service";
+import {
+  listFAQs,
+  createFAQ,
+  listFAQCategories,
+} from "@/lib/services/faq.service";
 import { getAuthFromRequest } from "@/lib/auth";
 import { apiGuard, parseBody } from "@/lib/security";
 import type { FAQStatus } from "@/models/FAQ";

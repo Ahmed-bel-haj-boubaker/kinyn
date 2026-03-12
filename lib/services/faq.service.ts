@@ -1,5 +1,10 @@
 import connectDB from "@/lib/mongodb";
-import FAQ, { type IFAQ, type SafeFAQ, type FAQStatus, faqToSafe } from "@/models/FAQ";
+import FAQ, {
+  type IFAQ,
+  type SafeFAQ,
+  type FAQStatus,
+  faqToSafe,
+} from "@/models/FAQ";
 
 /* ================================================================
    FAQ Service — KINYN
@@ -49,7 +54,11 @@ export async function listFAQs(
     }
 
     const [docs, total] = await Promise.all([
-      FAQ.find(filter).sort({ order: 1, createdAt: 1 }).skip(skip).limit(limit).lean<IFAQ[]>(),
+      FAQ.find(filter)
+        .sort({ order: 1, createdAt: 1 })
+        .skip(skip)
+        .limit(limit)
+        .lean<IFAQ[]>(),
       FAQ.countDocuments(filter),
     ]);
 
@@ -65,9 +74,7 @@ export async function listFAQs(
 
 /* ──────────────── Get FAQ by ID ──────────────── */
 
-export async function getFAQById(
-  id: string,
-): Promise<ServiceResult<SafeFAQ>> {
+export async function getFAQById(id: string): Promise<ServiceResult<SafeFAQ>> {
   try {
     await connectDB();
     const doc = await FAQ.findById(id).lean<IFAQ>();
@@ -112,7 +119,11 @@ export async function createFAQ(
     return { success: true, data: faqToSafe(doc) };
   } catch (err) {
     console.error("[createFAQ]", err);
-    return { success: false, error: "Erreur lors de la création.", status: 500 };
+    return {
+      success: false,
+      error: "Erreur lors de la création.",
+      status: 500,
+    };
   }
 }
 
@@ -141,21 +152,27 @@ export async function updateFAQ(
     if (input.status !== undefined) update.status = input.status;
     if (input.order !== undefined) update.order = input.order;
 
-    const doc = await FAQ.findByIdAndUpdate(id, { $set: update }, { new: true, runValidators: true }).lean<IFAQ>();
+    const doc = await FAQ.findByIdAndUpdate(
+      id,
+      { $set: update },
+      { new: true, runValidators: true },
+    ).lean<IFAQ>();
     if (!doc) return { success: false, error: "FAQ introuvable.", status: 404 };
 
     return { success: true, data: faqToSafe(doc) };
   } catch (err) {
     console.error("[updateFAQ]", err);
-    return { success: false, error: "Erreur lors de la mise à jour.", status: 500 };
+    return {
+      success: false,
+      error: "Erreur lors de la mise à jour.",
+      status: 500,
+    };
   }
 }
 
 /* ──────────────── Delete FAQ ──────────────── */
 
-export async function deleteFAQ(
-  id: string,
-): Promise<ServiceResult<null>> {
+export async function deleteFAQ(id: string): Promise<ServiceResult<null>> {
   try {
     await connectDB();
     const doc = await FAQ.findByIdAndDelete(id);

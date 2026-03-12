@@ -6,6 +6,7 @@ import {
   getUserOrders,
   findOrCreateGuestUser,
 } from "@/lib/services/order.service";
+import { notifyAdminsNewOrder } from "@/lib/services/notification.service";
 
 /* ================================================================
    /api/orders
@@ -138,6 +139,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: result.error },
       { status: result.status ?? 500 },
+    );
+  }
+
+  /* Notify admins (non-blocking — don't delay the response) */
+  if (result.data) {
+    notifyAdminsNewOrder(result.data).catch((err) =>
+      console.error("[Orders API] Notification error:", err),
     );
   }
 

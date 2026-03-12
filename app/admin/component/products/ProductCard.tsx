@@ -131,13 +131,13 @@ export default function ProductCard({
                 <p className="font-poppins text-sm font-medium text-dark mt-0.5">
                   {p.promoPrice ? (
                     <>
-                      <span className="text-primary">{p.promoPrice}€</span>
+                      <span className="text-primary">{p.promoPrice}TND</span>
                       <span className="ml-1 text-xs text-dark/30 line-through">
-                        {p.price}€
+                        {p.price}TND
                       </span>
                     </>
                   ) : (
-                    <span>{p.price}€</span>
+                    <span>{p.price}TND</span>
                   )}
                 </p>
               </div>

@@ -10,7 +10,7 @@ interface FaqItem {
   answer: string;
 }
 
-const FAQS: FaqItem[] = [
+const FALLBACK_FAQS: FaqItem[] = [
   {
     question: "Quels sont les délais de livraison ?",
     answer:
@@ -21,7 +21,6 @@ const FAQS: FaqItem[] = [
     answer:
       "Bien sûr. Vous disposez de 14 jours après réception pour retourner ou échanger tout article non porté, dans son emballage d'origine et avec ses étiquettes. Les frais de retour sont à la charge du client, sauf en cas de défaut ou d'erreur de notre part.",
   },
- 
   {
     question: "Les matières utilisées sont-elles de qualité ?",
     answer:
@@ -51,6 +50,19 @@ export default function FAQSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [faqs, setFaqs] = useState<FaqItem[]>(FALLBACK_FAQS);
+
+  /* ---- fetch published FAQs ---- */
+  useEffect(() => {
+    fetch("/api/faq")
+      .then((r) => r.json())
+      .then((data: { faqs?: FaqItem[] }) => {
+        if (Array.isArray(data.faqs) && data.faqs.length > 0) {
+          setFaqs(data.faqs);
+        }
+      })
+      .catch(() => {/* silently use fallback */});
+  }, []);
 
   /* ---- intersection observer ---- */
   useEffect(() => {
@@ -94,7 +106,7 @@ export default function FAQSection() {
 
         {/* -------- accordion -------- */}
         <div className="flex flex-col gap-3">
-          {FAQS.map((faq, i) => {
+          {faqs.map((faq, i) => {
             const isOpen = openIndex === i;
 
             return (

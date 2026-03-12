@@ -1,0 +1,232 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import type { Notification } from "../../hooks/useNotifications";
+
+/* ================================================================
+   NotificationBell — Admin Navbar Notification Dropdown
+   ================================================================ */
+
+interface NotificationBellProps {
+  notifications: Notification[];
+  unreadCount: number;
+  onMarkAsRead: (id: string) => void;
+  onMarkAllAsRead: () => void;
+}
+
+const TYPE_ICONS: Record<string, string> = {
+  order: "🛒",
+  system: "⚙️",
+  delivery: "📦",
+  stock: "📊",
+  user: "👤",
+};
+
+const TYPE_COLORS: Record<string, string> = {
+  order: "bg-primary/10 text-primary",
+  system: "bg-blue-50 text-blue-600",
+  delivery: "bg-green-50 text-green-600",
+  stock: "bg-amber-50 text-amber-600",
+  user: "bg-purple-50 text-purple-600",
+};
+
+function timeAgo(dateStr: string): string {
+  const now = Date.now();
+  const date = new Date(dateStr).getTime();
+  const diff = Math.floor((now - date) / 1000);
+
+  if (diff < 60) return "À l'instant";
+  if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
+  if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)}h`;
+  if (diff < 604800) return `Il y a ${Math.floor(diff / 86400)}j`;
+  return new Date(dateStr).toLocaleDateString("fr-FR");
+}
+
+export default function NotificationBell({
+  notifications,
+  unreadCount,
+  onMarkAsRead,
+  onMarkAllAsRead,
+}: NotificationBellProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, []);
+
+  const recentNotifications = notifications.slice(0, 8);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      {/* Bell Button */}
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="relative flex items-center justify-center w-9 h-9 rounded-lg text-dark hover:bg-dark/5 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30"
+        aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} non lues)` : ""}`}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
+      >
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+          />
+        </svg>
+
+        {/* Badge */}
+        {unreadCount > 0 && (
+          <span className="absolute  font-poppins -top-0.5 -right-0.5 flex items-center justify-center min-w-4.5 h-4.5 px-1 text-[10px] font-bold text-white bg-primary rounded-full leading-none">
+            {unreadCount > 99 ? "99+" : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {/* Dropdown */}
+      <div
+        className={`absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-gray-100 transition-all duration-200 origin-top-right z-50 ${
+          isOpen
+            ? "opacity-100 scale-100 pointer-events-auto"
+            : "opacity-0 scale-95 pointer-events-none"
+        }`}
+        role="menu"
+        aria-label="Notifications"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+          <h3 className="font-poppins text-sm font-semibold text-dark">
+            Notifications
+          </h3>
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  onMarkAllAsRead();
+                }}
+                className="font-poppins text-xs text-primary hover:text-primary/80 transition-colors duration-150"
+              >
+                Tout marquer lu
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Notification List */}
+        <div className="max-h-100 overflow-y-auto">
+          {recentNotifications.length === 0 ? (
+            <div className="px-4 py-8 text-center">
+              <svg
+                className="w-10 h-10 mx-auto text-gray-300 mb-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
+              </svg>
+              <p className="font-poppins text-sm text-gray-400">
+                Aucune notification
+              </p>
+            </div>
+          ) : (
+            recentNotifications.map((notification) => (
+              <button
+                key={notification._id}
+                type="button"
+                onClick={() => {
+                  if (!notification.isRead) {
+                    onMarkAsRead(notification._id);
+                  }
+                  if (notification.orderId) {
+                    setIsOpen(false);
+                  }
+                }}
+                className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors duration-150 border-b border-gray-50 last:border-0 ${
+                  !notification.isRead ? "bg-primary/2" : ""
+                }`}
+              >
+                {/* Icon */}
+                <div
+                  className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-sm ${
+                    TYPE_COLORS[notification.type] ||
+                    "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  {TYPE_ICONS[notification.type] || "📌"}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p
+                      className={`font-poppins text-sm truncate ${
+                        !notification.isRead
+                          ? "font-semibold text-dark"
+                          : "font-medium text-gray-600"
+                      }`}
+                    >
+                      {notification.title}
+                    </p>
+                    {!notification.isRead && (
+                      <span className="shrink-0 w-2 h-2 bg-primary rounded-full" />
+                    )}
+                  </div>
+                  <p className="font-poppins text-xs text-gray-500 mt-0.5 line-clamp-2">
+                    {notification.message}
+                  </p>
+                  <p className="font-poppins text-[11px] text-gray-400 mt-1">
+                    {timeAgo(notification.createdAt)}
+                  </p>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+
+        {/* Footer */}
+        {notifications.length > 0 && (
+          <div className="border-t border-gray-100 px-4 py-2.5 text-center">
+            <Link
+              href="/admin/notifications"
+              onClick={() => setIsOpen(false)}
+              className="font-poppins text-xs font-medium text-primary hover:text-primary/80 transition-colors duration-150"
+            >
+              Voir toutes les notifications
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

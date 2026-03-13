@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/lib/auth";
+import { requireAdminAccess, requireWriteAccess } from "@/lib/auth";
 import { apiGuard, parseBody } from "@/lib/security";
 import {
   getOrderById,
@@ -11,24 +11,10 @@ import type { OrderStatus } from "@/models/Order";
 /* ================================================================
    /api/admin/orders/[id]
    ================================================================
-   GET   — Get single order details (admin)
-   PATCH — Update order status (admin)
+   GET   — Get single order details — all admin roles
+   PATCH — Update order status — admin & super_admin only
+   DELETE — Delete order — admin & super_admin only
    ================================================================ */
-
-function requireAdmin(req: NextRequest) {
-  const payload = getAuthFromRequest(req);
-  if (!payload) {
-    return {
-      error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }),
-    };
-  }
-  if (payload.role !== "admin" && payload.role !== "super_admin") {
-    return {
-      error: NextResponse.json({ error: "Accès refusé." }, { status: 403 }),
-    };
-  }
-  return { payload };
-}
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -40,8 +26,8 @@ export async function GET(req: NextRequest, { params }: Params) {
   const guardError = apiGuard(req, { csrf: false });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
-  if ("error" in auth && auth.error) return auth.error;
+  const auth = requireAdminAccess(req);
+  if ("error" in auth) return auth.error;
 
   const { id } = await params;
   const result = await getOrderById(id);
@@ -64,8 +50,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
-  if ("error" in auth && auth.error) return auth.error;
+  const auth = requireWriteAccess(req);
+  if ("error" in auth) return auth.error;
 
   const { id } = await params;
 
@@ -98,8 +84,8 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   const guardError = apiGuard(req, { csrf: false });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
-  if ("error" in auth && auth.error) return auth.error;
+  const auth = requireWriteAccess(req);
+  if ("error" in auth) return auth.error;
 
   const { id } = await params;
   const result = await deleteOrder(id);

@@ -9,6 +9,7 @@ import ProductDetailModal from "../component/products/ProductDetailModal";
 import DeleteProductModal from "../component/products/DeleteProductModal";
 import Toast from "../component/shared/Toast";
 import { useToast } from "../hooks/useToast";
+import { useAdminAuth } from "../context/AdminAuthContext";
 import type {
   Product,
   ProductStatus,
@@ -77,6 +78,7 @@ type FilterStatus = "all" | ProductStatus;
 /* ──────────── Page Component ──────────── */
 
 export default function ProductsPage() {
+  const { canWrite } = useAdminAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [stats, setStats] = useState({
     total: 0,
@@ -347,26 +349,28 @@ export default function ProductsPage() {
             Gérez votre catalogue de produits et leurs variantes.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleCreate}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-poppins text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30 shrink-0 self-start sm:self-auto"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+        {canWrite && (
+          <button
+            type="button"
+            onClick={handleCreate}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-poppins text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30 shrink-0 self-start sm:self-auto"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Ajouter un produit
-        </button>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Ajouter un produit
+          </button>
+        )}
       </div>
 
       {/* Stats */}
@@ -605,16 +609,16 @@ export default function ProductsPage() {
       {/* Product List — Desktop Table */}
       <ProductTable
         products={filtered}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
+        onEdit={canWrite ? handleEdit : undefined}
+        onDelete={canWrite ? handleDelete : undefined}
         onView={handleView}
       />
 
       {/* Product List — Mobile Cards */}
       <ProductCard
         products={filtered}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
+        onEdit={canWrite ? handleEdit : undefined}
+        onDelete={canWrite ? handleDelete : undefined}
         onView={handleView}
       />
 

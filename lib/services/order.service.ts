@@ -40,7 +40,7 @@ interface OrderItemInput {
 }
 
 interface CreateOrderInput {
-  userId: string;
+  userId?: string;
   items: OrderItemInput[];
   shippingAddress: {
     firstName: string;
@@ -67,9 +67,9 @@ export async function createOrder(
   try {
     await connectDB();
 
-    /* Validate user exists */
-    const user = await User.findById(input.userId);
-    if (!user) {
+    /* Validate user exists (skip for anonymous guest orders) */
+    const user = input.userId ? await User.findById(input.userId) : null;
+    if (input.userId && !user) {
       return { success: false, error: "Utilisateur introuvable.", status: 404 };
     }
 
@@ -133,7 +133,7 @@ export async function createOrder(
 
     /* Create the order */
     const order = await Order.create({
-      user: new mongoose.Types.ObjectId(input.userId),
+      ...(input.userId && { user: new mongoose.Types.ObjectId(input.userId) }),
       items: orderItems,
       subtotal,
       shippingCost,
@@ -151,46 +151,48 @@ export async function createOrder(
       });
     }
 
-    /* ── Sync phone & address back to user profile ── */
-    const profileUpdate: Record<string, unknown> = {};
+    /* ── Sync phone & address back to user profile (skip for anonymous) ── */
+    if (user) {
+      const profileUpdate: Record<string, unknown> = {};
 
-    // Save phone if the user doesn't have one yet
-    if (!user.phone && input.shippingAddress.phone) {
-      profileUpdate.phone = input.shippingAddress.phone;
-    }
-
-    // Add shipping address to user's addresses if they have none
-    const addr = input.shippingAddress;
-    const alreadyHasAddress = (user.addresses ?? []).some(
-      (a) =>
-        a.address === addr.address &&
-        a.city === addr.city &&
-        a.postalCode === addr.postalCode &&
-        a.country === addr.country,
-    );
-
-    if (!alreadyHasAddress) {
-      const isFirst = (user.addresses ?? []).length === 0;
-      const newAddr = {
-        label: isFirst ? "Maison" : "Adresse",
-        country: addr.country,
-        city: addr.city,
-        address: addr.address,
-        postalCode: addr.postalCode,
-        isDefault: isFirst,
-      };
-      if (Object.keys(profileUpdate).length > 0) {
-        await User.findByIdAndUpdate(input.userId, {
-          ...profileUpdate,
-          $push: { addresses: newAddr },
-        });
-      } else {
-        await User.findByIdAndUpdate(input.userId, {
-          $push: { addresses: newAddr },
-        });
+      // Save phone if the user doesn't have one yet
+      if (!user.phone && input.shippingAddress.phone) {
+        profileUpdate.phone = input.shippingAddress.phone;
       }
-    } else if (Object.keys(profileUpdate).length > 0) {
-      await User.findByIdAndUpdate(input.userId, profileUpdate);
+
+      // Add shipping address to user's addresses if they have none
+      const addr = input.shippingAddress;
+      const alreadyHasAddress = (user.addresses ?? []).some(
+        (a) =>
+          a.address === addr.address &&
+          a.city === addr.city &&
+          a.postalCode === addr.postalCode &&
+          a.country === addr.country,
+      );
+
+      if (!alreadyHasAddress) {
+        const isFirst = (user.addresses ?? []).length === 0;
+        const newAddr = {
+          label: isFirst ? "Maison" : "Adresse",
+          country: addr.country,
+          city: addr.city,
+          address: addr.address,
+          postalCode: addr.postalCode,
+          isDefault: isFirst,
+        };
+        if (Object.keys(profileUpdate).length > 0) {
+          await User.findByIdAndUpdate(input.userId, {
+            ...profileUpdate,
+            $push: { addresses: newAddr },
+          });
+        } else {
+          await User.findByIdAndUpdate(input.userId, {
+            $push: { addresses: newAddr },
+          });
+        }
+      } else if (Object.keys(profileUpdate).length > 0) {
+        await User.findByIdAndUpdate(input.userId, profileUpdate);
+      }
     }
 
     return { success: true, data: orderToSafe(order) };
@@ -334,7 +336,7 @@ export async function getOrderById(
     }
 
     /* If userId provided, verify ownership */
-    if (userId && order.user.toString() !== userId) {
+    if (userId && order.user?.toString() !== userId) {
       return { success: false, error: "Accès refusé.", status: 403 };
     }
 
@@ -397,12 +399,16 @@ export async function listOrders(
       const safe = orderToSafe(o as unknown as import("@/models/Order").IOrder);
       const populatedUser =
         typeof o.user === "object" && o.user !== null ? o.user : null;
+      /* For anonymous guest orders, fall back to shippingAddress name */
+      const fallbackName = o.shippingAddress
+        ? `${o.shippingAddress.firstName || ""} ${o.shippingAddress.lastName || ""}`.trim()
+        : "";
       return {
         ...safe,
         user: populatedUser?._id?.toString() ?? safe.user,
         userName: populatedUser
           ? `${populatedUser.firstName || ""} ${populatedUser.lastName || ""}`.trim()
-          : "",
+          : fallbackName,
         userEmail: populatedUser?.email ?? "",
       };
     });
@@ -502,7 +508,7 @@ export async function cancelOrder(
       return { success: false, error: "Commande introuvable.", status: 404 };
     }
 
-    if (order.user.toString() !== userId) {
+    if (order.user?.toString() !== userId) {
       return { success: false, error: "Accès refusé.", status: 403 };
     }
 

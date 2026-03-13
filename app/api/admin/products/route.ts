@@ -4,37 +4,16 @@ import {
   createProduct,
   getProductStats,
 } from "@/lib/services/product.service";
-import { getAuthFromRequest } from "@/lib/auth";
+import { requireAdminAccess, requireWriteAccess } from "@/lib/auth";
 import { apiGuard, parseBody } from "@/lib/security";
 import type { ProductStatus } from "@/models/Product";
 
 /* ================================================================
    /api/admin/products
    ================================================================
-   GET  — List products (with search / filter / pagination)
-   POST — Create a new product
-   Both endpoints are admin-only.
+   GET  — List products (search / filter / pagination) — all admin roles
+   POST — Create a new product — admin & super_admin only
    ================================================================ */
-
-/* ──────────── Middleware: require admin role ──────────── */
-
-function requireAdmin(req: NextRequest) {
-  const payload = getAuthFromRequest(req);
-  if (!payload) {
-    return {
-      error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }),
-    };
-  }
-  if (payload.role !== "admin" && payload.role !== "super_admin") {
-    return {
-      error: NextResponse.json(
-        { error: "Accès refusé. Droits insuffisants." },
-        { status: 403 },
-      ),
-    };
-  }
-  return { payload };
-}
 
 /* ──────────── GET /api/admin/products ──────────── */
 
@@ -42,7 +21,7 @@ export async function GET(req: NextRequest) {
   const guardError = apiGuard(req, { csrf: false });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireAdminAccess(req);
   if ("error" in auth) return auth.error;
 
   const url = new URL(req.url);
@@ -82,7 +61,7 @@ export async function POST(req: NextRequest) {
   });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireWriteAccess(req);
   if ("error" in auth) return auth.error;
 
   const parsed = await parseBody<{

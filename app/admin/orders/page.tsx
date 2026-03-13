@@ -8,6 +8,7 @@ import StatusUpdateModal from "../component/orders/StatusUpdateModal";
 import DeleteOrderModal from "../component/orders/DeleteOrderModal";
 import Toast from "../component/shared/Toast";
 import { useToast } from "../hooks/useToast";
+import { useAdminAuth } from "../context/AdminAuthContext";
 import type { AdminOrder } from "../component/orders/OrderTable";
 import type { OrderStatus } from "@/models/Order";
 import { ORDER_STATUS_CONFIG } from "../component/orders/OrderTable";
@@ -59,6 +60,7 @@ type FilterStatus = OrderStatus | "all";
 /* ──────────────── Page ──────────────── */
 
 export default function AdminOrdersPage() {
+  const { canWrite } = useAdminAuth();
   const { toasts, addToast, removeToast } = useToast();
 
   /* State */
@@ -519,16 +521,16 @@ export default function AdminOrdersPage() {
       <OrderTable
         orders={filtered}
         onView={handleView}
-        onUpdateStatus={handleOpenStatusUpdate}
-        onDelete={setDeleteTarget}
+        onUpdateStatus={canWrite ? handleOpenStatusUpdate : undefined}
+        onDelete={canWrite ? setDeleteTarget : undefined}
       />
 
       {/* Order List — Mobile Cards */}
       <OrderCard
         orders={filtered}
         onView={handleView}
-        onUpdateStatus={handleOpenStatusUpdate}
-        onDelete={setDeleteTarget}
+        onUpdateStatus={canWrite ? handleOpenStatusUpdate : undefined}
+        onDelete={canWrite ? setDeleteTarget : undefined}
       />
 
       {/* Order Detail Modal */}
@@ -536,7 +538,7 @@ export default function AdminOrdersPage() {
         isOpen={!!viewingOrder}
         order={viewingOrder}
         onClose={() => setViewingOrder(null)}
-        onUpdateStatus={handleUpdateStatus}
+        onUpdateStatus={canWrite ? handleUpdateStatus : undefined}
         saving={saving}
       />
 

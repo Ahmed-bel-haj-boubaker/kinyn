@@ -4,34 +4,16 @@ import {
   createFAQ,
   listFAQCategories,
 } from "@/lib/services/faq.service";
-import { getAuthFromRequest } from "@/lib/auth";
+import { requireAdminAccess, requireWriteAccess } from "@/lib/auth";
 import { apiGuard, parseBody } from "@/lib/security";
 import type { FAQStatus } from "@/models/FAQ";
 
 /* ================================================================
    /api/admin/faq
    ================================================================
-   GET  — List FAQs (search / filter / pagination)
-   POST — Create a new FAQ
+   GET  — List FAQs (search / filter / pagination) — all admin roles
+   POST — Create a new FAQ — admin & super_admin only
    ================================================================ */
-
-function requireAdmin(req: NextRequest) {
-  const payload = getAuthFromRequest(req);
-  if (!payload) {
-    return {
-      error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }),
-    };
-  }
-  if (payload.role !== "admin" && payload.role !== "super_admin") {
-    return {
-      error: NextResponse.json(
-        { error: "Accès refusé. Droits insuffisants." },
-        { status: 403 },
-      ),
-    };
-  }
-  return { payload };
-}
 
 /* ──────────── GET /api/admin/faq ──────────── */
 
@@ -39,7 +21,7 @@ export async function GET(req: NextRequest) {
   const guardError = apiGuard(req, { csrf: false });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireAdminAccess(req);
   if ("error" in auth) return auth.error;
 
   const url = new URL(req.url);
@@ -79,7 +61,7 @@ export async function POST(req: NextRequest) {
   });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireWriteAccess(req);
   if ("error" in auth) return auth.error;
 
   const parsed = await parseBody<{

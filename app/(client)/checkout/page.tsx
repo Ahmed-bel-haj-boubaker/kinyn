@@ -141,10 +141,13 @@ export default function CheckoutPage() {
 
   const validateField = (name: string, value: string) => {
     let error = "";
-    if (!value.trim()) {
+    /* Email is optional for guests — only validate format if provided */
+    if (name === "email") {
+      if (value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        error = "Email invalide";
+      }
+    } else if (!value.trim()) {
       error = "Ce champ est requis";
-    } else if (name === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      error = "Email invalide";
     } else if (name === "phone" && !/^[0-9+\s\-()]{6,20}$/.test(value)) {
       error = "Numéro invalide";
     } else if (
@@ -162,7 +165,6 @@ export default function CheckoutPage() {
     const requiredFields: (keyof FormData)[] = [
       "firstName",
       "lastName",
-      "email",
       "phone",
       "city",
       "address",
@@ -172,6 +174,10 @@ export default function CheckoutPage() {
       const value = formData[field] as string;
       if (!validateField(field, value)) isValid = false;
     });
+    /* Also validate email format if provided */
+    if (formData.email.trim()) {
+      if (!validateField("email", formData.email)) isValid = false;
+    }
     return isValid;
   };
 
@@ -220,7 +226,7 @@ export default function CheckoutPage() {
             guest: {
               firstName: formData.firstName,
               lastName: formData.lastName,
-              email: formData.email,
+              ...(formData.email.trim() && { email: formData.email }),
               phone: formData.phone,
             },
           }),
@@ -390,7 +396,14 @@ export default function CheckoutPage() {
                       htmlFor="email"
                       className="block font-poppins text-sm font-medium text-dark mb-2"
                     >
-                      Email *
+                      Email{" "}
+                      {isGuest ? (
+                        <span className="text-dark/30 font-normal">
+                          (optionnel)
+                        </span>
+                      ) : (
+                        "*"
+                      )}
                     </label>
                     <input
                       type="email"

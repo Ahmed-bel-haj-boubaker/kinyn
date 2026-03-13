@@ -15,8 +15,8 @@ export interface Category {
 
 interface CategoryTableProps {
   categories: Category[];
-  onEdit: (category: Category) => void;
-  onDelete: (category: Category) => void;
+  onEdit?: (category: Category) => void;
+  onDelete?: (category: Category) => void;
 }
 
 const LEVEL_LABELS: Record<CategoryLevel, string> = {
@@ -143,7 +143,7 @@ export default function CategoryTable({
                   <div className="flex items-center justify-end gap-1">
                     <button
                       type="button"
-                      onClick={() => onEdit(cat)}
+                      onClick={() => onEdit?.(cat)}
                       className="p-2 rounded-lg text-dark/40 hover:text-primary hover:bg-primary/5 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary/20"
                       aria-label={`Modifier ${cat.name}`}
                     >
@@ -163,7 +163,7 @@ export default function CategoryTable({
                     </button>
                     <button
                       type="button"
-                      onClick={() => onDelete(cat)}
+                      onClick={() => onDelete?.(cat)}
                       className="p-2 rounded-lg text-dark/40 hover:text-primary hover:bg-primary/5 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary/20"
                       aria-label={`Supprimer ${cat.name}`}
                     >
@@ -245,7 +245,7 @@ export default function CategoryTable({
             <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
               <button
                 type="button"
-                onClick={() => onEdit(cat)}
+                onClick={() => onEdit?.(cat)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-poppins text-xs font-medium text-dark/60 hover:text-primary hover:bg-primary/5 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 aria-label={`Modifier ${cat.name}`}
               >
@@ -266,7 +266,7 @@ export default function CategoryTable({
               </button>
               <button
                 type="button"
-                onClick={() => onDelete(cat)}
+                onClick={() => onDelete?.(cat)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-poppins text-xs font-medium text-dark/60 hover:text-primary hover:bg-primary/5 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 aria-label={`Supprimer ${cat.name}`}
               >

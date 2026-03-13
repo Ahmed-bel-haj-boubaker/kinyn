@@ -1,34 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFAQById, updateFAQ, deleteFAQ } from "@/lib/services/faq.service";
-import { getAuthFromRequest } from "@/lib/auth";
+import { requireAdminAccess, requireWriteAccess } from "@/lib/auth";
 import { apiGuard, parseBody } from "@/lib/security";
 import type { FAQStatus } from "@/models/FAQ";
 
 /* ================================================================
    /api/admin/faq/[id]
    ================================================================
-   GET    — Get single FAQ
-   PATCH  — Update FAQ
-   DELETE — Delete FAQ
+   GET    — Get single FAQ — all admin roles
+   PATCH  — Update FAQ — admin & super_admin only
+   DELETE — Delete FAQ — admin & super_admin only
    ================================================================ */
-
-function requireAdmin(req: NextRequest) {
-  const payload = getAuthFromRequest(req);
-  if (!payload) {
-    return {
-      error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }),
-    };
-  }
-  if (payload.role !== "admin" && payload.role !== "super_admin") {
-    return {
-      error: NextResponse.json(
-        { error: "Accès refusé. Droits insuffisants." },
-        { status: 403 },
-      ),
-    };
-  }
-  return { payload };
-}
 
 /* ──────────── GET /api/admin/faq/[id] ──────────── */
 
@@ -39,7 +21,7 @@ export async function GET(
   const guardError = apiGuard(req, { csrf: false });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireAdminAccess(req);
   if ("error" in auth) return auth.error;
 
   const { id } = await params;
@@ -66,7 +48,7 @@ export async function PATCH(
   });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireWriteAccess(req);
   if ("error" in auth) return auth.error;
 
   const { id } = await params;
@@ -107,7 +89,7 @@ export async function DELETE(
   });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireWriteAccess(req);
   if ("error" in auth) return auth.error;
 
   const { id } = await params;

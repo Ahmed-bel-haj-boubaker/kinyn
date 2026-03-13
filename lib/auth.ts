@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt, { type SignOptions } from "jsonwebtoken";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 /* ================================================================
    Authentication Utilities
@@ -119,4 +119,52 @@ export function validatePasswordStrength(password: string): string | null {
   if (!/[^A-Za-z0-9]/.test(password))
     return "Le mot de passe doit contenir au moins un caractère spécial.";
   return null;
+}
+
+/* ──────────────── Role Guards ──────────────── */
+
+/** All roles that can access the admin panel */
+const ADMIN_ROLES = ["moderator", "admin", "super_admin"];
+
+/** Roles that can create/edit/delete resources */
+const WRITE_ROLES = ["admin", "super_admin"];
+
+/**
+ * Require the user to have one of the given roles.
+ * Returns `{ payload }` on success, or `{ error: NextResponse }` on failure.
+ */
+export function requireRole(
+  req: NextRequest,
+  roles: string[],
+): { payload: TokenPayload } | { error: import("next/server").NextResponse } {
+  const payload = getAuthFromRequest(req);
+  if (!payload) {
+    return {
+      error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }),
+    };
+  }
+  if (!roles.includes(payload.role)) {
+    return {
+      error: NextResponse.json(
+        { error: "Accès refusé. Droits insuffisants." },
+        { status: 403 },
+      ),
+    };
+  }
+  return { payload };
+}
+
+/** Require any admin-panel role (moderator, admin, super_admin) */
+export function requireAdminAccess(req: NextRequest) {
+  return requireRole(req, ADMIN_ROLES);
+}
+
+/** Require write access (admin, super_admin) — excludes moderator */
+export function requireWriteAccess(req: NextRequest) {
+  return requireRole(req, WRITE_ROLES);
+}
+
+/** Require super_admin role */
+export function requireSuperAdmin(req: NextRequest) {
+  return requireRole(req, ["super_admin"]);
 }

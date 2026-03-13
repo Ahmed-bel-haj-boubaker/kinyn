@@ -8,8 +8,8 @@ import { ORDER_STATUS_CONFIG } from "./OrderTable";
 interface OrderCardProps {
   orders: AdminOrder[];
   onView: (order: AdminOrder) => void;
-  onUpdateStatus: (order: AdminOrder) => void;
-  onDelete: (order: AdminOrder) => void;
+  onUpdateStatus?: (order: AdminOrder) => void;
+  onDelete?: (order: AdminOrder) => void;
 }
 
 /* ──────────────── Helpers ──────────────── */
@@ -189,7 +189,7 @@ export default function OrderCard({
               </button>
               <button
                 type="button"
-                onClick={() => onUpdateStatus(o)}
+                onClick={() => onUpdateStatus?.(o)}
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-primary/5 text-primary/70 hover:bg-primary/10 font-poppins text-xs font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <svg
@@ -209,7 +209,7 @@ export default function OrderCard({
               </button>
               <button
                 type="button"
-                onClick={() => onDelete(o)}
+                onClick={() => onDelete?.(o)}
                 className="flex items-center justify-center p-2 rounded-xl bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-red-200"
                 aria-label={`Supprimer commande ${o.ref}`}
                 title="Supprimer"

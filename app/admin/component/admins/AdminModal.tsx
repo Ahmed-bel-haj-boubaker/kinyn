@@ -81,6 +81,7 @@ function AdminFormInner({
       avatar: initialData?.avatar ?? "",
       createdAt: initialData?.createdAt ?? new Date().toISOString(),
       lastLogin: initialData?.lastLogin ?? "",
+      ...(password ? { password } : {}),
     });
   };
 

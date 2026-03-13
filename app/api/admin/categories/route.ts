@@ -4,39 +4,16 @@ import {
   createCategory,
   getCategoryStats,
 } from "@/lib/services/category.service";
-import { getAuthFromRequest } from "@/lib/auth";
+import { requireAdminAccess, requireWriteAccess } from "@/lib/auth";
 import { apiGuard, parseBody } from "@/lib/security";
 import type { CategoryLevel, CategoryStatus } from "@/models/Category";
 
 /* ================================================================
    /api/admin/categories
    ================================================================
-   GET  — List all categories (with search / filter)
-   POST — Create a new category
-   Both endpoints are admin-only.
+   GET  — List all categories (search / filter) — all admin roles
+   POST — Create a new category — admin & super_admin only
    ================================================================ */
-
-/* ──────────── Middleware: require admin role ──────────── */
-
-function requireAdmin(req: NextRequest) {
-  const payload = getAuthFromRequest(req);
-  if (!payload) {
-    return {
-      error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }),
-    };
-  }
-
-  if (payload.role !== "admin" && payload.role !== "super_admin") {
-    return {
-      error: NextResponse.json(
-        { error: "Accès refusé. Droits insuffisants." },
-        { status: 403 },
-      ),
-    };
-  }
-
-  return { payload };
-}
 
 /* ──────────── GET /api/admin/categories ──────────── */
 
@@ -44,7 +21,7 @@ export async function GET(req: NextRequest) {
   const guardError = apiGuard(req, { csrf: false });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireAdminAccess(req);
   if ("error" in auth) return auth.error;
 
   const url = new URL(req.url);
@@ -82,7 +59,7 @@ export async function POST(req: NextRequest) {
   });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireWriteAccess(req);
   if ("error" in auth) return auth.error;
 
   const parsed = await parseBody<{

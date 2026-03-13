@@ -92,38 +92,40 @@ export async function POST(req: NextRequest) {
   }
 
   /* Resolve userId — authenticated user OR guest */
-  let userId: string;
+  let userId: string | undefined;
 
   if (payload) {
     userId = payload.userId;
   } else {
-    /* Guest checkout — require guest info */
-    if (
-      !body.guest?.email?.trim() ||
-      !body.guest?.firstName?.trim() ||
-      !body.guest?.lastName?.trim()
-    ) {
+    /* Guest checkout — require at least name */
+    if (!body.guest?.firstName?.trim() || !body.guest?.lastName?.trim()) {
       return NextResponse.json(
-        { error: "Les informations du client sont requises." },
+        { error: "Le prénom et le nom sont requis." },
         { status: 400 },
       );
     }
 
-    const guestResult = await findOrCreateGuestUser({
-      firstName: body.guest.firstName.trim(),
-      lastName: body.guest.lastName.trim(),
-      email: body.guest.email.trim().toLowerCase(),
-      phone: body.guest.phone?.trim() || "",
-    });
+    const guestEmail = body.guest.email?.trim().toLowerCase();
 
-    if (!guestResult.success || !guestResult.data) {
-      return NextResponse.json(
-        { error: guestResult.error ?? "Impossible de créer le compte." },
-        { status: guestResult.status ?? 500 },
-      );
+    /* If guest provided an email, find or create a user account */
+    if (guestEmail) {
+      const guestResult = await findOrCreateGuestUser({
+        firstName: body.guest.firstName.trim(),
+        lastName: body.guest.lastName.trim(),
+        email: guestEmail,
+        phone: body.guest.phone?.trim() || "",
+      });
+
+      if (!guestResult.success || !guestResult.data) {
+        return NextResponse.json(
+          { error: guestResult.error ?? "Impossible de créer le compte." },
+          { status: guestResult.status ?? 500 },
+        );
+      }
+
+      userId = guestResult.data;
     }
-
-    userId = guestResult.data;
+    /* If no email, userId stays undefined → anonymous order */
   }
 
   const result = await createOrder({

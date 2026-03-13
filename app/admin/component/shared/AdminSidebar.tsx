@@ -2,16 +2,21 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { useAdminAuth } from "../../context/AdminAuthContext";
 
 interface SidebarItem {
   label: string;
   href: string;
   icon: React.ReactNode;
+  /** If set, only show for these roles */
+  roles?: string[];
 }
 
 interface SidebarSection {
   title: string;
   items: SidebarItem[];
+  /** If set, only show section for these roles */
+  roles?: string[];
 }
 
 interface AdminSidebarProps {
@@ -26,6 +31,30 @@ const sidebarSections: SidebarSection[] = [
       {
         label: "Vue d'ensemble",
         href: "/admin",
+        icon: (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.8}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10-1a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1h-4a1 1 0 01-1-1v-5z"
+            />
+          </svg>
+        ),
+      },
+    ],
+  },
+  {
+    title: "Analytiques",
+    items: [
+      {
+        label: "analytiques",
+        href: "/analytiques",
         icon: (
           <svg
             className="w-5 h-5"
@@ -237,6 +266,7 @@ const sidebarSections: SidebarSection[] = [
   },
   {
     title: "Paramètres",
+    roles: ["super_admin"],
     items: [
       {
         label: "Paramètres boutique",
@@ -287,10 +317,35 @@ const sidebarSections: SidebarSection[] = [
 
 export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
+  const { user } = useAdminAuth();
+  const role = user?.role ?? "";
 
   const isActive = (href: string) => {
     if (href === "/admin") return pathname === "/admin";
     return pathname.startsWith(href);
+  };
+
+  /* Filter sections & items by role */
+  const visibleSections = sidebarSections
+    .filter((s) => !s.roles || s.roles.includes(role))
+    .map((s) => ({
+      ...s,
+      items: s.items.filter((i) => !i.roles || i.roles.includes(role)),
+    }))
+    .filter((s) => s.items.length > 0);
+
+  const initials = user
+    ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase()
+    : "A";
+  const displayName = user
+    ? `${user.firstName} ${user.lastName}`.trim()
+    : "Admin";
+  const displayEmail = user?.email ?? "admin@kinyn.com";
+
+  const roleLabels: Record<string, string> = {
+    super_admin: "Super Admin",
+    admin: "Admin",
+    moderator: "Modérateur",
   };
 
   return (
@@ -314,7 +369,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         aria-label="Admin sidebar"
       >
         <div className="flex flex-col py-4">
-          {sidebarSections.map((section, sectionIdx) => (
+          {visibleSections.map((section, sectionIdx) => (
             <div key={section.title} className={sectionIdx > 0 ? "mt-2" : ""}>
               {/* Section Title */}
               <p className="px-5 py-2 font-poppins text-[11px] font-semibold uppercase tracking-wider text-white/40">
@@ -362,15 +417,15 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center shrink-0">
               <span className="font-poppins text-xs font-semibold text-white">
-                A
+                {initials}
               </span>
             </div>
             <div className="min-w-0">
               <p className="font-poppins text-sm font-medium text-white truncate">
-                Admin
+                {displayName}
               </p>
               <p className="font-poppins text-xs text-white/40 truncate">
-                admin@kinyn.com
+                {roleLabels[role] ?? displayEmail}
               </p>
             </div>
           </div>

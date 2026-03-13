@@ -1,36 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateProduct, deleteProduct } from "@/lib/services/product.service";
-import { getAuthFromRequest } from "@/lib/auth";
+import { requireWriteAccess } from "@/lib/auth";
 import { apiGuard, parseBody } from "@/lib/security";
 import type { ProductStatus } from "@/models/Product";
 
 /* ================================================================
    /api/admin/products/[id]
    ================================================================
-   PUT    — Update a product
-   DELETE — Delete a product
-   Both endpoints are admin-only.
+   PUT    — Update a product — admin & super_admin only
+   DELETE — Delete a product — admin & super_admin only
    ================================================================ */
-
-/* ──────────── Auth helper ──────────── */
-
-function requireAdmin(req: NextRequest) {
-  const payload = getAuthFromRequest(req);
-  if (!payload) {
-    return {
-      error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }),
-    };
-  }
-  if (payload.role !== "admin" && payload.role !== "super_admin") {
-    return {
-      error: NextResponse.json(
-        { error: "Accès refusé. Droits insuffisants." },
-        { status: 403 },
-      ),
-    };
-  }
-  return { payload };
-}
 
 /* ──────────── PUT /api/admin/products/[id] ──────────── */
 
@@ -43,7 +22,7 @@ export async function PUT(
   });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireWriteAccess(req);
   if ("error" in auth) return auth.error;
 
   const { id } = await params;
@@ -92,7 +71,7 @@ export async function DELETE(
   });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireWriteAccess(req);
   if ("error" in auth) return auth.error;
 
   const { id } = await params;

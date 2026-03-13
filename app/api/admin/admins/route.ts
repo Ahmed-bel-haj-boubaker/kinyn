@@ -5,7 +5,7 @@ import {
   getAdminStats,
   setAuthCookie,
 } from "@/lib/services/auth.service";
-import { getAuthFromRequest } from "@/lib/auth";
+import { requireSuperAdmin } from "@/lib/auth";
 import { apiGuard, parseBody } from "@/lib/security";
 import type { UserRole } from "@/models/User";
 
@@ -14,30 +14,8 @@ import type { UserRole } from "@/models/User";
    ================================================================
    GET  — List all admins (with search / filter / pagination)
    POST — Create a new admin account
-   Both endpoints are admin-only.
+   Both endpoints require super_admin role.
    ================================================================ */
-
-/* ──────────── Middleware: require admin role ──────────── */
-
-function requireAdmin(req: NextRequest) {
-  const payload = getAuthFromRequest(req);
-  if (!payload) {
-    return {
-      error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }),
-    };
-  }
-
-  if (payload.role !== "admin" && payload.role !== "super_admin") {
-    return {
-      error: NextResponse.json(
-        { error: "Accès refusé. Droits insuffisants." },
-        { status: 403 },
-      ),
-    };
-  }
-
-  return { payload };
-}
 
 /* ──────────── GET /api/admin/admins ──────────── */
 
@@ -45,7 +23,7 @@ export async function GET(req: NextRequest) {
   const guardError = apiGuard(req, { csrf: false });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireSuperAdmin(req);
   if ("error" in auth) return auth.error;
 
   const url = new URL(req.url);
@@ -86,7 +64,7 @@ export async function POST(req: NextRequest) {
   });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireSuperAdmin(req);
   if ("error" in auth) return auth.error;
 
   const parsed = await parseBody<{

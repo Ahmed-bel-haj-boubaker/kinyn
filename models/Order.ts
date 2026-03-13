@@ -49,7 +49,7 @@ export interface IShippingAddress {
 
 export interface IOrder extends Document {
   ref: string;
-  user: mongoose.Types.ObjectId;
+  user?: mongoose.Types.ObjectId;
   items: IOrderItem[];
   subtotal: number;
   shippingCost: number;
@@ -157,7 +157,7 @@ const orderSchema = new Schema<IOrder>(
     user: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: [true, "L'utilisateur est requis."],
+      default: null,
       index: true,
     },
     items: {
@@ -270,7 +270,7 @@ export function orderToSafe(doc: IOrder): SafeOrder {
   return {
     id: doc._id.toString(),
     ref: doc.ref,
-    user: doc.user.toString(),
+    user: doc.user?.toString() ?? "",
     items: doc.items.map((item) => ({
       product: item.product.toString(),
       name: item.name,

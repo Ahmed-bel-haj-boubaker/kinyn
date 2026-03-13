@@ -1,35 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/lib/auth";
+import { requireAdminAccess } from "@/lib/auth";
 import { apiGuard } from "@/lib/security";
 import { listOrders, getOrderStats } from "@/lib/services/order.service";
 
 /* ================================================================
    /api/admin/orders
    ================================================================
-   GET — List all orders (admin only) with search/filter/pagination
+   GET — List all orders (all admin roles) with search/filter/pagination
    ================================================================ */
-
-function requireAdmin(req: NextRequest) {
-  const payload = getAuthFromRequest(req);
-  if (!payload) {
-    return {
-      error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }),
-    };
-  }
-  if (payload.role !== "admin" && payload.role !== "super_admin") {
-    return {
-      error: NextResponse.json({ error: "Accès refusé." }, { status: 403 }),
-    };
-  }
-  return { payload };
-}
 
 export async function GET(req: NextRequest) {
   const guardError = apiGuard(req, { csrf: false });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
-  if ("error" in auth && auth.error) return auth.error;
+  const auth = requireAdminAccess(req);
+  if ("error" in auth) return auth.error;
 
   const url = new URL(req.url);
   const search = url.searchParams.get("search") ?? undefined;

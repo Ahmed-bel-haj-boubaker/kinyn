@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/lib/auth";
+import { requireAdminAccess } from "@/lib/auth";
 import { apiGuard } from "@/lib/security";
 import {
   getNotifications,
@@ -9,24 +9,22 @@ import {
 /* ================================================================
    /api/admin/notifications
    ================================================================
-   GET  — Get admin notifications (paginated)
-   PATCH — Mark all notifications as read
+   GET  — Get admin notifications (paginated) — all admin roles
+   PATCH — Mark all notifications as read — all admin roles
    ================================================================ */
 
 export async function GET(req: NextRequest) {
   const guardError = apiGuard(req, { csrf: false });
   if (guardError) return guardError;
 
-  const payload = getAuthFromRequest(req);
-  if (!payload || !["admin", "super_admin"].includes(payload.role)) {
-    return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
-  }
+  const auth = requireAdminAccess(req);
+  if ("error" in auth) return auth.error;
 
   const url = new URL(req.url);
   const page = parseInt(url.searchParams.get("page") ?? "1", 10);
   const limit = parseInt(url.searchParams.get("limit") ?? "20", 10);
 
-  const result = await getNotifications(payload.userId, page, limit);
+  const result = await getNotifications(auth.payload.userId, page, limit);
 
   if (!result.success) {
     return NextResponse.json(
@@ -44,12 +42,10 @@ export async function PATCH(req: NextRequest) {
   });
   if (guardError) return guardError;
 
-  const payload = getAuthFromRequest(req);
-  if (!payload || !["admin", "super_admin"].includes(payload.role)) {
-    return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
-  }
+  const auth = requireAdminAccess(req);
+  if ("error" in auth) return auth.error;
 
-  const result = await markAllAsRead(payload.userId);
+  const result = await markAllAsRead(auth.payload.userId);
 
   if (!result.success) {
     return NextResponse.json(

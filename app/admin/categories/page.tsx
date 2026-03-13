@@ -7,6 +7,7 @@ import CategoryModal from "../component/categories/CategoryModal";
 import DeleteConfirmModal from "../component/shared/DeleteConfirmModal";
 import Toast from "../component/shared/Toast";
 import { useToast } from "../hooks/useToast";
+import { useAdminAuth } from "../context/AdminAuthContext";
 import type { Category } from "../component/categories/CategoryTable";
 import type {
   CategoryFormData,
@@ -70,6 +71,7 @@ interface APIListResponse {
 }
 
 export default function CategoriesPage() {
+  const { canWrite } = useAdminAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [stats, setStats] = useState<{
     total: number;
@@ -231,26 +233,28 @@ export default function CategoriesPage() {
             Gérez la hiérarchie de votre catalogue produits.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleCreate}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-poppins text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30 shrink-0 self-start sm:self-auto"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+        {canWrite && (
+          <button
+            type="button"
+            onClick={handleCreate}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-poppins text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30 shrink-0 self-start sm:self-auto"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Ajouter une catégorie
-        </button>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Ajouter une catégorie
+          </button>
+        )}
       </div>
 
       {/* Stats */}
@@ -292,8 +296,8 @@ export default function CategoriesPage() {
       ) : (
         <CategoryTable
           categories={sortedCategories}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onEdit={canWrite ? handleEdit : undefined}
+          onDelete={canWrite ? handleDelete : undefined}
         />
       )}
 

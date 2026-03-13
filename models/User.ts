@@ -17,7 +17,7 @@ import bcrypt from "bcryptjs";
 
 /* ──────────────────── Types ──────────────────── */
 
-export type UserRole = "user" | "admin" | "super_admin";
+export type UserRole = "user" | "moderator" | "admin" | "super_admin";
 export type UserStatus = "active" | "inactive" | "suspended";
 export type OrderStatus =
   | "pending"
@@ -186,7 +186,7 @@ const userSchema = new Schema<IUser>(
     role: {
       type: String,
       enum: {
-        values: ["user", "admin", "super_admin"],
+        values: ["user", "moderator", "admin", "super_admin"],
         message: "Le rôle '{VALUE}' n'est pas valide.",
       },
       default: "user",

@@ -4,8 +4,8 @@ import type { Product, ProductStatus } from "./ProductTable";
 
 interface ProductCardProps {
   products: Product[];
-  onEdit: (product: Product) => void;
-  onDelete: (product: Product) => void;
+  onEdit?: (product: Product) => void;
+  onDelete?: (product: Product) => void;
   onView: (product: Product) => void;
 }
 
@@ -197,7 +197,7 @@ export default function ProductCard({
               </button>
               <button
                 type="button"
-                onClick={() => onEdit(p)}
+                onClick={() => onEdit?.(p)}
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-dark/5 text-dark/60 hover:bg-dark/10 font-poppins text-xs font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <svg
@@ -217,7 +217,7 @@ export default function ProductCard({
               </button>
               <button
                 type="button"
-                onClick={() => onDelete(p)}
+                onClick={() => onDelete?.(p)}
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-primary/5 text-primary/70 hover:bg-primary/10 font-poppins text-xs font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <svg

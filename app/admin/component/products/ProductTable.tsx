@@ -31,8 +31,8 @@ export interface Product {
 
 interface ProductTableProps {
   products: Product[];
-  onEdit: (product: Product) => void;
-  onDelete: (product: Product) => void;
+  onEdit?: (product: Product) => void;
+  onDelete?: (product: Product) => void;
   onView: (product: Product) => void;
 }
 
@@ -248,7 +248,7 @@ export default function ProductTable({
                     </button>
                     <button
                       type="button"
-                      onClick={() => onEdit(p)}
+                      onClick={() => onEdit?.(p)}
                       className="p-2 rounded-lg text-dark/40 hover:text-primary hover:bg-primary/5 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary/20"
                       aria-label={`Modifier ${p.name}`}
                     >
@@ -268,7 +268,7 @@ export default function ProductTable({
                     </button>
                     <button
                       type="button"
-                      onClick={() => onDelete(p)}
+                      onClick={() => onDelete?.(p)}
                       className="p-2 rounded-lg text-dark/40 hover:text-primary hover:bg-primary/5 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary/20"
                       aria-label={`Supprimer ${p.name}`}
                     >

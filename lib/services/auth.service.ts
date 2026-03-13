@@ -475,7 +475,7 @@ export async function createAdmin(
     }
 
     /* Restrict role to admin roles only */
-    const allowedRoles: UserRole[] = ["admin", "super_admin"];
+    const allowedRoles: UserRole[] = ["moderator", "admin", "super_admin"];
     if (!allowedRoles.includes(input.role)) {
       return {
         success: false,
@@ -597,7 +597,7 @@ export async function listAdmins(
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filter: Record<string, any> = {
-      role: { $in: ["admin", "super_admin"] },
+      role: { $in: ["moderator", "admin", "super_admin"] },
     };
 
     if (role && role !== "all") {
@@ -866,13 +866,15 @@ export async function getAdminStats(): Promise<
     await connectDB();
 
     const [total, active, inactive, superAdmin] = await Promise.all([
-      User.countDocuments({ role: { $in: ["admin", "super_admin"] } }),
       User.countDocuments({
-        role: { $in: ["admin", "super_admin"] },
+        role: { $in: ["moderator", "admin", "super_admin"] },
+      }),
+      User.countDocuments({
+        role: { $in: ["moderator", "admin", "super_admin"] },
         status: "active",
       }),
       User.countDocuments({
-        role: { $in: ["admin", "super_admin"] },
+        role: { $in: ["moderator", "admin", "super_admin"] },
         status: "inactive",
       }),
       User.countDocuments({ role: "super_admin" }),

@@ -6,6 +6,7 @@ import FAQModal from "../component/faq/FAQModal";
 import DeleteConfirmModal from "../component/shared/DeleteConfirmModal";
 import Toast from "../component/shared/Toast";
 import { useToast } from "../hooks/useToast";
+import { useAdminAuth } from "../context/AdminAuthContext";
 import type { FAQFormData } from "../component/faq/FAQModal";
 import type { FAQStatus } from "@/models/FAQ";
 
@@ -52,6 +53,7 @@ interface APIListResponse {
 }
 
 export default function FAQPage() {
+  const { canWrite } = useAdminAuth();
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [total, setTotal] = useState(0);
@@ -208,19 +210,21 @@ export default function FAQPage() {
               Gérez les questions fréquentes du site
             </p>
           </div>
-          <button
-            onClick={handleCreate}
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 font-poppins text-sm font-medium text-white hover:bg-primary/90 transition-colors shadow-sm"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-              <path
-                fillRule="evenodd"
-                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Nouvelle FAQ
-          </button>
+          {canWrite && (
+            <button
+              onClick={handleCreate}
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 font-poppins text-sm font-medium text-white hover:bg-primary/90 transition-colors shadow-sm"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fillRule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Nouvelle FAQ
+            </button>
+          )}
         </div>
 
         {/* ── Stats ── */}
@@ -330,12 +334,14 @@ export default function FAQPage() {
                 />
               </svg>
               <p className="font-poppins text-sm">Aucune FAQ trouvée.</p>
-              <button
-                onClick={handleCreate}
-                className="mt-3 font-poppins text-sm text-primary hover:underline"
-              >
-                Créer la première FAQ
-              </button>
+              {canWrite && (
+                <button
+                  onClick={handleCreate}
+                  className="mt-3 font-poppins text-sm text-primary hover:underline"
+                >
+                  Créer la première FAQ
+                </button>
+              )}
             </div>
           ) : (
             <>
@@ -385,53 +391,69 @@ export default function FAQPage() {
                           </span>
                         </td>
                         <td className="px-5 py-4">
-                          <button
-                            onClick={() => handleToggleStatus(faq)}
-                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-poppins text-xs font-medium transition-colors cursor-pointer ${
-                              faq.status === "published"
-                                ? "bg-green-100 text-green-700 hover:bg-green-200"
-                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                            }`}
-                            title="Cliquer pour changer le statut"
-                          >
-                            {faq.status === "published"
-                              ? "Publié"
-                              : "Brouillon"}
-                          </button>
+                          {canWrite ? (
+                            <button
+                              onClick={() => handleToggleStatus(faq)}
+                              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-poppins text-xs font-medium transition-colors cursor-pointer ${
+                                faq.status === "published"
+                                  ? "bg-green-100 text-green-700 hover:bg-green-200"
+                                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                              }`}
+                              title="Cliquer pour changer le statut"
+                            >
+                              {faq.status === "published"
+                                ? "Publié"
+                                : "Brouillon"}
+                            </button>
+                          ) : (
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-poppins text-xs font-medium ${
+                                faq.status === "published"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-gray-100 text-gray-600"
+                              }`}
+                            >
+                              {faq.status === "published"
+                                ? "Publié"
+                                : "Brouillon"}
+                            </span>
+                          )}
                         </td>
                         <td className="px-5 py-4">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => handleEdit(faq)}
-                              className="p-1.5 rounded-lg text-dark/40 hover:text-dark hover:bg-gray-100 transition-colors"
-                              title="Modifier"
-                            >
-                              <svg
-                                className="w-4 h-4"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
+                          {canWrite && (
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleEdit(faq)}
+                                className="p-1.5 rounded-lg text-dark/40 hover:text-dark hover:bg-gray-100 transition-colors"
+                                title="Modifier"
                               >
-                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => handleDelete(faq)}
-                              className="p-1.5 rounded-lg text-dark/40 hover:text-red-600 hover:bg-red-50 transition-colors"
-                              title="Supprimer"
-                            >
-                              <svg
-                                className="w-4 h-4"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
+                                <svg
+                                  className="w-4 h-4"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => handleDelete(faq)}
+                                className="p-1.5 rounded-lg text-dark/40 hover:text-red-600 hover:bg-red-50 transition-colors"
+                                title="Supprimer"
                               >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            </button>
-                          </div>
+                                <svg
+                                  className="w-4 h-4"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -457,12 +479,15 @@ export default function FAQPage() {
                             {faq.category}
                           </span>
                           <button
-                            onClick={() => handleToggleStatus(faq)}
+                            onClick={() =>
+                              canWrite ? handleToggleStatus(faq) : undefined
+                            }
+                            disabled={!canWrite}
                             className={`inline-flex items-center rounded-full px-2 py-0.5 font-poppins text-xs font-medium ${
                               faq.status === "published"
                                 ? "bg-green-100 text-green-700"
                                 : "bg-gray-100 text-gray-600"
-                            }`}
+                            } ${canWrite ? "cursor-pointer" : "cursor-default"}`}
                           >
                             {faq.status === "published"
                               ? "Publié"
@@ -470,36 +495,38 @@ export default function FAQPage() {
                           </button>
                         </div>
                       </div>
-                      <div className="flex gap-1 shrink-0">
-                        <button
-                          onClick={() => handleEdit(faq)}
-                          className="p-2 rounded-lg text-dark/40 hover:text-dark hover:bg-gray-100"
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
+                      {canWrite && (
+                        <div className="flex gap-1 shrink-0">
+                          <button
+                            onClick={() => handleEdit(faq)}
+                            className="p-2 rounded-lg text-dark/40 hover:text-dark hover:bg-gray-100"
                           >
-                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(faq)}
-                          className="p-2 rounded-lg text-dark/40 hover:text-red-600 hover:bg-red-50"
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
+                            <svg
+                              className="w-4 h-4"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(faq)}
+                            className="p-2 rounded-lg text-dark/40 hover:text-red-600 hover:bg-red-50"
                           >
-                            <path
-                              fillRule="evenodd"
-                              d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </button>
-                      </div>
+                            <svg
+                              className="w-4 h-4"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

@@ -3,39 +3,16 @@ import {
   updateCategory,
   deleteCategory,
 } from "@/lib/services/category.service";
-import { getAuthFromRequest } from "@/lib/auth";
+import { requireWriteAccess } from "@/lib/auth";
 import { apiGuard, parseBody } from "@/lib/security";
 import type { CategoryLevel, CategoryStatus } from "@/models/Category";
 
 /* ================================================================
    /api/admin/categories/[id]
    ================================================================
-   PUT    — Update a category
-   DELETE — Delete a category (cascade deletes children)
-   Both endpoints are admin-only.
+   PUT    — Update a category — admin & super_admin only
+   DELETE — Delete a category (cascade) — admin & super_admin only
    ================================================================ */
-
-/* ──────────── Auth helper ──────────── */
-
-function requireAdmin(req: NextRequest) {
-  const payload = getAuthFromRequest(req);
-  if (!payload) {
-    return {
-      error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }),
-    };
-  }
-
-  if (payload.role !== "admin" && payload.role !== "super_admin") {
-    return {
-      error: NextResponse.json(
-        { error: "Accès refusé. Droits insuffisants." },
-        { status: 403 },
-      ),
-    };
-  }
-
-  return { payload };
-}
 
 /* ──────────── PUT /api/admin/categories/[id] ──────────── */
 
@@ -48,7 +25,7 @@ export async function PUT(
   });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireWriteAccess(req);
   if ("error" in auth) return auth.error;
 
   const { id } = await params;
@@ -89,7 +66,7 @@ export async function DELETE(
   });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireWriteAccess(req);
   if ("error" in auth) return auth.error;
 
   const { id } = await params;

@@ -85,8 +85,8 @@ export const ORDER_STATUS_CONFIG: Record<
 interface OrderTableProps {
   orders: AdminOrder[];
   onView: (order: AdminOrder) => void;
-  onUpdateStatus: (order: AdminOrder) => void;
-  onDelete: (order: AdminOrder) => void;
+  onUpdateStatus?: (order: AdminOrder) => void;
+  onDelete?: (order: AdminOrder) => void;
 }
 
 /* ──────────────── Helpers ──────────────── */
@@ -303,7 +303,7 @@ export default function OrderTable({
                     </button>
                     <button
                       type="button"
-                      onClick={() => onUpdateStatus(o)}
+                      onClick={() => onUpdateStatus?.(o)}
                       className="p-2 rounded-lg text-dark/40 hover:text-primary hover:bg-primary/5 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary/20"
                       aria-label={`Modifier statut ${o.ref}`}
                       title="Changer le statut"
@@ -324,7 +324,7 @@ export default function OrderTable({
                     </button>
                     <button
                       type="button"
-                      onClick={() => onDelete(o)}
+                      onClick={() => onDelete?.(o)}
                       className="p-2 rounded-lg text-dark/40 hover:text-red-500 hover:bg-red-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-red-200"
                       aria-label={`Supprimer commande ${o.ref}`}
                       title="Supprimer"

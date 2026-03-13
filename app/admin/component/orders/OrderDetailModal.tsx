@@ -11,7 +11,7 @@ interface OrderDetailModalProps {
   isOpen: boolean;
   order: AdminOrder | null;
   onClose: () => void;
-  onUpdateStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+  onUpdateStatus?: (orderId: string, status: OrderStatus) => Promise<void>;
   saving: boolean;
 }
 
@@ -110,7 +110,7 @@ export default function OrderDetailModal({
 
   const handleSaveStatus = async () => {
     if (selectedStatus !== order.status) {
-      await onUpdateStatus(order.id, selectedStatus);
+      await onUpdateStatus?.(order.id, selectedStatus);
     }
     setShowStatusChange(false);
   };

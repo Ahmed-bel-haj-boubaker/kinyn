@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateAdmin, deleteAdmin } from "@/lib/services/auth.service";
-import { getAuthFromRequest } from "@/lib/auth";
+import { requireSuperAdmin } from "@/lib/auth";
 import { apiGuard, parseBody } from "@/lib/security";
 import type { UserRole } from "@/models/User";
 
@@ -9,30 +9,8 @@ import type { UserRole } from "@/models/User";
    ================================================================
    PUT    — Update an admin
    DELETE — Delete an admin
-   Both endpoints are admin-only.
+   Both endpoints require super_admin role.
    ================================================================ */
-
-/* ──────────── Auth helper ──────────── */
-
-function requireAdmin(req: NextRequest) {
-  const payload = getAuthFromRequest(req);
-  if (!payload) {
-    return {
-      error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }),
-    };
-  }
-
-  if (payload.role !== "admin" && payload.role !== "super_admin") {
-    return {
-      error: NextResponse.json(
-        { error: "Accès refusé. Droits insuffisants." },
-        { status: 403 },
-      ),
-    };
-  }
-
-  return { payload };
-}
 
 /* ──────────── PUT /api/admin/admins/[id] ──────────── */
 
@@ -45,7 +23,7 @@ export async function PUT(
   });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireSuperAdmin(req);
   if ("error" in auth) return auth.error;
 
   const { id } = await params;
@@ -89,7 +67,7 @@ export async function DELETE(
   });
   if (guardError) return guardError;
 
-  const auth = requireAdmin(req);
+  const auth = requireSuperAdmin(req);
   if ("error" in auth) return auth.error;
 
   const { id } = await params;

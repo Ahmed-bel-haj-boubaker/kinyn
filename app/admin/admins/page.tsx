@@ -7,6 +7,7 @@ import AdminModal from "../component/admins/AdminModal";
 import DeleteAdminModal from "../component/admins/DeleteAdminModal";
 import Toast from "../component/shared/Toast";
 import { useToast } from "../hooks/useToast";
+import { useAdminAuth } from "../context/AdminAuthContext";
 import type {
   Admin,
   AdminRole,
@@ -25,13 +26,14 @@ type FilterStatus = "all" | AdminStatus;
 /* ------------------------------------------------------------------ */
 
 export default function AdminsPage() {
+  const { isSuperAdmin, loading: authLoading } = useAdminAuth();
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [editingAdmin, setEditingAdmin] = useState<Admin | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Admin | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [, setSaving] = useState(false);
   const { toasts, addToast, removeToast } = useToast();
 
   /* Stats from API */
@@ -254,6 +256,31 @@ export default function AdminsPage() {
 
   const selectClass =
     "px-3 py-2 rounded-xl border border-gray-200 bg-white font-poppins text-sm text-dark placeholder:text-dark/30 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200 appearance-none bg-no-repeat bg-position-[right_0.75rem_center] bg-size-[1rem] bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2317171a'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")] pr-9";
+
+  /* ── Access denied for non-super_admin ── */
+  if (!authLoading && !isSuperAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <svg
+          className="w-16 h-16 text-dark/20 mb-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1.5}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+          />
+        </svg>
+        <h2 className="font-erotique text-2xl text-dark mb-2">Accès restreint</h2>
+        <p className="font-poppins text-sm text-dark/50">
+          Seul un Super Admin peut accéder à la gestion des administrateurs.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>

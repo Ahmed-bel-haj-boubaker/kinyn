@@ -5,6 +5,7 @@ import {
   createToken,
   verifyToken,
   validatePasswordStrength,
+  getAuthFromRequest,
   type TokenPayload,
 } from "@/lib/auth";
 import { NextRequest } from "next/server";
@@ -850,6 +851,57 @@ export async function deleteAdmin(
       status: 500,
     };
   }
+}
+
+/* ──────────────── DB-Aware Role Check ──────────────── */
+
+/**
+ * Verify the caller's role by fetching fresh data from the DB.
+ * Unlike the JWT-only check, this reflects role changes without re-login.
+ */
+export async function requireRoleFromDB(
+  req: NextRequest,
+  roles: string[],
+): Promise<{ payload: TokenPayload } | { error: NextResponse }> {
+  const jwtPayload = getAuthFromRequest(req);
+  if (!jwtPayload) {
+    return {
+      error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }),
+    };
+  }
+
+  await connectDB();
+  const user = await User.findById(jwtPayload.userId).select("role status");
+
+  if (!user) {
+    return {
+      error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }),
+    };
+  }
+
+  if (user.status !== "active") {
+    return {
+      error: NextResponse.json(
+        { error: "Votre compte n'est plus actif." },
+        { status: 403 },
+      ),
+    };
+  }
+
+  if (!roles.includes(user.role as string)) {
+    return {
+      error: NextResponse.json(
+        { error: "Accès refusé. Droits insuffisants." },
+        { status: 403 },
+      ),
+    };
+  }
+
+  return { payload: { ...jwtPayload, role: user.role as string } };
+}
+
+export async function requireSuperAdminFromDB(req: NextRequest) {
+  return requireRoleFromDB(req, ["super_admin"]);
 }
 
 /* ──────────────── Admin Stats ──────────────── */

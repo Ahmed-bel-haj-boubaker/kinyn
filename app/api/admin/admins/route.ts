@@ -4,8 +4,8 @@ import {
   createAdmin,
   getAdminStats,
   setAuthCookie,
+  requireSuperAdminFromDB,
 } from "@/lib/services/auth.service";
-import { requireSuperAdmin } from "@/lib/auth";
 import { apiGuard, parseBody } from "@/lib/security";
 import type { UserRole } from "@/models/User";
 
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   const guardError = apiGuard(req, { csrf: false });
   if (guardError) return guardError;
 
-  const auth = requireSuperAdmin(req);
+  const auth = await requireSuperAdminFromDB(req);
   if ("error" in auth) return auth.error;
 
   const url = new URL(req.url);
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
   });
   if (guardError) return guardError;
 
-  const auth = requireSuperAdmin(req);
+  const auth = await requireSuperAdminFromDB(req);
   if ("error" in auth) return auth.error;
 
   const parsed = await parseBody<{

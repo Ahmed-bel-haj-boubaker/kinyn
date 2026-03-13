@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateAdmin, deleteAdmin } from "@/lib/services/auth.service";
-import { requireSuperAdmin } from "@/lib/auth";
+import { updateAdmin, deleteAdmin, requireSuperAdminFromDB } from "@/lib/services/auth.service";
 import { apiGuard, parseBody } from "@/lib/security";
 import type { UserRole } from "@/models/User";
 
@@ -23,7 +22,7 @@ export async function PUT(
   });
   if (guardError) return guardError;
 
-  const auth = requireSuperAdmin(req);
+  const auth = await requireSuperAdminFromDB(req);
   if ("error" in auth) return auth.error;
 
   const { id } = await params;
@@ -67,7 +66,7 @@ export async function DELETE(
   });
   if (guardError) return guardError;
 
-  const auth = requireSuperAdmin(req);
+  const auth = await requireSuperAdminFromDB(req);
   if ("error" in auth) return auth.error;
 
   const { id } = await params;

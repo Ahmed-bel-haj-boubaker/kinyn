@@ -5,7 +5,17 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, ShoppingBag, Heart, Menu, X, ChevronDown, User, Package, LogOut } from "lucide-react";
+import {
+  Search,
+  ShoppingBag,
+  Heart,
+  Menu,
+  X,
+  ChevronDown,
+  User,
+  Package,
+  LogOut,
+} from "lucide-react";
 import UserDropdown from "./UserDropdown";
 import { useCart } from "@/lib/cart";
 
@@ -106,23 +116,33 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
             email: data.user.email,
           });
         }
-      } catch { /* keep guest state */ }
+      } catch {
+        /* keep guest state */
+      }
     }
     fetchMe();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleMobileLogout = async () => {
     if (loggingOut) return;
     setLoggingOut(true);
     try {
-      await fetch("/api/auth/sign-out", { method: "POST", credentials: "include" });
+      await fetch("/api/auth/sign-out", {
+        method: "POST",
+        credentials: "include",
+      });
       setMobileUser(null);
       setMobileMenuOpen(false);
       router.push("/");
       router.refresh();
-    } catch { /* silently fail */ }
-    finally { setLoggingOut(false); }
+    } catch {
+      /* silently fail */
+    } finally {
+      setLoggingOut(false);
+    }
   };
 
   /* ── Fetch categories from DB and build nav links ── */
@@ -480,7 +500,8 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
               {/* User info */}
               <div className="flex items-center gap-3">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold font-poppins text-white leading-none select-none">
-                  {mobileUser.firstName.charAt(0)}{mobileUser.lastName.charAt(0)}
+                  {mobileUser.firstName.charAt(0)}
+                  {mobileUser.lastName.charAt(0)}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="font-poppins text-[13px] font-semibold text-[#2C2C2C] truncate">

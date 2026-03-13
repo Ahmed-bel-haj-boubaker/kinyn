@@ -363,7 +363,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-16 left-0 z-40 w-65 h-[calc(100vh-4rem)] bg-dark flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed top-16 left-0 z-40 w-65 h-[calc(100dvh-4rem)] bg-dark flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-label="Admin sidebar"

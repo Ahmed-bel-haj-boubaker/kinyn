@@ -98,7 +98,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         role="dialog"
         aria-modal="true"
         aria-label="Panier"
-        className={`fixed font-poppins   top-0 right-0 z-70 flex h-screen w-full flex-col bg-background shadow-[-8px_0_30px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-out md:w-100 ${
+        className={`fixed font-poppins top-0 right-0 z-70 flex h-dvh w-full flex-col bg-background shadow-[-8px_0_30px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-out md:w-100 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -249,7 +249,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
         {/* ─── Footer ─── */}
         {items.length > 0 && (
-          <div className="border-t border-dark/10 bg-background px-6 py-5 space-y-4">
+          <div className="shrink-0 border-t border-dark/10 bg-background px-4 sm:px-6 py-4 sm:py-5 pb-[max(1rem,env(safe-area-inset-bottom))] space-y-3 sm:space-y-4">
             <div className="space-y-2.5">
               <div className="flex items-center justify-between font-poppins text-[0.8rem] text-dark/60">
                 <span>Sous-total</span>

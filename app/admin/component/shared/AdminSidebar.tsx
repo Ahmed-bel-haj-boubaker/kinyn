@@ -363,12 +363,12 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-16 left-0 z-40 w-65 h-[calc(100vh-4rem)] bg-dark overflow-y-auto transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed top-16 left-0 z-40 w-65 h-[calc(100vh-4rem)] bg-dark flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-label="Admin sidebar"
       >
-        <div className="flex flex-col py-4">
+        <div className="flex-1 overflow-y-auto flex flex-col py-4">
           {visibleSections.map((section, sectionIdx) => (
             <div key={section.title} className={sectionIdx > 0 ? "mt-2" : ""}>
               {/* Section Title */}
@@ -413,7 +413,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         </div>
 
         {/* Bottom section */}
-        <div className="mt-auto border-t border-white/10 p-4">
+        <div className="shrink-0 border-t border-white/10 p-4">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center shrink-0">
               <span className="font-poppins text-xs font-semibold text-white">

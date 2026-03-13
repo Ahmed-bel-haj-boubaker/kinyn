@@ -4,7 +4,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, ShoppingBag, Heart, Menu, X, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search, ShoppingBag, Heart, Menu, X, ChevronDown, User, Package, LogOut } from "lucide-react";
 import UserDropdown from "./UserDropdown";
 import { useCart } from "@/lib/cart";
 
@@ -65,6 +66,12 @@ interface NavbarProps {
 
 /* ─────────────────────── Component ─────────────────────── */
 
+interface MobileUser {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
 export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDesktop, setActiveDesktop] = useState<string | null>(null);
@@ -76,10 +83,47 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { totalItems } = useCart();
   const [mounted, setMounted] = useState(false);
+  const [mobileUser, setMobileUser] = useState<MobileUser | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  /* ── Fetch user for mobile menu ── */
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchMe() {
+      try {
+        const res = await fetch("/api/auth/me", { credentials: "include" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && data.user) {
+          setMobileUser({
+            firstName: data.user.firstName,
+            lastName: data.user.lastName,
+            email: data.user.email,
+          });
+        }
+      } catch { /* keep guest state */ }
+    }
+    fetchMe();
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleMobileLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await fetch("/api/auth/sign-out", { method: "POST", credentials: "include" });
+      setMobileUser(null);
+      setMobileMenuOpen(false);
+      router.push("/");
+      router.refresh();
+    } catch { /* silently fail */ }
+    finally { setLoggingOut(false); }
+  };
 
   /* ── Fetch categories from DB and build nav links ── */
   const buildNavLinks = useCallback((meres: ApiMere[]): NavLink[] => {
@@ -429,15 +473,65 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
           </ul>
         </div>
 
-        {/* Login button at bottom */}
+        {/* Bottom section — connected or guest */}
         <div className="border-t border-[#E8E6E1] px-5 sm:px-7 py-4 sm:py-5">
-          <Link
-            href="/auth/sign-in"
-            onClick={() => setMobileMenuOpen(false)}
-            className="flex cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 font-poppins text-[13px] font-medium text-white transition-all duration-200 hover:bg-primary/90"
-          >
-            <span>Se Connecter</span>
-          </Link>
+          {mobileUser ? (
+            <div className="space-y-3">
+              {/* User info */}
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold font-poppins text-white leading-none select-none">
+                  {mobileUser.firstName.charAt(0)}{mobileUser.lastName.charAt(0)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-poppins text-[13px] font-semibold text-[#2C2C2C] truncate">
+                    {mobileUser.firstName} {mobileUser.lastName}
+                  </p>
+                  <p className="font-poppins text-[11px] text-[#999] truncate">
+                    {mobileUser.email}
+                  </p>
+                </div>
+              </div>
+
+              {/* Quick links */}
+              <div className="flex gap-2">
+                <Link
+                  href="/profile?tab=overview"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-[#E8E6E1] py-2.5 font-poppins text-[12px] font-medium text-[#2C2C2C] transition-colors hover:bg-[#F0EFEB]"
+                >
+                  <User className="h-3.5 w-3.5" strokeWidth={1.5} />
+                  Profil
+                </Link>
+                <Link
+                  href="/profile?tab=orders"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-[#E8E6E1] py-2.5 font-poppins text-[12px] font-medium text-[#2C2C2C] transition-colors hover:bg-[#F0EFEB]"
+                >
+                  <Package className="h-3.5 w-3.5" strokeWidth={1.5} />
+                  Commandes
+                </Link>
+              </div>
+
+              {/* Logout */}
+              <button
+                type="button"
+                onClick={handleMobileLogout}
+                disabled={loggingOut}
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-red-200 py-2.5 font-poppins text-[13px] font-medium text-red-500 transition-colors hover:bg-red-50 disabled:opacity-50"
+              >
+                <LogOut className="h-3.5 w-3.5" strokeWidth={1.5} />
+                {loggingOut ? "Déconnexion…" : "Se Déconnecter"}
+              </button>
+            </div>
+          ) : (
+            <Link
+              href="/auth/sign-in"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 font-poppins text-[13px] font-medium text-white transition-all duration-200 hover:bg-primary/90"
+            >
+              <span>Se Connecter</span>
+            </Link>
+          )}
         </div>
       </div>
     </nav>

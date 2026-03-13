@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateAdmin, deleteAdmin, requireSuperAdminFromDB } from "@/lib/services/auth.service";
+import {
+  updateAdmin,
+  deleteAdmin,
+  requireSuperAdminFromDB,
+} from "@/lib/services/auth.service";
 import { apiGuard, parseBody } from "@/lib/security";
 import type { UserRole } from "@/models/User";
 

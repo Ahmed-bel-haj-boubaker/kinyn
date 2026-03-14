@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAdminAuth } from "../../context/AdminAuthContext";
@@ -347,6 +348,19 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     admin: "Admin",
     moderator: "Modérateur",
   };
+
+  /* Lock body scroll on mobile when sidebar is open */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (isOpen && window.innerWidth < 1024) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   return (
     <>

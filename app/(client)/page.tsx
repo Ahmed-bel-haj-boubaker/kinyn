@@ -28,7 +28,9 @@ export default function Page() {
       }
     }
     preload();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (!ready) {

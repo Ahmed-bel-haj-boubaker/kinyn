@@ -580,7 +580,7 @@ export async function getOrderStats(): Promise<ServiceResult<OrderStats>> {
       Order.countDocuments({ status: "cancelled" }),
       Order.countDocuments({ status: "returned" }),
       Order.aggregate([
-        { $match: { status: { $nin: ["cancelled", "returned"] } } },
+        { $match: { status: { $in: ["completed", "delivered"] } } },
         { $group: { _id: null, total: { $sum: "$totalAmount" } } },
       ]),
     ]);

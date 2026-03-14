@@ -201,101 +201,127 @@ export default function FAQPage() {
     <>
       <Toast toasts={toasts} onRemove={removeToast} />
 
-      <div className="min-h-screen bg-background p-6 md:p-8">
-        {/* ── Header ── */}
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="font-poppins text-2xl font-bold text-dark">FAQ</h1>
-            <p className="font-poppins text-sm text-dark/50 mt-1">
-              Gérez les questions fréquentes du site
-            </p>
-          </div>
-          {canWrite && (
-            <button
-              onClick={handleCreate}
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 font-poppins text-sm font-medium text-white hover:bg-primary/90 transition-colors shadow-sm"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Nouvelle FAQ
-            </button>
-          )}
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+          <h1 className="font-erotique text-3xl sm:text-4xl text-dark">
+            FAQ
+          </h1>
+          <p className="font-poppins text-sm text-dark/50 mt-1">
+            Gérez les questions fréquentes du site
+          </p>
         </div>
-
-        {/* ── Stats ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-          <StatCard label="Total" value={total} color="bg-white" />
-          <StatCard
-            label="Publiées"
-            value={publishedCount}
-            color="bg-green-50"
-            textColor="text-green-700"
-          />
-          <StatCard
-            label="Brouillons"
-            value={draftCount}
-            color="bg-gray-50"
-            textColor="text-gray-600"
-          />
-        </div>
-
-        {/* ── Filters ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-6 flex flex-col sm:flex-row gap-3">
-          {/* Search */}
-          <div className="relative flex-1">
+        {canWrite && (
+          <button
+            type="button"
+            onClick={handleCreate}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-poppins text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30 shrink-0 self-start sm:self-auto"
+          >
             <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark/30"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
             >
               <path
-                fillRule="evenodd"
-                d="M12.9 14.32a8 8 0 111.414-1.414l4.387 4.387a1 1 0 01-1.414 1.414l-4.387-4.387zM8 14A6 6 0 108 2a6 6 0 000 12z"
-                clipRule="evenodd"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
               />
             </svg>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher..."
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 font-poppins text-sm text-dark placeholder-dark/30 outline-none focus:border-primary focus:bg-white transition-colors"
+            Nouvelle FAQ
+          </button>
+        )}
+      </div>
+
+      {/* ── Stats ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <p className="font-poppins text-xs font-semibold text-dark/40 uppercase tracking-wider mb-1">
+            Total
+          </p>
+          <p className="font-poppins text-2xl font-bold text-dark">
+            {total}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <p className="font-poppins text-xs font-semibold text-dark/40 uppercase tracking-wider mb-1">
+            Publiées
+          </p>
+          <p className="font-poppins text-2xl font-bold text-emerald-600">
+            {publishedCount}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <p className="font-poppins text-xs font-semibold text-dark/40 uppercase tracking-wider mb-1">
+            Brouillons
+          </p>
+          <p className="font-poppins text-2xl font-bold text-gray-400">
+            {draftCount}
+          </p>
+        </div>
+      </div>
+
+      {/* ── Filters ── */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
+        {/* Search */}
+        <div className="relative flex-1 max-w-sm">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark/30 pointer-events-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
             />
-          </div>
-
-          {/* Category filter */}
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 font-poppins text-sm text-dark outline-none focus:border-primary focus:bg-white transition-colors min-w-40"
-          >
-            <option value="">Toutes les catégories</option>
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-
-          {/* Status filter */}
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 font-poppins text-sm text-dark outline-none focus:border-primary focus:bg-white transition-colors min-w-36"
-          >
-            <option value="">Tous les statuts</option>
-            <option value="published">Publiées</option>
-            <option value="draft">Brouillons</option>
-          </select>
+          </svg>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher une FAQ…"
+            className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 bg-white font-poppins text-sm text-dark placeholder:text-dark/30 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200"
+          />
         </div>
 
-        {/* ── Table / List ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        {/* Category filter */}
+        <select
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+          className="px-3 py-2 rounded-xl border border-gray-200 bg-white font-poppins text-sm text-dark focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200"
+        >
+          <option value="">Toutes les catégories</option>
+          {categories.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+
+        {/* Status filter */}
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="px-3 py-2 rounded-xl border border-gray-200 bg-white font-poppins text-sm text-dark focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200"
+        >
+          <option value="">Tous les statuts</option>
+          <option value="published">Publiées</option>
+          <option value="draft">Brouillons</option>
+        </select>
+
+        {/* Count badge */}
+        <span className="ml-auto font-poppins text-xs text-dark/40">
+          {total} FAQ{total !== 1 ? "s" : ""}
+        </span>
+      </div>
+
+      {/* ── Table / List ── */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <svg
@@ -540,7 +566,6 @@ export default function FAQPage() {
               </div>
             </>
           )}
-        </div>
       </div>
 
       {/* FAQ Modal */}
@@ -578,29 +603,3 @@ export default function FAQPage() {
   );
 }
 
-/* ──────────────── StatCard ──────────────── */
-
-function StatCard({
-  label,
-  value,
-  color = "bg-white",
-  textColor = "text-dark",
-}: {
-  label: string;
-  value: number;
-  color?: string;
-  textColor?: string;
-}) {
-  return (
-    <div
-      className={`${color} rounded-2xl border border-gray-100 px-5 py-4 flex flex-col gap-1`}
-    >
-      <span className="font-poppins text-xs text-dark/40 uppercase tracking-wider">
-        {label}
-      </span>
-      <span className={`font-poppins text-2xl font-bold ${textColor}`}>
-        {value}
-      </span>
-    </div>
-  );
-}

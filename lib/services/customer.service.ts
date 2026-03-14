@@ -510,7 +510,7 @@ export async function getCustomerStats(): Promise<
 
     /* Count users with at least one order + total revenue */
     const revenueAgg = await Order.aggregate([
-      { $match: { status: { $nin: ["cancelled", "returned"] } } },
+      { $match: { status: { $in: ["completed", "delivered"] } } },
       {
         $group: {
           _id: null,

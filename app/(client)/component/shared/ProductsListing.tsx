@@ -1078,9 +1078,9 @@ export default function ProductsListing({
           />
         </button>
         <div
-          className={`overflow-hidden transition-all duration-300 ease-out ${expandedFilters.includes("color") ? "max-h-60 opacity-100 mt-2" : "max-h-0 opacity-0"}`}
+          className={`transition-all duration-300 ease-out ${expandedFilters.includes("color") ? "max-h-60 overflow-y-auto opacity-100 mt-2" : "max-h-0 overflow-hidden opacity-0"}`}
         >
-          <div className="space-y-1">
+          <div className="space-y-1 pr-1">
             {COLORS.map((color) => (
               <button
                 key={color.name}

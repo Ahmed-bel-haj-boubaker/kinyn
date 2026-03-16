@@ -809,11 +809,35 @@ export default function ProductsListing({
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  /* ── Lock scroll when mobile filters open ── */
+  /* ── Lock scroll when mobile filters open (iOS-safe) ── */
   useEffect(() => {
-    document.body.style.overflow = mobileFiltersOpen ? "hidden" : "";
+    const html = document.documentElement;
+    const body = document.body;
+    if (mobileFiltersOpen) {
+      const scrollY = window.scrollY;
+      body.style.position = "fixed";
+      body.style.top = `-${scrollY}px`;
+      body.style.left = "0";
+      body.style.right = "0";
+      body.style.overflow = "hidden";
+      html.style.overflow = "hidden";
+    } else {
+      const scrollY = Math.abs(parseInt(body.style.top || "0", 10));
+      body.style.position = "";
+      body.style.top = "";
+      body.style.left = "";
+      body.style.right = "";
+      body.style.overflow = "";
+      html.style.overflow = "";
+      window.scrollTo(0, scrollY);
+    }
     return () => {
-      document.body.style.overflow = "";
+      body.style.position = "";
+      body.style.top = "";
+      body.style.left = "";
+      body.style.right = "";
+      body.style.overflow = "";
+      html.style.overflow = "";
     };
   }, [mobileFiltersOpen]);
 

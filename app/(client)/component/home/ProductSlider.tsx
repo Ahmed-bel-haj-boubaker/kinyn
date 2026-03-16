@@ -5,8 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ArrowLeft,
-  ArrowRight,
   X,
   ShoppingBag,
   Eye,
@@ -18,6 +16,7 @@ import {
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
+  ArrowRight,
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useCart } from "@/lib/cart";
@@ -101,8 +100,6 @@ const PRODUCTS: Product[] = [
     href: "/femme/jupe",
   },
 ];
-
-const CARD_GAP = 20;
 
 /* ── Modal product data ── */
 const MODAL_IMAGES = [
@@ -655,210 +652,163 @@ function QuickViewModal({
 }
 
 /* ═══════════════════════════════════════════════
-   Main slider component
+   Product grid — responsive luxury layout
    ═══════════════════════════════════════════════ */
+const INITIAL_COUNT = 8;
+
 export default function ProductSlider() {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [cardWidth, setCardWidth] = useState(0);
-  const [visibleCount, setVisibleCount] = useState(4);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
-  const totalOriginal = PRODUCTS.length;
-  const extendedProducts = [...PRODUCTS, ...PRODUCTS, ...PRODUCTS];
-  const offset = totalOriginal;
+  const displayed = showAll ? PRODUCTS : PRODUCTS.slice(0, INITIAL_COUNT);
 
-  /* ── Measure card width & visible count ── */
-  const measure = useCallback(() => {
-    if (!trackRef.current) return;
-    const container = trackRef.current.parentElement;
-    if (!container) return;
-    const containerWidth = container.clientWidth;
-
-    let cols = 4;
-    if (containerWidth < 640) cols = 1;
-    else if (containerWidth < 768) cols = 2;
-    else if (containerWidth < 1024) cols = 3;
-    else cols = 4;
-
-    setVisibleCount(cols);
-    const w = (containerWidth - CARD_GAP * (cols - 1)) / cols;
-    setCardWidth(w);
-  }, []);
-
+  /* ── Scroll-reveal ── */
   useEffect(() => {
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [measure]);
-
-  /* ── Compute translate ── */
-  const getTranslateX = useCallback(
-    (idx: number) => -(offset + idx) * (cardWidth + CARD_GAP),
-    [cardWidth, offset],
-  );
-
-  /* ── After transition ends, silently reset position for infinite loop ── */
-  const handleTransitionEnd = useCallback(() => {
-    setIsTransitioning(false);
-    setCurrentIndex((prev) => {
-      if (prev >= totalOriginal) return prev - totalOriginal;
-      if (prev < -totalOriginal) return prev + totalOriginal;
-      return prev;
-    });
-  }, [totalOriginal]);
-
-  /* ── Navigate ── */
-  const scroll = useCallback(
-    (dir: "left" | "right") => {
-      if (isTransitioning) return;
-      setIsTransitioning(true);
-      setCurrentIndex((prev) => prev + (dir === "right" ? 1 : -1));
-    },
-    [isTransitioning],
-  );
-
-  /* ── Touch / swipe ── */
-  const touchStartX = useRef(0);
-  const touchDelta = useRef(0);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchDelta.current = 0;
-  }, []);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    touchDelta.current = e.touches[0].clientX - touchStartX.current;
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    if (Math.abs(touchDelta.current) > 50) {
-      scroll(touchDelta.current < 0 ? "right" : "left");
-    }
-  }, [scroll]);
-
-  if (cardWidth === 0) {
-    return (
-      <section className="bg-background py-10 sm:py-14 lg:py-16 px-4 sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-[1440px]">
-          <div className="mb-6 sm:mb-8 lg:mb-10 text-center">
-            <p className="font-poppins text-[0.65rem] sm:text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary">
-              Sélection
-            </p>
-            <h2 className="mt-1.5 sm:mt-2 font-erotique text-2xl sm:text-3xl lg:text-4xl text-dark">
-              Nos Incontournables
-            </h2>
-          </div>
-          <div className="h-[420px]" ref={trackRef} />
-        </div>
-      </section>
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.1 },
     );
-  }
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   return (
-    <section className="bg-background py-10 sm:py-14 lg:py-16 px-4 sm:px-6 lg:px-10">
+    <section
+      ref={sectionRef}
+      className="bg-background py-14 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10"
+    >
       <div className="mx-auto max-w-[1440px]">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8 lg:mb-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <p className="font-poppins text-[0.65rem] sm:text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary">
-              Sélection
-            </p>
-            <h2 className="mt-1.5 sm:mt-2 font-erotique text-2xl sm:text-3xl lg:text-4xl text-dark">
-              Nos Incontournables
-            </h2>
-          </div>
-
-          {/* Nav buttons */}
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => scroll("left")}
-              className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-primary text-background transition-transform duration-200 ease-out hover:scale-105 active:scale-95"
-              aria-label="Produits précédents"
-            >
-              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2} />
-            </button>
-            <button
-              type="button"
-              onClick={() => scroll("right")}
-              className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-primary text-background transition-transform duration-200 ease-out hover:scale-105 active:scale-95"
-              aria-label="Produits suivants"
-            >
-              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2} />
-            </button>
-          </div>
+        {/* ── Header ── */}
+        <div
+          className={`mb-10 sm:mb-14 lg:mb-16 text-center transition-all duration-700 ease-out ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+          }`}
+        >
+          <p className="font-poppins text-[0.65rem] sm:text-[0.72rem] font-semibold uppercase tracking-[0.25em] text-primary">
+            Sélection
+          </p>
+          <h2 className="mt-2 sm:mt-3 font-erotique text-3xl sm:text-4xl lg:text-5xl text-dark">
+            Nos Incontournables
+          </h2>
+          <div className="mx-auto mt-4 h-px w-16 bg-primary/30" />
         </div>
 
-        {/* Slider */}
-        <div
-          className="overflow-hidden"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          <div
-            ref={trackRef}
-            className={
-              isTransitioning
-                ? "transition-transform duration-500 ease-out"
-                : ""
-            }
-            style={{
-              display: "flex",
-              gap: `${CARD_GAP}px`,
-              transform: `translateX(${getTranslateX(currentIndex)}px)`,
-            }}
-            onTransitionEnd={handleTransitionEnd}
-          >
-            {extendedProducts.map((product, i) => (
-              <div
-                key={`${product.id}-${i}`}
-                className="shrink-0"
-                style={{ width: `${cardWidth}px` }}
-              >
-                <div className="group">
-                  {/* Arch-shaped Image */}
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-t-full bg-dark/[0.03]">
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                      sizes={`(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw`}
-                    />
-                  </div>
+        {/* ── Product Grid ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8 sm:gap-x-5 sm:gap-y-10 lg:gap-x-6 lg:gap-y-12">
+          {displayed.map((product, i) => (
+            <div
+              key={product.id}
+              className={`transition-all duration-700 ease-out ${
+                isVisible
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-10"
+              }`}
+              style={{ transitionDelay: isVisible ? `${i * 80}ms` : "0ms" }}
+            >
+              <div className="group">
+                {/* Arch-shaped Image */}
+                <div className="relative aspect-[3/4] overflow-hidden rounded-t-full bg-dark/[0.03]">
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  />
 
-                  {/* Info */}
-                  <div className="pt-3 sm:pt-4 pb-1 space-y-2">
-                    <div>
-                      <h3 className="font-erotique text-[0.82rem] sm:text-[0.95rem] text-dark leading-snug tracking-wide">
-                        {product.name}
-                      </h3>
-                      <div className="mt-0.5 sm:mt-1 flex items-center gap-2">
-                        <p className="font-poppins text-[0.78rem] sm:text-[0.85rem] text-dark/80">
-                          {product.price}
-                        </p>
-                        {product.originalPrice && (
-                          <p className="font-poppins text-[0.68rem] sm:text-[0.75rem] text-dark/35 line-through">
-                            {product.originalPrice}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                  {/* Hover overlay with quick-view */}
+                  <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-dark/40 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100">
                     <button
                       type="button"
                       onClick={() => setSelectedProduct(product)}
-                      className="w-full border border-dark/20 py-2 sm:py-2.5 font-poppins text-[0.72rem] sm:text-[0.78rem] tracking-[0.05em] text-dark transition-all duration-300 hover:border-dark hover:bg-dark hover:text-background active:scale-[0.97]"
+                      className="mb-6 sm:mb-8 flex items-center gap-1.5 bg-background/95 backdrop-blur-sm px-4 py-2 sm:px-5 sm:py-2.5 rounded-full font-poppins text-[0.65rem] sm:text-[0.7rem] font-medium tracking-[0.06em] text-dark shadow-lg transition-all duration-300 hover:bg-background hover:shadow-xl active:scale-95"
                     >
-                      Ajouter au panier
+                      <Eye className="h-3.5 w-3.5" strokeWidth={1.8} />
+                      Aperçu
                     </button>
                   </div>
                 </div>
+
+                {/* Info */}
+                <div className="pt-3 sm:pt-4 pb-1 space-y-2 sm:space-y-3">
+                  <div className="text-center">
+                    <h3 className="font-erotique text-[0.8rem] sm:text-[0.95rem] lg:text-[1rem] text-dark leading-snug tracking-wide">
+                      {product.name}
+                    </h3>
+                    <div className="mt-1 flex items-center justify-center gap-2">
+                      <p className="font-poppins text-[0.75rem] sm:text-[0.85rem] font-medium text-dark/80">
+                        {product.price}
+                      </p>
+                      {product.originalPrice && (
+                        <p className="font-poppins text-[0.65rem] sm:text-[0.72rem] text-dark/35 line-through">
+                          {product.originalPrice}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedProduct(product)}
+                    className="w-full border border-dark/15 py-2 sm:py-2.5 font-poppins text-[0.68rem] sm:text-[0.75rem] tracking-[0.06em] text-dark/70 transition-all duration-300 hover:border-primary hover:bg-primary hover:text-background active:scale-[0.97]"
+                  >
+                    Ajouter au panier
+                  </button>
+                </div>
               </div>
-            ))}
+            </div>
+          ))}
+        </div>
+
+        {/* ── Voir plus button ── */}
+        {!showAll && PRODUCTS.length > INITIAL_COUNT && (
+          <div
+            className={`mt-10 sm:mt-14 lg:mt-16 text-center transition-all duration-700 ease-out ${
+              isVisible
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-6"
+            }`}
+            style={{ transitionDelay: isVisible ? "700ms" : "0ms" }}
+          >
+            <button
+              type="button"
+              onClick={() => setShowAll(true)}
+              className="group inline-flex items-center gap-2 border border-primary/40 px-8 py-3 sm:px-10 sm:py-3.5 rounded-full font-poppins text-[0.72rem] sm:text-[0.78rem] font-medium uppercase tracking-[0.12em] text-primary transition-all duration-300 hover:bg-primary hover:text-background hover:border-primary hover:shadow-lg active:scale-[0.97]"
+            >
+              Voir plus
+              <ArrowRight
+                className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform duration-300 group-hover:translate-x-1"
+                strokeWidth={2}
+              />
+            </button>
           </div>
+        )}
+
+        {/* ── Browse all link ── */}
+        <div
+          className={`mt-8 sm:mt-10 text-center transition-all duration-700 ease-out ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+          }`}
+          style={{ transitionDelay: isVisible ? "800ms" : "0ms" }}
+        >
+          <Link
+            href="/femme"
+            className="inline-flex items-center gap-1.5 font-poppins text-[0.68rem] sm:text-[0.74rem] font-medium tracking-[0.06em] text-dark/50 transition-colors duration-300 hover:text-primary"
+          >
+            Parcourir toute la collection
+            <ArrowRight
+              className="h-3 w-3 sm:h-3.5 sm:w-3.5"
+              strokeWidth={1.8}
+            />
+          </Link>
         </div>
       </div>
 

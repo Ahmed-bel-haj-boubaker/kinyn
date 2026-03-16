@@ -63,15 +63,15 @@ export default function FeaturedCollection() {
   return (
     <section
       ref={sectionRef}
-      className="relative bg-background py-12 lg:py-16 overflow-hidden"
+      className="relative bg-background py-10 sm:py-12 lg:py-16 overflow-hidden"
     >
       {/* Decorative top accent */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-[2px] rounded-full bg-primary" />
 
-      <div className="mx-auto max-w-[1200px] px-6 lg:px-10">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10">
         {/* Header */}
         <div
-          className={`mb-8 lg:mb-10 transition-all duration-700 ease-out ${
+          className={`mb-6 sm:mb-8 lg:mb-10 transition-all duration-700 ease-out ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
@@ -79,7 +79,7 @@ export default function FeaturedCollection() {
             <p className="font-poppins text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-primary mb-2.5">
               Collections
             </p>
-            <h2 className="font-erotique text-2xl sm:text-3xl text-dark">
+            <h2 className="font-erotique text-xl sm:text-2xl md:text-3xl text-dark">
               Nos Univers
             </h2>
             <div className="mt-3 h-px w-10 bg-dark/20" />
@@ -105,7 +105,7 @@ export default function FeaturedCollection() {
               aria-label={`Découvrir la collection ${col.title}`}
             >
               {/* Image container */}
-              <div className="relative aspect-[4/5] overflow-hidden">
+              <div className="relative aspect-[3/4] sm:aspect-[4/5] overflow-hidden">
                 <Image
                   src={col.image}
                   alt={col.title}
@@ -127,7 +127,7 @@ export default function FeaturedCollection() {
               </div>
 
               {/* Content */}
-              <div className="absolute inset-0 flex flex-col justify-end p-3 sm:p-4">
+              <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-4 md:p-5">
                 {/* Subtitle tag */}
                 <span
                   className={`self-start font-poppins text-[0.55rem] font-semibold uppercase tracking-[0.2em] text-background/70 mb-1 transition-all duration-500 ${

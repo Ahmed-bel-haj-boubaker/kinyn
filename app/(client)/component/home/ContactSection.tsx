@@ -56,14 +56,14 @@ export default function ContactSection() {
   );
 
   return (
-    <section className="bg-background py-20 px-6 md:py-28 lg:px-10">
+    <section className="bg-background py-12 sm:py-16 md:py-20 lg:py-28 px-4 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-275">
         {/* Header */}
-        <div className="mb-16 text-center md:mb-20">
+        <div className="mb-10 sm:mb-14 md:mb-16 lg:mb-20 text-center">
           <p className="font-poppins text-[0.7rem] font-semibold uppercase tracking-[0.25em] text-primary">
             Nous écrire
           </p>
-          <h2 className="mt-3 font-erotique text-4xl text-dark sm:text-5xl">
+          <h2 className="mt-3 font-erotique text-3xl sm:text-4xl md:text-5xl text-dark">
             Contact
           </h2>
           <p className="mx-auto mt-5 max-w-md font-poppins text-[0.88rem] leading-relaxed text-dark/50">
@@ -73,9 +73,9 @@ export default function ContactSection() {
         </div>
 
         {/* Two-column */}
-        <div className="grid gap-16 md:grid-cols-5 md:gap-12 lg:gap-20">
+        <div className="grid gap-10 sm:gap-12 md:grid-cols-5 md:gap-12 lg:gap-20">
           {/* Left – Info */}
-          <div className="space-y-10 md:col-span-2">
+          <div className="space-y-7 sm:space-y-10 md:col-span-2">
             <p className="font-poppins text-[0.85rem] leading-[1.8] text-dark/60">
               Kinyn incarne une vision où le raffinement rencontre
               l&apos;authenticité. Chaque échange compte — nous vous répondons

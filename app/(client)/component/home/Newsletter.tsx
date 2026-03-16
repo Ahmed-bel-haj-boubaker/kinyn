@@ -18,26 +18,29 @@ export default function Newsletter() {
   );
 
   return (
-    <section className="bg-dark py-20 px-6 lg:px-10">
+    <section className="bg-dark py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-[680px] text-center">
         {/* Icon */}
-        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-          <Mail className="h-6 w-6 text-primary" strokeWidth={1.8} />
+        <div className="mx-auto mb-4 sm:mb-5 flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-primary/10">
+          <Mail
+            className="h-5 w-5 sm:h-6 sm:w-6 text-primary"
+            strokeWidth={1.8}
+          />
         </div>
 
         {/* Heading */}
-        <h2 className="font-erotique text-3xl text-background sm:text-4xl">
+        <h2 className="font-erotique text-2xl sm:text-3xl md:text-4xl text-background">
           Restez Inspiré
         </h2>
 
-        <p className="mx-auto mt-4 max-w-md font-poppins text-[0.88rem] leading-relaxed text-background/55">
+        <p className="mx-auto mt-3 sm:mt-4 max-w-md font-poppins text-[0.82rem] sm:text-[0.88rem] leading-relaxed text-background/55">
           Inscrivez-vous pour recevoir en avant-première nos nouvelles
           collections, offres exclusives et conseils mode.
         </p>
 
         {/* Form */}
         {submitted ? (
-          <div className="mt-10 rounded-full border border-primary/30 bg-primary/10 px-8 py-4">
+          <div className="mt-8 sm:mt-10 rounded-full border border-primary/30 bg-primary/10 px-6 py-3 sm:px-8 sm:py-4">
             <p className="font-poppins text-[0.88rem] font-medium text-primary">
               Merci pour votre inscription ! ✓
             </p>
@@ -45,7 +48,7 @@ export default function Newsletter() {
         ) : (
           <form
             onSubmit={handleSubmit}
-            className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:gap-0"
+            className="mt-8 sm:mt-10 flex flex-col items-center gap-3 sm:flex-row sm:gap-0"
             aria-label="Inscription newsletter"
           >
             <div className="relative w-full sm:flex-1">

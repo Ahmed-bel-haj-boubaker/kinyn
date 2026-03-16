@@ -740,13 +740,13 @@ export default function ProductSlider() {
 
   if (cardWidth === 0) {
     return (
-      <section className="bg-background py-16 px-6 lg:px-10">
+      <section className="bg-background py-10 sm:py-14 lg:py-16 px-4 sm:px-6 lg:px-10">
         <div className="mx-auto max-w-[1440px]">
-          <div className="mb-10 text-center">
-            <p className="font-poppins text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary">
+          <div className="mb-6 sm:mb-8 lg:mb-10 text-center">
+            <p className="font-poppins text-[0.65rem] sm:text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary">
               Sélection
             </p>
-            <h2 className="mt-2 font-erotique text-3xl text-dark sm:text-4xl">
+            <h2 className="mt-1.5 sm:mt-2 font-erotique text-2xl sm:text-3xl lg:text-4xl text-dark">
               Nos Incontournables
             </h2>
           </div>

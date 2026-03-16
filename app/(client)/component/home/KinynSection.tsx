@@ -81,13 +81,13 @@ export default function KinynSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative bg-background py-24 md:py-32 overflow-hidden"
+      className="relative bg-background py-14 sm:py-20 md:py-24 lg:py-32 overflow-hidden"
     >
       {/* decorative accent line */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1 bg-primary rounded-full" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-20 items-center">
           {/* -------- image column -------- */}
           <div
             className={`relative transition-all duration-700 ease-out delay-100 ${
@@ -112,9 +112,9 @@ export default function KinynSection() {
 
             {/* floating logo badge */}
             <div
-              className="absolute -bottom-5 -right-5 sm:bottom-6 sm:right-6
-                          w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-white
-                          shadow-xl flex items-center justify-center p-3"
+              className="absolute bottom-3 right-3 sm:bottom-6 sm:right-6
+                          w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl bg-white
+                          shadow-xl flex items-center justify-center p-2 sm:p-3"
             >
               <Image
                 src="/images/logo2.png"
@@ -150,14 +150,14 @@ export default function KinynSection() {
               Notre histoire
             </span>
 
-            <h2 className="font-erotique text-dark text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight leading-tight mb-6">
+            <h2 className="font-erotique text-dark text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight leading-tight mb-4 sm:mb-6">
               À propos de Kinyn
             </h2>
 
             {/* accent bar */}
-            <span className="block w-16 h-1 bg-primary rounded-full mb-8" />
+            <span className="block w-12 sm:w-16 h-1 bg-primary rounded-full mb-5 sm:mb-8" />
 
-            <p className="font-poppins text-dark/70 text-base sm:text-lg leading-relaxed mb-5">
+            <p className="font-poppins text-dark/70 text-sm sm:text-base md:text-lg leading-relaxed mb-4 sm:mb-5">
               Née d&apos;une passion pour l&apos;artisanat et l&apos;élégance
               intemporelle,{" "}
               <strong className="text-dark font-semibold">Kinyn</strong> est
@@ -167,20 +167,20 @@ export default function KinynSection() {
               l&apos;excellence.
             </p>
 
-            <p className="font-poppins text-dark/70 text-base sm:text-lg leading-relaxed mb-5">
+            <p className="font-poppins text-dark/70 text-sm sm:text-base md:text-lg leading-relaxed mb-4 sm:mb-5">
               Inspirée par la richesse du savoir-faire tunisien et les codes du
               luxe contemporain, Kinyn habille ceux qui recherchent un style
               raffiné, authentique et durable. Nos collections sont conçues pour
               transcender les tendances et devenir les classiques de demain.
             </p>
 
-            <p className="font-erotique text-dark/60 text-base sm:text-lg leading-relaxed mb-10 italic">
+            <p className="font-erotique text-dark/60 text-sm sm:text-base md:text-lg leading-relaxed mb-6 sm:mb-10 italic">
               &ldquo;L&apos;élégance n&apos;est pas une question de mode, mais
               d&apos;attitude.&rdquo;
             </p>
 
             {/* stats row */}
-            <div className="grid grid-cols-3 gap-4 mb-10">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-10">
               <div className="text-center lg:text-left">
                 <span className="block font-poppins text-primary text-2xl sm:text-3xl font-semibold tabular-nums">
                   <AnimatedCounter

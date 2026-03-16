@@ -169,13 +169,13 @@ export default function Testimonials() {
   /* ── Loading state ── */
   if (cardWidth === 0) {
     return (
-      <section className="bg-dark/[0.02] py-20 px-6 lg:px-10">
+      <section className="bg-dark/[0.02] py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-10">
         <div className="mx-auto max-w-[1440px]">
           <div className="mb-12 text-center">
             <p className="font-poppins text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary">
               Témoignages
             </p>
-            <h2 className="mt-2 font-erotique text-3xl text-dark sm:text-4xl">
+            <h2 className="mt-1.5 sm:mt-2 font-erotique text-2xl sm:text-3xl lg:text-4xl text-dark">
               Ce Que Disent Nos Clients
             </h2>
           </div>
@@ -188,11 +188,14 @@ export default function Testimonials() {
   }
 
   return (
-    <section ref={sectionRef} className="bg-dark/[0.02] py-20 px-6 lg:px-10">
+    <section
+      ref={sectionRef}
+      className="bg-dark/[0.02] py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-10"
+    >
       <div className="mx-auto max-w-[1440px]">
         {/* Header */}
         <div
-          className={`mb-12 flex items-end justify-between transition-all duration-700 ease-out ${
+          className={`mb-8 sm:mb-10 lg:mb-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between transition-all duration-700 ease-out ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
         >
@@ -205,22 +208,22 @@ export default function Testimonials() {
             </h2>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
             <button
               type="button"
               onClick={() => scroll("left")}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-background transition-transform duration-200 ease-out hover:scale-105 active:scale-95"
+              className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-primary text-background transition-transform duration-200 ease-out hover:scale-105 active:scale-95"
               aria-label="Témoignages précédents"
             >
-              <ArrowLeft className="h-5 w-5" strokeWidth={2} />
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2} />
             </button>
             <button
               type="button"
               onClick={() => scroll("right")}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-background transition-transform duration-200 ease-out hover:scale-105 active:scale-95"
+              className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-primary text-background transition-transform duration-200 ease-out hover:scale-105 active:scale-95"
               aria-label="Témoignages suivants"
             >
-              <ArrowRight className="h-5 w-5" strokeWidth={2} />
+              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2} />
             </button>
           </div>
         </div>
@@ -255,7 +258,7 @@ export default function Testimonials() {
                 className="shrink-0"
                 style={{ width: `${cardWidth}px` }}
               >
-                <div className="flex h-full flex-col justify-between rounded-2xl border border-dark/5 bg-background p-6 shadow-[0_2px_16px_rgba(0,0,0,0.04)] transition-transform duration-200 ease-out hover:scale-[1.02] sm:p-8">
+                <div className="flex h-full flex-col justify-between rounded-2xl border border-dark/5 bg-background p-5 shadow-[0_2px_16px_rgba(0,0,0,0.04)] transition-transform duration-200 ease-out hover:scale-[1.02] sm:p-6 md:p-8">
                   {/* Stars */}
                   <div>
                     <div className="mb-4 flex gap-1">
@@ -269,7 +272,7 @@ export default function Testimonials() {
                     </div>
 
                     {/* Quote */}
-                    <p className="font-poppins text-[0.88rem] leading-relaxed text-dark/70">
+                    <p className="font-poppins text-[0.82rem] sm:text-[0.88rem] leading-relaxed text-dark/70">
                       &ldquo;{t.quote}&rdquo;
                     </p>
                   </div>

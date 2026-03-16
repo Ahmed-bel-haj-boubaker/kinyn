@@ -942,7 +942,7 @@ export default function ProductsListing({
             />
           </button>
           <div
-            className={`overflow-hidden transition-all duration-300 ease-out ${expandedFilters.includes("category") ? "max-h-[600px] opacity-100 mt-2" : "max-h-0 opacity-0"}`}
+            className={`overflow-hidden transition-all duration-300 ease-out ${expandedFilters.includes("category") ? "max-h-80 opacity-100 mt-2" : "max-h-0 opacity-0"}`}
           >
             <div className="space-y-1">
               {subcategories.map((sub) => (
@@ -1126,7 +1126,7 @@ export default function ProductsListing({
     <div className="bg-background min-h-screen">
       {/* Hero header */}
       <div className="border-b border-dark/8">
-        <div className="mx-auto max-w-[1440px] px-6 lg:px-10 py-10 lg:py-14">
+        <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-10 py-7 sm:py-10 lg:py-14">
           <nav className="mb-4 font-poppins text-[0.7rem] text-dark/45 flex items-center flex-wrap gap-y-1">
             {breadcrumbs.map((bc, i) => (
               <span key={i} className="flex items-center">
@@ -1144,7 +1144,7 @@ export default function ProductsListing({
               </span>
             ))}
           </nav>
-          <h1 className="font-erotique text-3xl sm:text-4xl lg:text-5xl text-dark">
+          <h1 className="font-erotique text-2xl sm:text-3xl lg:text-5xl text-dark">
             {title}
           </h1>
           <p className="mt-3 max-w-lg font-poppins text-[0.85rem] leading-relaxed text-dark/55">
@@ -1153,15 +1153,15 @@ export default function ProductsListing({
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1440px] px-6 lg:px-10 py-8 lg:py-10">
+      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-10 py-6 sm:py-8 lg:py-10">
         {/* Top controls */}
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-6 sm:mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             {/* Mobile filter button */}
             <button
               type="button"
               onClick={() => setMobileFiltersOpen(true)}
-              className="flex lg:hidden items-center gap-2 rounded-lg border border-dark/15 px-4 py-2.5 font-poppins text-[0.78rem] font-medium text-dark transition-all duration-200 hover:border-primary hover:text-primary"
+              className="flex lg:hidden items-center gap-2 rounded-lg border border-dark/15 px-3 sm:px-4 py-2 sm:py-2.5 font-poppins text-[0.76rem] sm:text-[0.78rem] font-medium text-dark transition-all duration-200 hover:border-primary hover:text-primary"
             >
               <SlidersHorizontal className="h-4 w-4" strokeWidth={2} />
               Filtres
@@ -1175,7 +1175,7 @@ export default function ProductsListing({
             </button>
 
             {/* Search */}
-            <div className="relative flex-1 sm:flex-none">
+            <div className="relative flex-1 min-w-0">
               <Search
                 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-dark/35"
                 strokeWidth={2}
@@ -1188,7 +1188,7 @@ export default function ProductsListing({
                   setVisibleCount(ITEMS_PER_PAGE);
                 }}
                 placeholder="Rechercher..."
-                className="w-full sm:w-64 rounded-lg border border-dark/15 bg-background py-2.5 pl-10 pr-4 font-poppins text-[0.78rem] text-dark placeholder:text-dark/35 outline-none transition-all duration-200 focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
+                className="w-full sm:w-56 lg:w-64 rounded-lg border border-dark/15 bg-background py-2 sm:py-2.5 pl-10 pr-4 font-poppins text-[0.76rem] sm:text-[0.78rem] text-dark placeholder:text-dark/35 outline-none transition-all duration-200 focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
               />
               {searchQuery && (
                 <button
@@ -1202,9 +1202,9 @@ export default function ProductsListing({
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
             {/* Count */}
-            <span className="font-poppins text-[0.75rem] text-dark/45">
+            <span className="font-poppins text-[0.72rem] sm:text-[0.75rem] text-dark/45 whitespace-nowrap">
               {filteredProducts.length} produit
               {filteredProducts.length !== 1 ? "s" : ""}
             </span>
@@ -1214,10 +1214,13 @@ export default function ProductsListing({
               <button
                 type="button"
                 onClick={() => setSortOpen(!sortOpen)}
-                className="flex items-center gap-2 rounded-lg border border-dark/15 px-4 py-2.5 font-poppins text-[0.78rem] font-medium text-dark transition-all duration-200 hover:border-dark/30"
+                className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-dark/15 px-3 sm:px-4 py-2 sm:py-2.5 font-poppins text-[0.74rem] sm:text-[0.78rem] font-medium text-dark transition-all duration-200 hover:border-dark/30"
               >
-                <Filter className="h-3.5 w-3.5 text-dark/45" strokeWidth={2} />
-                <span>
+                <Filter
+                  className="h-3.5 w-3.5 text-dark/45 shrink-0"
+                  strokeWidth={2}
+                />
+                <span className="max-w-[90px] sm:max-w-none truncate">
                   {SORT_OPTIONS.find((s) => s.value === sortBy)?.label}
                 </span>
                 <ChevronDown
@@ -1299,8 +1302,10 @@ export default function ProductsListing({
         {/* Main layout */}
         <div className="flex gap-8 lg:gap-10">
           {/* Desktop sidebar */}
-          <aside className="hidden lg:block w-64 shrink-0">
-            <div className="sticky top-32">{filterContent}</div>
+          <aside className="hidden lg:block w-60 xl:w-64 shrink-0">
+            <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-dark/10 hover:scrollbar-thumb-dark/20">
+              {filterContent}
+            </div>
           </aside>
 
           {/* Product grid */}
@@ -1454,6 +1459,7 @@ export default function ProductsListing({
       {/* ── Mobile filter panel ── */}
       {/* Backdrop */}
       <div
+        aria-hidden="true"
         className={`fixed inset-0 z-50 bg-dark/40 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
           mobileFiltersOpen
             ? "opacity-100 pointer-events-auto"
@@ -1464,32 +1470,32 @@ export default function ProductsListing({
 
       {/* Panel */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-[85%] max-w-sm bg-background shadow-2xl transition-transform duration-300 ease-out lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 w-[92%] max-w-[22rem] bg-background shadow-2xl transition-transform duration-300 ease-out lg:hidden ${
           mobileFiltersOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex h-full flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-dark/10 px-6 py-5">
-            <h2 className="font-poppins text-[0.9rem] font-semibold uppercase tracking-[0.1em] text-dark">
+          <div className="flex items-center justify-between border-b border-dark/10 px-5 py-4">
+            <h2 className="font-poppins text-[0.85rem] font-semibold uppercase tracking-[0.1em] text-dark">
               Filtres
             </h2>
             <button
               type="button"
               onClick={() => setMobileFiltersOpen(false)}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-dark/60 transition-colors duration-200 hover:text-dark"
+              className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-dark/60 transition-colors duration-200 hover:text-dark"
             >
-              <X className="h-5 w-5" strokeWidth={2} />
+              <X className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2} />
             </button>
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto px-6 py-6">
+          <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-5">
             {filterContent}
           </div>
 
           {/* Footer */}
-          <div className="border-t border-dark/10 px-6 py-5">
+          <div className="border-t border-dark/10 px-5 py-4">
             <button
               type="button"
               onClick={() => setMobileFiltersOpen(false)}

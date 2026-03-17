@@ -16,21 +16,22 @@ export async function GET() {
     await connectDB();
 
     // Prefer an admin who actually filled in profile data, prioritise super_admin
-    const admin = await User.findOne({
-      role: { $in: ["admin", "super_admin"] },
-      status: "active",
-      "businessProfile.email": { $ne: "" },
-    })
-      .sort({ role: -1 }) // super_admin before admin
-      .select("businessProfile")
-      .lean<{ businessProfile?: IBusinessProfile }>()
-    ?? await User.findOne({
-      role: { $in: ["admin", "super_admin"] },
-      status: "active",
-    })
-      .sort({ role: -1 })
-      .select("businessProfile")
-      .lean<{ businessProfile?: IBusinessProfile }>();
+    const admin =
+      (await User.findOne({
+        role: { $in: ["admin", "super_admin"] },
+        status: "active",
+        "businessProfile.email": { $ne: "" },
+      })
+        .sort({ role: -1 }) // super_admin before admin
+        .select("businessProfile")
+        .lean<{ businessProfile?: IBusinessProfile }>()) ??
+      (await User.findOne({
+        role: { $in: ["admin", "super_admin"] },
+        status: "active",
+      })
+        .sort({ role: -1 })
+        .select("businessProfile")
+        .lean<{ businessProfile?: IBusinessProfile }>());
 
     const bp = admin?.businessProfile;
     const sl = bp?.socialLinks;

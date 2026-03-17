@@ -1,14 +1,7 @@
-"use client";
+﻿"use client";
 
-import { FormEvent, useCallback, useState } from "react";
-import {
-  Mail,
-  Phone,
-  MapPin,
-  Instagram,
-  Facebook,
-  Twitter,
-} from "lucide-react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
+import { Mail, Phone, MapPin, Instagram, Facebook } from "lucide-react";
 
 const INQUIRY_TYPES = [
   "Service client",
@@ -18,11 +11,15 @@ const INQUIRY_TYPES = [
   "Autre",
 ];
 
-const SOCIALS = [
-  { label: "Instagram", href: "https://instagram.com/kinyn", icon: Instagram },
-  { label: "Facebook", href: "https://facebook.com/kinyn", icon: Facebook },
-  { label: "Twitter", href: "https://twitter.com/kinyn", icon: Twitter },
-];
+interface BusinessProfile {
+  phone: string;
+  email: string;
+  address: string;
+  city: string;
+  country: string;
+  postalCode: string;
+  socialLinks: { instagram: string; facebook: string };
+}
 
 export default function ContactSection() {
   const [form, setForm] = useState({
@@ -33,6 +30,16 @@ export default function ContactSection() {
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [profile, setProfile] = useState<BusinessProfile | null>(null);
+
+  useEffect(() => {
+    fetch("/api/business-profile")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.profile) setProfile(data.profile);
+      })
+      .catch(() => {});
+  }, []);
 
   const update = useCallback(
     (field: string) =>
@@ -55,110 +62,140 @@ export default function ContactSection() {
     [form],
   );
 
+  const locationParts = [
+    profile?.address,
+    profile?.city,
+    profile?.postalCode,
+    profile?.country,
+  ].filter(Boolean);
+  const location = locationParts.join(", ");
+
+  const socials = [];
+  if (profile?.socialLinks.instagram)
+    socials.push({
+      label: "Instagram",
+      href: profile.socialLinks.instagram,
+      icon: Instagram,
+    });
+  if (profile?.socialLinks.facebook)
+    socials.push({
+      label: "Facebook",
+      href: profile.socialLinks.facebook,
+      icon: Facebook,
+    });
+
   return (
     <section className="bg-background py-12 sm:py-16 md:py-20 lg:py-28 px-4 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-275">
         {/* Header */}
         <div className="mb-10 sm:mb-14 md:mb-16 lg:mb-20 text-center">
           <p className="font-poppins text-[0.7rem] font-semibold uppercase tracking-[0.25em] text-primary">
-            Nous écrire
+            Nous ecrire
           </p>
           <h2 className="mt-3 font-erotique text-3xl sm:text-4xl md:text-5xl text-dark">
             Contact
           </h2>
           <p className="mx-auto mt-5 max-w-md font-poppins text-[0.88rem] leading-relaxed text-dark/50">
-            Une question, une demande particulière ou simplement envie
-            d&apos;échanger — nous sommes à votre écoute.
+            Une question, une demande particuliere ou simplement envie
+            d&apos;echanger -- nous sommes a votre ecoute.
           </p>
         </div>
 
         {/* Two-column */}
         <div className="grid gap-10 sm:gap-12 md:grid-cols-5 md:gap-12 lg:gap-20">
-          {/* Left – Info */}
+          {/* Left - Info */}
           <div className="space-y-7 sm:space-y-10 md:col-span-2">
             <p className="font-poppins text-[0.85rem] leading-[1.8] text-dark/60">
-              Kinyn incarne une vision où le raffinement rencontre
-              l&apos;authenticité. Chaque échange compte — nous vous répondons
-              avec le même soin que celui accordé à nos créations.
+              Kinyn incarne une vision ou le raffinement rencontre
+              l&apos;authenticite. Chaque echange compte -- nous vous repondons
+              avec le meme soin que celui accorde a nos creations.
             </p>
 
             {/* Contact details */}
             <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <Mail
-                  className="mt-0.5 h-4.5 w-4.5 shrink-0 text-dark/35"
-                  strokeWidth={1.5}
-                />
-                <div>
-                  <p className="font-poppins text-[0.72rem] uppercase tracking-[0.15em] text-dark/40">
-                    Email
-                  </p>
-                  <a
-                    href="mailto:contact@kinyn.com"
-                    className="mt-1 block font-poppins text-[0.88rem] text-dark transition-colors duration-200 hover:text-primary"
-                  >
-                    contact@kinyn.com
-                  </a>
+              {profile?.email && (
+                <div className="flex items-start gap-4">
+                  <Mail
+                    className="mt-0.5 h-4.5 w-4.5 shrink-0 text-dark/35"
+                    strokeWidth={1.5}
+                  />
+                  <div>
+                    <p className="font-poppins text-[0.72rem] uppercase tracking-[0.15em] text-dark/40">
+                      Email
+                    </p>
+                    <a
+                      href={`mailto:${profile.email}`}
+                      className="mt-1 block font-poppins text-[0.88rem] text-dark transition-colors duration-200 hover:text-primary"
+                    >
+                      {profile.email}
+                    </a>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="flex items-start gap-4">
-                <Phone
-                  className="mt-0.5 h-4.5 w-4.5 shrink-0 text-dark/35"
-                  strokeWidth={1.5}
-                />
-                <div>
-                  <p className="font-poppins text-[0.72rem] uppercase tracking-[0.15em] text-dark/40">
-                    Téléphone
-                  </p>
-                  <a
-                    href="tel:+21671000000"
-                    className="mt-1 block font-poppins text-[0.88rem] text-dark transition-colors duration-200 hover:text-primary"
-                  >
-                    +216 71 000 000
-                  </a>
+              {profile?.phone && (
+                <div className="flex items-start gap-4">
+                  <Phone
+                    className="mt-0.5 h-4.5 w-4.5 shrink-0 text-dark/35"
+                    strokeWidth={1.5}
+                  />
+                  <div>
+                    <p className="font-poppins text-[0.72rem] uppercase tracking-[0.15em] text-dark/40">
+                      Telephone
+                    </p>
+                    <a
+                      href={`tel:${profile.phone}`}
+                      className="mt-1 block font-poppins text-[0.88rem] text-dark transition-colors duration-200 hover:text-primary"
+                    >
+                      {profile.phone}
+                    </a>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="flex items-start gap-4">
-                <MapPin
-                  className="mt-0.5 h-4.5 w-4.5 shrink-0 text-dark/35"
-                  strokeWidth={1.5}
-                />
-                <div>
-                  <p className="font-poppins text-[0.72rem] uppercase tracking-[0.15em] text-dark/40">
-                    Showroom
-                  </p>
-                  <p className="mt-1 font-poppins text-[0.88rem] text-dark">
-                    Tunis, Tunisie
-                  </p>
+              {location && (
+                <div className="flex items-start gap-4">
+                  <MapPin
+                    className="mt-0.5 h-4.5 w-4.5 shrink-0 text-dark/35"
+                    strokeWidth={1.5}
+                  />
+                  <div>
+                    <p className="font-poppins text-[0.72rem] uppercase tracking-[0.15em] text-dark/40">
+                      Showroom
+                    </p>
+                    <p className="mt-1 font-poppins text-[0.88rem] text-dark">
+                      {location}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Socials */}
-            <div>
-              <p className="mb-4 font-poppins text-[0.72rem] uppercase tracking-[0.15em] text-dark/40">
-                Suivez-nous
-              </p>
-              <div className="flex items-center gap-4">
-                {SOCIALS.map((s) => (
-                  <a
-                    key={s.label}
-                    href={s.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={s.label}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-dark/10 text-dark/50 transition-all duration-200 hover:border-dark/30 hover:text-dark"
-                  >
-                    <s.icon className="h-4 w-4" strokeWidth={1.5} />
-                  </a>
-                ))}
+            {socials.length > 0 && (
+              <div>
+                <p className="mb-4 font-poppins text-[0.72rem] uppercase tracking-[0.15em] text-dark/40">
+                  Suivez-nous
+                </p>
+                <div className="flex items-center gap-4">
+                  {socials.map((s) => (
+                    <a
+                      key={s.label}
+                      href={s.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={s.label}
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-dark/10 text-dark/50 transition-all duration-200 hover:border-dark/30 hover:text-dark"
+                    >
+                      <s.icon className="h-4 w-4" strokeWidth={1.5} />
+                    </a>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Right – Form */}
+          {/* Right - Form */}
           <div className="md:col-span-3">
             {submitted ? (
               <div className="flex min-h-105 items-center justify-center rounded-2xl border border-dark/5 bg-white px-8 py-16">
@@ -167,11 +204,11 @@ export default function ContactSection() {
                     <Mail className="h-6 w-6 text-primary" strokeWidth={1.5} />
                   </div>
                   <h3 className="font-erotique text-2xl text-dark">
-                    Message envoyé
+                    Message envoye
                   </h3>
                   <p className="mt-3 font-poppins text-[0.85rem] text-dark/50">
-                    Merci pour votre message. Notre équipe vous répondra dans
-                    les plus brefs délais.
+                    Merci pour votre message. Notre equipe vous repondra dans
+                    les plus brefs delais.
                   </p>
                   <button
                     type="button"
@@ -197,7 +234,7 @@ export default function ContactSection() {
                 className="space-y-5 rounded-2xl border border-dark/5 bg-white px-6 py-8 sm:px-8 sm:py-10"
                 aria-label="Formulaire de contact"
               >
-                {/* Name & Email row */}
+                {/* Name and Email row */}
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div>
                     <label
@@ -237,7 +274,7 @@ export default function ContactSection() {
                   </div>
                 </div>
 
-                {/* Inquiry type & Subject row */}
+                {/* Inquiry type and Subject row */}
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div>
                     <label
@@ -252,7 +289,7 @@ export default function ContactSection() {
                       onChange={update("inquiry")}
                       className="w-full appearance-none rounded-lg border border-dark/10 bg-white px-4 py-3 font-poppins text-[0.85rem] text-dark outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/15"
                     >
-                      <option value="">Sélectionner</option>
+                      <option value="">Selectionner</option>
                       {INQUIRY_TYPES.map((t) => (
                         <option key={t} value={t}>
                           {t}

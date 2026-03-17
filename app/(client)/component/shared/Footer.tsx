@@ -2,11 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Facebook,
   Instagram,
-  Twitter,
   MapPin,
   Phone,
   Mail,
@@ -15,41 +14,36 @@ import {
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
-/*  Data                                                               */
+/*  Types                                                              */
 /* ------------------------------------------------------------------ */
-const CATEGORIES = [
-  { label: "Homme", href: "/homme" },
-  { label: "Femme", href: "/femme" },
-  { label: "Enfant", href: "/enfant" },
-  { label: "Accessoires", href: "/accessoires" },
-  { label: "Nouveautés", href: "/nouveautes" },
-  { label: "Promotions", href: "/promotions" },
-];
+
+interface CategoryItem {
+  name: string;
+  slug: string;
+}
+
+interface BusinessProfile {
+  phone: string;
+  email: string;
+  address: string;
+  city: string;
+  country: string;
+  socialLinks: {
+    instagram: string;
+    facebook: string;
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Static data                                                        */
+/* ------------------------------------------------------------------ */
 
 const SERVICE = [
   { label: "Contactez-nous", href: "/contact" },
   { label: "FAQ", href: "/faq" },
   { label: "Livraison & Retours", href: "/livraison" },
-   { label: "Suivi de commande", href: "/suivi" },
+  { label: "Suivi de commande", href: "/suivi" },
   { label: "Politique de confidentialité", href: "/confidentialite" },
-];
-
-const SOCIALS = [
-  {
-    label: "Facebook",
-    href: "https://facebook.com/kinyn",
-    icon: Facebook,
-  },
-  {
-    label: "Instagram",
-    href: "https://instagram.com/kinyn",
-    icon: Instagram,
-  },
-  {
-    label: "Twitter",
-    href: "https://twitter.com/kinyn",
-    icon: Twitter,
-  },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -58,6 +52,34 @@ const SOCIALS = [
 export default function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [profile, setProfile] = useState<BusinessProfile | null>(null);
+
+  useEffect(() => {
+    /* Fetch categories (mère level only) */
+    fetch("/api/categories")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.categories) {
+          const meres = data.categories.map(
+            (c: { name: string; slug: string }) => ({
+              name: c.name,
+              slug: c.slug,
+            }),
+          );
+          setCategories(meres);
+        }
+      })
+      .catch(() => {});
+
+    /* Fetch business profile */
+    fetch("/api/business-profile")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.profile) setProfile(data.profile);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +88,28 @@ export default function Footer() {
     setEmail("");
     setTimeout(() => setSubscribed(false), 4000);
   };
+
+  /* Build social links from profile */
+  const socials = [];
+  if (profile?.socialLinks.facebook) {
+    socials.push({
+      label: "Facebook",
+      href: profile.socialLinks.facebook,
+      icon: Facebook,
+    });
+  }
+  if (profile?.socialLinks.instagram) {
+    socials.push({
+      label: "Instagram",
+      href: profile.socialLinks.instagram,
+      icon: Instagram,
+    });
+  }
+
+  /* Location string */
+  const location = [profile?.address, profile?.city, profile?.country]
+    .filter(Boolean)
+    .join(", ");
 
   return (
     <footer role="contentinfo" className="bg-dark text-white/80">
@@ -95,22 +139,24 @@ export default function Footer() {
             </p>
 
             {/* social icons */}
-            <div className="flex items-center gap-3">
-              {SOCIALS.map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Suivre Kinyn sur ${s.label}`}
-                  className="w-9 h-9 rounded-full bg-white/8 flex items-center justify-center
-                             text-white/60 hover:bg-primary hover:text-white
-                             transition-colors duration-200"
-                >
-                  <s.icon size={16} />
-                </a>
-              ))}
-            </div>
+            {socials.length > 0 && (
+              <div className="flex items-center gap-3">
+                {socials.map((s) => (
+                  <a
+                    key={s.label}
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Suivre Kinyn sur ${s.label}`}
+                    className="w-9 h-9 rounded-full bg-white/8 flex items-center justify-center
+                               text-white/60 hover:bg-primary hover:text-white
+                               transition-colors duration-200"
+                  >
+                    <s.icon size={16} />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* ---------- col 2: categories ---------- */}
@@ -119,14 +165,14 @@ export default function Footer() {
               Catégories
             </h3>
             <ul className="space-y-2.5">
-              {CATEGORIES.map((item) => (
-                <li key={item.label}>
+              {categories.map((item) => (
+                <li key={item.slug}>
                   <Link
-                    href={item.href}
+                    href={`/${item.slug}`}
                     className="font-poppins text-white/50 text-sm hover:text-primary
                                transition-colors duration-200 inline-block"
                   >
-                    {item.label}
+                    {item.name}
                   </Link>
                 </li>
               ))}
@@ -161,32 +207,38 @@ export default function Footer() {
 
             {/* contact details */}
             <ul className="space-y-3 mb-8">
-              <li className="flex items-start gap-2.5">
-                <MapPin size={15} className="text-primary mt-0.5 shrink-0" />
-                <span className="font-poppins text-white/50 text-sm leading-relaxed">
-                  Tunis, Tunisie
-                </span>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <Phone size={15} className="text-primary shrink-0" />
-                <a
-                  href="tel:+21612345678"
-                  className="font-poppins text-white/50 text-sm hover:text-primary
-                             transition-colors duration-200"
-                >
-                  +216 12 345 678
-                </a>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <Mail size={15} className="text-primary shrink-0" />
-                <a
-                  href="mailto:contact@kinyn.tn"
-                  className="font-poppins text-white/50 text-sm hover:text-primary
-                             transition-colors duration-200"
-                >
-                  contact@kinyn.tn
-                </a>
-              </li>
+              {location && (
+                <li className="flex items-start gap-2.5">
+                  <MapPin size={15} className="text-primary mt-0.5 shrink-0" />
+                  <span className="font-poppins text-white/50 text-sm leading-relaxed">
+                    {location}
+                  </span>
+                </li>
+              )}
+              {profile?.phone && (
+                <li className="flex items-center gap-2.5">
+                  <Phone size={15} className="text-primary shrink-0" />
+                  <a
+                    href={`tel:${profile.phone}`}
+                    className="font-poppins text-white/50 text-sm hover:text-primary
+                               transition-colors duration-200"
+                  >
+                    {profile.phone}
+                  </a>
+                </li>
+              )}
+              {profile?.email && (
+                <li className="flex items-center gap-2.5">
+                  <Mail size={15} className="text-primary shrink-0" />
+                  <a
+                    href={`mailto:${profile.email}`}
+                    className="font-poppins text-white/50 text-sm hover:text-primary
+                               transition-colors duration-200"
+                  >
+                    {profile.email}
+                  </a>
+                </li>
+              )}
             </ul>
 
             {/* mini newsletter */}

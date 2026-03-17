@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-html-link-for-pages */
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -187,7 +188,7 @@ export default function AdminNavbar({
               aria-label="Options du profil"
             >
               <a
-                href="#"
+                href="/admin/profile"
                 className="flex items-center gap-3 px-4 py-2.5 font-poppins text-sm text-dark hover:bg-primary/5 hover:text-primary transition-colors duration-150"
                 role="menuitem"
               >

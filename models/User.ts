@@ -64,19 +64,12 @@ export interface IOrder {
 export interface ISocialLinks {
   instagram: string;
   facebook: string;
-  tiktok: string;
-  twitter: string;
-  youtube: string;
-  pinterest: string;
 }
 
 export interface IBusinessProfile {
-  storeName: string;
-  storeDescription: string;
   logo: string;
   phone: string;
   email: string;
-  website: string;
   address: string;
   city: string;
   country: string;
@@ -249,12 +242,9 @@ const userSchema = new Schema<IUser>(
 
     /* ── Business Profile ── */
     businessProfile: {
-      storeName: { type: String, trim: true, default: "" },
-      storeDescription: { type: String, trim: true, default: "" },
       logo: { type: String, default: "" },
       phone: { type: String, trim: true, default: "" },
       email: { type: String, trim: true, default: "" },
-      website: { type: String, trim: true, default: "" },
       address: { type: String, trim: true, default: "" },
       city: { type: String, trim: true, default: "" },
       country: { type: String, trim: true, default: "" },
@@ -262,10 +252,6 @@ const userSchema = new Schema<IUser>(
       socialLinks: {
         instagram: { type: String, trim: true, default: "" },
         facebook: { type: String, trim: true, default: "" },
-        tiktok: { type: String, trim: true, default: "" },
-        twitter: { type: String, trim: true, default: "" },
-        youtube: { type: String, trim: true, default: "" },
-        pinterest: { type: String, trim: true, default: "" },
       },
     },
 
@@ -465,12 +451,9 @@ userSchema.methods.toSafeObject = function (): SafeUser {
     avatar: this.avatar,
     isEmailVerified: this.isEmailVerified,
     businessProfile: {
-      storeName: bp.storeName ?? "",
-      storeDescription: bp.storeDescription ?? "",
       logo: bp.logo ?? "",
       phone: bp.phone ?? "",
       email: bp.email ?? "",
-      website: bp.website ?? "",
       address: bp.address ?? "",
       city: bp.city ?? "",
       country: bp.country ?? "",
@@ -478,10 +461,6 @@ userSchema.methods.toSafeObject = function (): SafeUser {
       socialLinks: {
         instagram: sl.instagram ?? "",
         facebook: sl.facebook ?? "",
-        tiktok: sl.tiktok ?? "",
-        twitter: sl.twitter ?? "",
-        youtube: sl.youtube ?? "",
-        pinterest: sl.pinterest ?? "",
       },
     },
     addresses: (this.addresses ?? []).map(

@@ -433,12 +433,9 @@ export async function updateProfile(
 /* ──────────────── Update Business Profile (Admin) ──────────────── */
 
 interface UpdateBusinessProfileInput {
-  storeName?: string;
-  storeDescription?: string;
   logo?: string;
   phone?: string;
   email?: string;
-  website?: string;
   address?: string;
   city?: string;
   country?: string;
@@ -446,10 +443,6 @@ interface UpdateBusinessProfileInput {
   socialLinks?: {
     instagram?: string;
     facebook?: string;
-    tiktok?: string;
-    twitter?: string;
-    youtube?: string;
-    pinterest?: string;
   };
 }
 
@@ -513,13 +506,9 @@ export async function updateBusinessProfile(
     const bp = user.businessProfile ?? {};
     const sl = bp.socialLinks ?? {};
 
-    if (input.storeName !== undefined) bp.storeName = input.storeName.trim();
-    if (input.storeDescription !== undefined)
-      bp.storeDescription = input.storeDescription.trim();
     if (input.logo !== undefined) bp.logo = input.logo.trim();
     if (input.phone !== undefined) bp.phone = input.phone.trim();
     if (input.email !== undefined) bp.email = input.email.trim();
-    if (input.website !== undefined) bp.website = input.website.trim();
     if (input.address !== undefined) bp.address = input.address.trim();
     if (input.city !== undefined) bp.city = input.city.trim();
     if (input.country !== undefined) bp.country = input.country.trim();
@@ -529,14 +518,11 @@ export async function updateBusinessProfile(
       const s = input.socialLinks;
       if (s.instagram !== undefined) sl.instagram = s.instagram.trim();
       if (s.facebook !== undefined) sl.facebook = s.facebook.trim();
-      if (s.tiktok !== undefined) sl.tiktok = s.tiktok.trim();
-      if (s.twitter !== undefined) sl.twitter = s.twitter.trim();
-      if (s.youtube !== undefined) sl.youtube = s.youtube.trim();
-      if (s.pinterest !== undefined) sl.pinterest = s.pinterest.trim();
       bp.socialLinks = sl;
     }
 
     user.businessProfile = bp;
+    user.markModified("businessProfile");
     await user.save();
 
     return { success: true, data: user.toSafeObject() };

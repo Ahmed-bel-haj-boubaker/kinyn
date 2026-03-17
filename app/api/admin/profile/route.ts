@@ -46,12 +46,9 @@ export async function PUT(req: NextRequest) {
   if ("error" in auth) return auth.error;
 
   const parsed = await parseBody<{
-    storeName?: string;
-    storeDescription?: string;
     logo?: string;
     phone?: string;
     email?: string;
-    website?: string;
     address?: string;
     city?: string;
     country?: string;
@@ -59,10 +56,6 @@ export async function PUT(req: NextRequest) {
     socialLinks?: {
       instagram?: string;
       facebook?: string;
-      tiktok?: string;
-      twitter?: string;
-      youtube?: string;
-      pinterest?: string;
     };
   }>(req);
 

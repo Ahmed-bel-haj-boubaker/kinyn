@@ -1,67 +1,20 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, Loader2 } from "lucide-react";
 
 interface SearchProduct {
-  id: number;
+  id: string;
   name: string;
-  category: string;
-  price: string;
+  slug: string;
+  price: number;
+  promoPrice: number | null;
   image: string;
+  categoryMere: string;
+  categoryMereSlug: string;
 }
-
-const MOCK_PRODUCTS: SearchProduct[] = [
-  {
-    id: 1,
-    name: "Robe Élégante en Lin",
-    category: "Femme — Robes",
-    price: "159.000 DT",
-    image:
-      "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=200&q=80",
-  },
-  {
-    id: 2,
-    name: "Chemise Oversize Coton",
-    category: "Femme — Hauts",
-    price: "119.000 DT",
-    image:
-      "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=200&q=80",
-  },
-  {
-    id: 3,
-    name: "Pull Cachemire Ivoire",
-    category: "Femme — Hauts",
-    price: "259.000 DT",
-    image:
-      "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=200&q=80",
-  },
-  {
-    id: 4,
-    name: "Pantalon Cargo Sable",
-    category: "Femme — Bas",
-    price: "97.000 DT",
-    image:
-      "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=200&q=80",
-  },
-  {
-    id: 5,
-    name: "Blouse Satin Noir",
-    category: "Femme — Hauts",
-    price: "179.000 DT",
-    image:
-      "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=200&q=80",
-  },
-  {
-    id: 6,
-    name: "Jupe Plissée Beige",
-    category: "Femme — Bas",
-    price: "139.000 DT",
-    image:
-      "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=200&q=80",
-  },
-];
 
 interface SearchOverlayProps {
   isOpen: boolean;
@@ -70,14 +23,22 @@ interface SearchOverlayProps {
 
 export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
   const [query, setQuery] = useState("");
+  const [results, setResults] = useState<SearchProduct[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   /* ── Auto-focus input when open ── */
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => inputRef.current?.focus(), 120);
       return () => clearTimeout(timer);
+    } else {
+      setQuery("");
+      setResults([]);
+      setSearched(false);
     }
   }, [isOpen]);
 
@@ -98,6 +59,57 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
     return () => window.removeEventListener("keydown", handler);
   }, [isOpen, onClose]);
 
+  /* ── Debounced search ── */
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
+      setResults([]);
+      setSearched(false);
+      return;
+    }
+
+    setLoading(true);
+    const timer = setTimeout(async () => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      try {
+        const res = await fetch(
+          `/api/products?search=${encodeURIComponent(trimmed)}&limit=6`,
+          { signal: controller.signal },
+        );
+        if (!res.ok) throw new Error("fetch failed");
+        const data = await res.json();
+        const products = (data.products ?? []).map(
+          (p: Record<string, unknown>) => ({
+            id: p.id,
+            name: p.name,
+            slug: p.slug,
+            price: p.price,
+            promoPrice: p.promoPrice ?? null,
+            image: p.image || "/images/placeholder.png",
+            categoryMere: p.categoryMere || "",
+            categoryMereSlug: p.categoryMereSlug || "",
+          }),
+        );
+        setResults(products);
+        setSearched(true);
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          setResults([]);
+          setSearched(true);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }, 350);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [query]);
+
   /* ── Click outside ── */
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
@@ -111,18 +123,11 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
     [onClose],
   );
 
-  /* ── Filter results ── */
-  const trimmed = query.trim().toLowerCase();
-  const results =
-    trimmed.length > 0
-      ? MOCK_PRODUCTS.filter(
-          (p) =>
-            p.name.toLowerCase().includes(trimmed) ||
-            p.category.toLowerCase().includes(trimmed),
-        ).slice(0, 6)
-      : [];
-
-  const showResults = trimmed.length > 0;
+  const formatPrice = (price: number) =>
+    price.toLocaleString("fr-TN", {
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3,
+    }) + " DT";
 
   if (!isOpen) return null;
 
@@ -164,17 +169,20 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
             className="w-full rounded-2xl border border-dark/8 bg-white py-4 pl-13 pr-5 font-poppins text-[0.95rem] text-dark shadow-[0_12px_40px_rgba(0,0,0,0.12)] outline-none transition-colors duration-200 placeholder:text-dark/35 focus:border-primary/40"
             aria-label="Rechercher"
           />
+          {loading && (
+            <Loader2 className="absolute right-5 top-1/2 h-4 w-4 -translate-y-1/2 text-dark/30 animate-spin" />
+          )}
         </div>
 
         {/* Results */}
-        {showResults && (
+        {searched && (
           <div className="mt-3 overflow-hidden rounded-2xl border border-dark/5 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
             {results.length > 0 ? (
               <ul className="divide-y divide-dark/5">
                 {results.map((product) => (
                   <li key={product.id}>
-                    <button
-                      type="button"
+                    <Link
+                      href={`/${product.categoryMereSlug}/${product.slug}`}
                       className="flex w-full items-center gap-4 px-5 py-3.5 text-left transition-colors duration-200 hover:bg-background/70"
                       onClick={onClose}
                     >
@@ -192,13 +200,26 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                           {product.name}
                         </p>
                         <p className="mt-0.5 font-poppins text-[0.72rem] text-dark/40">
-                          {product.category}
+                          {product.categoryMere}
                         </p>
                       </div>
-                      <p className="shrink-0 font-poppins text-[0.85rem] font-medium text-dark">
-                        {product.price}
-                      </p>
-                    </button>
+                      <div className="shrink-0 text-right">
+                        {product.promoPrice ? (
+                          <>
+                            <p className="font-poppins text-[0.85rem] font-medium text-primary">
+                              {formatPrice(product.promoPrice)}
+                            </p>
+                            <p className="font-poppins text-[0.68rem] text-dark/35 line-through">
+                              {formatPrice(product.price)}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="font-poppins text-[0.85rem] font-medium text-dark">
+                            {formatPrice(product.price)}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
                   </li>
                 ))}
               </ul>

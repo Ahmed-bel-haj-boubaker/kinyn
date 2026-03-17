@@ -73,10 +73,9 @@ export async function POST(req: NextRequest) {
     categoryFinale?: string;
     price: number;
     promoPrice?: number | null;
-    stock: number;
+    sizeStock: { size: string; stock: number }[];
     status?: ProductStatus;
     images?: { url: string; color?: string; colorHex?: string }[];
-    sizes?: string[];
     colors?: string[];
   }>(req);
 

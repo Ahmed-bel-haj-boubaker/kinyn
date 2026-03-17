@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, type ReactNode } from "react";
-import type { Product, ProductImage, ProductStatus } from "./ProductTable";
+import type {
+  Product,
+  ProductImage,
+  ProductStatus,
+  ProductSizeStock,
+} from "./ProductTable";
 
 type ModalMode = "create" | "edit";
 
@@ -216,14 +221,15 @@ function ProductFormInner({
   const [promoPrice, setPromoPrice] = useState(
     initialData?.promoPrice?.toString() ?? "",
   );
-  const [stock, setStock] = useState(initialData?.stock?.toString() ?? "");
+  const [sizeStock, setSizeStock] = useState<ProductSizeStock[]>(
+    initialData?.sizeStock ?? [],
+  );
   const [status, setStatus] = useState<ProductStatus>(
     initialData?.status ?? "draft",
   );
   const [images, setImages] = useState<ProductImage[]>(
     initialData?.images ?? [],
   );
-  const [sizes, setSizes] = useState<string[]>(initialData?.sizes ?? []);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -248,8 +254,8 @@ function ProductFormInner({
       e.price = "Prix invalide";
     if (promoPrice && (isNaN(Number(promoPrice)) || Number(promoPrice) <= 0))
       e.promoPrice = "Prix promo invalide";
-    if (!stock || isNaN(Number(stock)) || Number(stock) < 0)
-      e.stock = "Stock invalide";
+    if (sizeStock.length === 0)
+      e.sizeStock = "Au moins une taille avec stock est requise";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -274,18 +280,30 @@ function ProductFormInner({
       categoryFinaleName: finaleName || null,
       price: Number(price),
       promoPrice: promoPrice ? Number(promoPrice) : undefined,
-      stock: Number(stock),
+      sizeStock,
+      stock: sizeStock.reduce((sum, s) => sum + s.stock, 0),
+      sizes: sizeStock.map((s) => s.size),
       status,
       images,
-      sizes,
       colors: derivedColors,
     });
   };
 
-  const toggleSize = (s: string) =>
-    setSizes((prev) =>
-      prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s],
+  const toggleSize = (s: string) => {
+    setSizeStock((prev) => {
+      const exists = prev.find((ss) => ss.size === s);
+      if (exists) return prev.filter((ss) => ss.size !== s);
+      return [...prev, { size: s, stock: 0 }];
+    });
+  };
+
+  const updateSizeStockValue = (size: string, stock: number) => {
+    setSizeStock((prev) =>
+      prev.map((ss) =>
+        ss.size === size ? { ...ss, stock: Math.max(0, stock) } : ss,
+      ),
     );
+  };
 
   const removeImage = (i: number) =>
     setImages((prev) => prev.filter((_, idx) => idx !== i));
@@ -624,30 +642,6 @@ function ProductFormInner({
                 </p>
               </div>
             )}
-
-            <div>
-              <label className="block font-poppins text-xs font-medium text-dark/60 mb-1.5">
-                Stock <span className="text-primary">*</span>
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                placeholder="0"
-                className={fieldClass("stock")}
-              />
-              {errors.stock && (
-                <p className="font-poppins text-xs text-primary mt-1">
-                  {errors.stock}
-                </p>
-              )}
-              {stock && Number(stock) <= 5 && Number(stock) >= 0 && (
-                <p className="font-poppins text-xs text-amber-500 mt-1">
-                  ⚠ Stock faible
-                </p>
-              )}
-            </div>
           </>
         )}
 
@@ -829,7 +823,7 @@ function ProductFormInner({
               </label>
               <div className="flex flex-wrap gap-2">
                 {ALL_SIZES.map((s) => {
-                  const selected = sizes.includes(s);
+                  const selected = sizeStock.some((ss) => ss.size === s);
                   return (
                     <button
                       key={s}
@@ -846,13 +840,61 @@ function ProductFormInner({
                   );
                 })}
               </div>
-              {sizes.length > 0 && (
+              {sizeStock.length > 0 && (
                 <p className="font-poppins text-xs text-dark/40 mt-2">
-                  {sizes.length} taille{sizes.length > 1 ? "s" : ""}{" "}
-                  sélectionnée{sizes.length > 1 ? "s" : ""}
+                  {sizeStock.length} taille{sizeStock.length > 1 ? "s" : ""}{" "}
+                  sélectionnée{sizeStock.length > 1 ? "s" : ""}
+                </p>
+              )}
+              {errors.sizeStock && (
+                <p className="font-poppins text-xs text-primary mt-1">
+                  {errors.sizeStock}
                 </p>
               )}
             </div>
+
+            {/* Per-size stock */}
+            {sizeStock.length > 0 && (
+              <div>
+                <label className="block font-poppins text-xs font-medium text-dark/60 mb-2">
+                  Stock par taille
+                </label>
+                <div className="space-y-2">
+                  {sizeStock.map((ss) => (
+                    <div
+                      key={ss.size}
+                      className="flex items-center gap-3 bg-gray-50 rounded-xl px-3 py-2"
+                    >
+                      <span className="font-poppins text-xs font-semibold text-dark/70 w-12">
+                        {ss.size}
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={ss.stock}
+                        onChange={(e) =>
+                          updateSizeStockValue(
+                            ss.size,
+                            Math.max(0, parseInt(e.target.value) || 0),
+                          )
+                        }
+                        className="flex-1 px-3 py-1.5 rounded-lg border border-gray-200 bg-white font-poppins text-xs text-dark focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40"
+                        placeholder="0"
+                      />
+                      {ss.stock <= 5 && ss.stock >= 0 && (
+                        <span className="font-poppins text-[10px] text-amber-500">
+                          {ss.stock === 0 ? "Rupture" : "Faible"}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="font-poppins text-xs text-dark/40 mt-2">
+                  Stock total :{" "}
+                  {sizeStock.reduce((sum, ss) => sum + ss.stock, 0)}
+                </p>
+              </div>
+            )}
           </>
         )}
       </div>

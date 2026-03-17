@@ -8,6 +8,11 @@ export interface ProductImage {
   colorHex: string;
 }
 
+export interface ProductSizeStock {
+  size: string;
+  stock: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -22,6 +27,7 @@ export interface Product {
   categoryFinaleName: string | null;
   price: number;
   promoPrice?: number;
+  sizeStock: ProductSizeStock[];
   stock: number;
   status: ProductStatus;
   images: ProductImage[];

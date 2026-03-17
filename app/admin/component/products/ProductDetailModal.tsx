@@ -249,43 +249,41 @@ export default function ProductDetailModal({
                 <p className="font-poppins text-xs font-medium text-dark/40 mb-1">
                   Stock
                 </p>
-                <p
-                  className={`font-poppins text-sm font-medium ${p.stock === 0 ? "text-red-500" : p.stock < 5 ? "text-amber-500" : "text-dark"}`}
-                >
-                  {p.stock} unité{p.stock !== 1 ? "s" : ""}
-                  {p.stock === 0 && (
-                    <span className="ml-1.5 text-xs font-medium text-red-500 bg-red-50 px-1.5 py-0.5 rounded-md">
-                      Hors stock
-                    </span>
-                  )}
-                  {p.stock > 0 && p.stock < 5 && (
-                    <span className="ml-1.5 text-xs font-medium text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded-md">
-                      Stock faible
-                    </span>
-                  )}
-                </p>
+                {p.sizeStock && p.sizeStock.length > 0 ? (
+                  <div className="space-y-1.5">
+                    {p.sizeStock.map((ss) => (
+                      <div
+                        key={ss.size}
+                        className="flex items-center justify-between font-poppins text-sm"
+                      >
+                        <span className="text-dark/60">{ss.size}</span>
+                        <span
+                          className={`font-medium ${ss.stock === 0 ? "text-red-500" : ss.stock < 5 ? "text-amber-500" : "text-dark"}`}
+                        >
+                          {ss.stock} unité{ss.stock !== 1 ? "s" : ""}
+                          {ss.stock === 0 && (
+                            <span className="ml-1.5 text-xs font-medium text-red-500 bg-red-50 px-1.5 py-0.5 rounded-md">
+                              Hors stock
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    ))}
+                    <div className="mt-2 pt-2 border-t border-dark/8 flex items-center justify-between font-poppins text-sm font-semibold">
+                      <span className="text-dark/50">Total</span>
+                      <span className="text-dark">
+                        {p.stock} unité{p.stock !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="font-poppins text-sm text-dark/40">
+                    Aucune taille configurée
+                  </p>
+                )}
               </div>
 
               <div className="h-px bg-dark/8" />
-
-              {/* Sizes */}
-              {p.sizes.length > 0 && (
-                <div>
-                  <p className="font-poppins text-xs font-medium text-dark/40 mb-2">
-                    Tailles
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {p.sizes.map((s) => (
-                      <span
-                        key={s}
-                        className="px-2.5 py-1 rounded-lg bg-dark/5 font-poppins text-xs font-medium text-dark/70"
-                      >
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Colors */}
               {p.colors.length > 0 && (

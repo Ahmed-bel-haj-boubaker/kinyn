@@ -61,6 +61,29 @@ export interface IOrder {
   updatedAt: Date;
 }
 
+export interface ISocialLinks {
+  instagram: string;
+  facebook: string;
+  tiktok: string;
+  twitter: string;
+  youtube: string;
+  pinterest: string;
+}
+
+export interface IBusinessProfile {
+  storeName: string;
+  storeDescription: string;
+  logo: string;
+  phone: string;
+  email: string;
+  website: string;
+  address: string;
+  city: string;
+  country: string;
+  postalCode: string;
+  socialLinks: ISocialLinks;
+}
+
 export interface IUser extends Document {
   firstName: string;
   lastName: string;
@@ -71,6 +94,7 @@ export interface IUser extends Document {
   status: UserStatus;
   avatar: string;
   isEmailVerified: boolean;
+  businessProfile: IBusinessProfile;
   addresses: IAddress[];
   wishlist: mongoose.Types.ObjectId[];
   orders: IOrder[];
@@ -132,6 +156,7 @@ export interface SafeUser {
   status: UserStatus;
   avatar: string;
   isEmailVerified: boolean;
+  businessProfile: IBusinessProfile;
   addresses: SafeAddress[];
   wishlist: string[];
   orders: SafeOrder[];
@@ -220,6 +245,28 @@ const userSchema = new Schema<IUser>(
     lastLogin: {
       type: Date,
       default: null,
+    },
+
+    /* ── Business Profile ── */
+    businessProfile: {
+      storeName: { type: String, trim: true, default: "" },
+      storeDescription: { type: String, trim: true, default: "" },
+      logo: { type: String, default: "" },
+      phone: { type: String, trim: true, default: "" },
+      email: { type: String, trim: true, default: "" },
+      website: { type: String, trim: true, default: "" },
+      address: { type: String, trim: true, default: "" },
+      city: { type: String, trim: true, default: "" },
+      country: { type: String, trim: true, default: "" },
+      postalCode: { type: String, trim: true, default: "" },
+      socialLinks: {
+        instagram: { type: String, trim: true, default: "" },
+        facebook: { type: String, trim: true, default: "" },
+        tiktok: { type: String, trim: true, default: "" },
+        twitter: { type: String, trim: true, default: "" },
+        youtube: { type: String, trim: true, default: "" },
+        pinterest: { type: String, trim: true, default: "" },
+      },
     },
 
     /* ── Addresses ── */
@@ -405,6 +452,8 @@ userSchema.methods.resetLoginAttempts = async function (): Promise<void> {
 
 /** Return a safe object for API responses */
 userSchema.methods.toSafeObject = function (): SafeUser {
+  const bp = this.businessProfile ?? {};
+  const sl = bp.socialLinks ?? {};
   return {
     id: this._id.toString(),
     firstName: this.firstName,
@@ -415,6 +464,26 @@ userSchema.methods.toSafeObject = function (): SafeUser {
     status: this.status,
     avatar: this.avatar,
     isEmailVerified: this.isEmailVerified,
+    businessProfile: {
+      storeName: bp.storeName ?? "",
+      storeDescription: bp.storeDescription ?? "",
+      logo: bp.logo ?? "",
+      phone: bp.phone ?? "",
+      email: bp.email ?? "",
+      website: bp.website ?? "",
+      address: bp.address ?? "",
+      city: bp.city ?? "",
+      country: bp.country ?? "",
+      postalCode: bp.postalCode ?? "",
+      socialLinks: {
+        instagram: sl.instagram ?? "",
+        facebook: sl.facebook ?? "",
+        tiktok: sl.tiktok ?? "",
+        twitter: sl.twitter ?? "",
+        youtube: sl.youtube ?? "",
+        pinterest: sl.pinterest ?? "",
+      },
+    },
     addresses: (this.addresses ?? []).map(
       (a: IAddress & { _id: mongoose.Types.ObjectId }) => ({
         id: a._id.toString(),

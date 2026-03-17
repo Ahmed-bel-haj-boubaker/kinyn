@@ -24,6 +24,11 @@ export interface IProductImage {
   colorHex?: string; // hex value for custom colors, empty = use default lookup
 }
 
+export interface ISizeStock {
+  size: string;
+  stock: number;
+}
+
 export interface IProduct extends Document {
   name: string;
   slug: string;
@@ -34,10 +39,9 @@ export interface IProduct extends Document {
   categoryFinale: mongoose.Types.ObjectId | null;
   price: number;
   promoPrice: number | null;
-  stock: number;
+  sizeStock: ISizeStock[];
   status: ProductStatus;
   images: IProductImage[];
-  sizes: string[];
   colors: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -58,10 +62,14 @@ export interface SafeProduct {
   categoryFinaleName: string;
   price: number;
   promoPrice: number | null;
+  /** Per-size stock entries */
+  sizeStock: ISizeStock[];
+  /** Derived: total stock across all sizes */
   stock: number;
+  /** Derived: list of size names */
+  sizes: string[];
   status: ProductStatus;
   images: IProductImage[];
-  sizes: string[];
   colors: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -132,11 +140,14 @@ const productSchema = new Schema<IProduct>(
       default: null,
       min: [0, "Le prix promo doit être positif."],
     },
-    stock: {
-      type: Number,
-      required: [true, "Le stock est requis."],
-      min: [0, "Le stock ne peut pas être négatif."],
-      default: 0,
+    sizeStock: {
+      type: [
+        {
+          size: { type: String, required: true },
+          stock: { type: Number, required: true, min: 0, default: 0 },
+        },
+      ],
+      default: [],
     },
     status: {
       type: String,
@@ -154,10 +165,6 @@ const productSchema = new Schema<IProduct>(
           colorHex: { type: String, default: "" },
         },
       ],
-      default: [],
-    },
-    sizes: {
-      type: [String],
       default: [],
     },
     colors: {
@@ -179,7 +186,7 @@ productSchema.index({ slug: 1 });
 productSchema.index({ status: 1 });
 productSchema.index({ categoryMere: 1, categorySous: 1, categoryFinale: 1 });
 productSchema.index({ price: 1 });
-productSchema.index({ stock: 1 });
+productSchema.index({ "sizeStock.stock": 1 });
 productSchema.index({ name: "text", description: "text", sku: "text" });
 
 /* ──────────────────── Pre-save: auto-generate slug ──────────────────── */

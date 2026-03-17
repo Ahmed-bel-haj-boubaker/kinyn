@@ -430,6 +430,137 @@ export async function updateProfile(
   }
 }
 
+/* ──────────────── Update Business Profile (Admin) ──────────────── */
+
+interface UpdateBusinessProfileInput {
+  storeName?: string;
+  storeDescription?: string;
+  logo?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  postalCode?: string;
+  socialLinks?: {
+    instagram?: string;
+    facebook?: string;
+    tiktok?: string;
+    twitter?: string;
+    youtube?: string;
+    pinterest?: string;
+  };
+}
+
+export async function updateBusinessProfile(
+  req: NextRequest,
+  input: UpdateBusinessProfileInput,
+): Promise<ServiceResult<SafeUser>> {
+  try {
+    const authHeader = req.headers.get("authorization");
+    let token: string | undefined;
+
+    if (authHeader?.startsWith("Bearer ")) {
+      token = authHeader.slice(7);
+    } else {
+      token = req.cookies.get(COOKIE_NAME)?.value;
+    }
+
+    if (!token) {
+      return { success: false, error: "Non authentifié.", status: 401 };
+    }
+
+    const payload = verifyToken(token);
+    if (!payload) {
+      return {
+        success: false,
+        error: "Session expirée ou invalide.",
+        status: 401,
+      };
+    }
+
+    /* Only admin roles can update business profile */
+    const adminRoles = ["moderator", "admin", "super_admin"];
+    if (!adminRoles.includes(payload.role)) {
+      return {
+        success: false,
+        error: "Accès refusé. Droits insuffisants.",
+        status: 403,
+      };
+    }
+
+    await connectDB();
+
+    const user = await User.findById(payload.userId);
+    if (!user) {
+      return {
+        success: false,
+        error: "Utilisateur introuvable.",
+        status: 404,
+      };
+    }
+
+    if (user.status !== "active") {
+      return {
+        success: false,
+        error: "Votre compte n'est plus actif.",
+        status: 403,
+      };
+    }
+
+    /* Build update object for businessProfile */
+    const bp = user.businessProfile ?? {};
+    const sl = bp.socialLinks ?? {};
+
+    if (input.storeName !== undefined) bp.storeName = input.storeName.trim();
+    if (input.storeDescription !== undefined)
+      bp.storeDescription = input.storeDescription.trim();
+    if (input.logo !== undefined) bp.logo = input.logo.trim();
+    if (input.phone !== undefined) bp.phone = input.phone.trim();
+    if (input.email !== undefined) bp.email = input.email.trim();
+    if (input.website !== undefined) bp.website = input.website.trim();
+    if (input.address !== undefined) bp.address = input.address.trim();
+    if (input.city !== undefined) bp.city = input.city.trim();
+    if (input.country !== undefined) bp.country = input.country.trim();
+    if (input.postalCode !== undefined) bp.postalCode = input.postalCode.trim();
+
+    if (input.socialLinks) {
+      const s = input.socialLinks;
+      if (s.instagram !== undefined) sl.instagram = s.instagram.trim();
+      if (s.facebook !== undefined) sl.facebook = s.facebook.trim();
+      if (s.tiktok !== undefined) sl.tiktok = s.tiktok.trim();
+      if (s.twitter !== undefined) sl.twitter = s.twitter.trim();
+      if (s.youtube !== undefined) sl.youtube = s.youtube.trim();
+      if (s.pinterest !== undefined) sl.pinterest = s.pinterest.trim();
+      bp.socialLinks = sl;
+    }
+
+    user.businessProfile = bp;
+    await user.save();
+
+    return { success: true, data: user.toSafeObject() };
+  } catch (error) {
+    console.error("[Auth Service] Update business profile error:", error);
+
+    if (error instanceof Error && error.name === "ValidationError") {
+      const messages = Object.values(
+        (error as unknown as { errors: Record<string, { message: string }> })
+          .errors,
+      )
+        .map((e) => e.message)
+        .join(" ");
+      return { success: false, error: messages, status: 400 };
+    }
+
+    return {
+      success: false,
+      error: "Une erreur interne est survenue.",
+      status: 500,
+    };
+  }
+}
+
 /* ──────────────── Admin: Create Admin ──────────────── */
 
 interface CreateAdminInput {

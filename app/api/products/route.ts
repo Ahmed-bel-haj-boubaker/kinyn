@@ -33,9 +33,8 @@ interface LeanProduct {
   description: string;
   price: number;
   promoPrice: number | null;
-  stock: number;
+  sizeStock: { size: string; stock: number }[];
   images: { url: string; color: string }[];
-  sizes: string[];
   colors: string[];
   categoryMere: LeanCat | mongoose.Types.ObjectId;
   categorySous: LeanCat | mongoose.Types.ObjectId | null;
@@ -192,6 +191,10 @@ export async function GET(req: NextRequest) {
         new Set([...(p.colors ?? []), ...imageColors]),
       );
 
+      const sizeStock = p.sizeStock ?? [];
+      const totalStock = sizeStock.reduce((sum, s) => sum + s.stock, 0);
+      const sizes = sizeStock.map((s) => s.size);
+
       return {
         id: String(p._id),
         name: p.name,
@@ -199,7 +202,8 @@ export async function GET(req: NextRequest) {
         description: p.description,
         price: p.price,
         promoPrice: p.promoPrice,
-        stock: p.stock,
+        stock: totalStock,
+        sizeStock,
         image: imageUrls[0] ?? "",
         images: imgs.map((img) =>
           typeof img === "string"
@@ -211,7 +215,7 @@ export async function GET(req: NextRequest) {
                   ((img as Record<string, unknown>).colorHex as string) ?? "",
               },
         ),
-        sizes: p.sizes ?? [],
+        sizes: sizes,
         colors: allColors,
         categoryMere: mere.name,
         categoryMereSlug: mere.slug,

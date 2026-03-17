@@ -104,10 +104,15 @@ export async function createOrder(
         };
       }
 
-      if (product.stock < item.quantity) {
+      const sizeEntry = (product.sizeStock ?? []).find(
+        (s: { size: string; stock: number }) => s.size === (item.size || ""),
+      );
+      const availableStock = sizeEntry?.stock ?? 0;
+
+      if (availableStock < item.quantity) {
         return {
           success: false,
-          error: `Stock insuffisant pour "${product.name}". Disponible : ${product.stock}`,
+          error: `Stock insuffisant pour "${product.name}"${item.size ? ` (taille ${item.size})` : ""}. Disponible : ${availableStock}`,
           status: 400,
         };
       }
@@ -146,9 +151,10 @@ export async function createOrder(
 
     /* Decrement stock for each product */
     for (const item of orderItems) {
-      await Product.findByIdAndUpdate(item.product, {
-        $inc: { stock: -item.quantity },
-      });
+      await Product.findOneAndUpdate(
+        { _id: item.product, "sizeStock.size": item.size || "" },
+        { $inc: { "sizeStock.$.stock": -item.quantity } },
+      );
     }
 
     /* ── Sync phone & address back to user profile (skip for anonymous) ── */
@@ -470,9 +476,10 @@ export async function updateOrderStatus(
       order.status !== "returned"
     ) {
       for (const item of order.items) {
-        await Product.findByIdAndUpdate(item.product, {
-          $inc: { stock: item.quantity },
-        });
+        await Product.findOneAndUpdate(
+          { _id: item.product, "sizeStock.size": item.size || "" },
+          { $inc: { "sizeStock.$.stock": item.quantity } },
+        );
       }
     }
 
@@ -523,9 +530,10 @@ export async function cancelOrder(
 
     /* Restore stock */
     for (const item of order.items) {
-      await Product.findByIdAndUpdate(item.product, {
-        $inc: { stock: item.quantity },
-      });
+      await Product.findOneAndUpdate(
+        { _id: item.product, "sizeStock.size": item.size || "" },
+        { $inc: { "sizeStock.$.stock": item.quantity } },
+      );
     }
 
     order.status = "cancelled";

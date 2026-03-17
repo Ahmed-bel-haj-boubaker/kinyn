@@ -3,6 +3,7 @@ import Product, {
   type SafeProduct,
   type ProductStatus,
   type IProductImage,
+  type ISizeStock,
 } from "@/models/Product";
 import Category from "@/models/Category";
 import mongoose from "mongoose";
@@ -41,10 +42,9 @@ interface LeanProduct {
   categoryFinale: PopulatedCatRef | mongoose.Types.ObjectId | null;
   price: number;
   promoPrice: number | null;
-  stock: number;
+  sizeStock: ISizeStock[];
   status: ProductStatus;
   images: IProductImage[];
-  sizes: string[];
   colors: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -71,6 +71,10 @@ function leanToSafe(doc: LeanProduct): SafeProduct {
   const sous = resolveCatRef(doc.categorySous);
   const finale = resolveCatRef(doc.categoryFinale);
 
+  const sizeStock = doc.sizeStock ?? [];
+  const totalStock = sizeStock.reduce((sum, s) => sum + s.stock, 0);
+  const sizes = sizeStock.map((s) => s.size);
+
   return {
     id: doc._id.toString(),
     name: doc.name,
@@ -85,10 +89,11 @@ function leanToSafe(doc: LeanProduct): SafeProduct {
     categoryFinaleName: finale.name,
     price: doc.price,
     promoPrice: doc.promoPrice,
-    stock: doc.stock,
+    sizeStock,
+    stock: totalStock,
+    sizes,
     status: doc.status,
     images: doc.images ?? [],
-    sizes: doc.sizes ?? [],
     colors: doc.colors ?? [],
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
@@ -200,10 +205,9 @@ interface CreateProductInput {
   categoryFinale?: string;
   price: number;
   promoPrice?: number | null;
-  stock: number;
+  sizeStock: ISizeStock[];
   status?: ProductStatus;
   images?: IProductImage[];
-  sizes?: string[];
   colors?: string[];
 }
 
@@ -222,10 +226,9 @@ export async function createProduct(
       categoryFinale,
       price,
       promoPrice,
-      stock,
+      sizeStock,
       status,
       images,
-      sizes,
       colors,
     } = input;
 
@@ -236,8 +239,6 @@ export async function createProduct(
       return { success: false, error: "Le SKU est requis.", status: 400 };
     if (price === undefined || price < 0)
       return { success: false, error: "Prix invalide.", status: 400 };
-    if (stock === undefined || stock < 0)
-      return { success: false, error: "Stock invalide.", status: 400 };
 
     /* Validate categoryMere */
     if (!categoryMere || !mongoose.isValidObjectId(categoryMere)) {
@@ -325,10 +326,9 @@ export async function createProduct(
       categoryFinale: finaleId,
       price,
       promoPrice: promoPrice ?? null,
-      stock,
+      sizeStock: sizeStock ?? [],
       status: status ?? "draft",
       images: images ?? [],
-      sizes: sizes ?? [],
       colors: colors ?? [],
     });
 
@@ -369,10 +369,9 @@ interface UpdateProductInput {
   categoryFinale?: string | null;
   price?: number;
   promoPrice?: number | null;
-  stock?: number;
+  sizeStock?: ISizeStock[];
   status?: ProductStatus;
   images?: IProductImage[];
-  sizes?: string[];
   colors?: string[];
 }
 
@@ -398,10 +397,9 @@ export async function updateProduct(
       product.description = input.description.trim();
     if (input.price !== undefined) product.price = input.price;
     if (input.promoPrice !== undefined) product.promoPrice = input.promoPrice;
-    if (input.stock !== undefined) product.stock = input.stock;
+    if (input.sizeStock !== undefined) product.sizeStock = input.sizeStock;
     if (input.status !== undefined) product.status = input.status;
     if (input.images !== undefined) product.images = input.images;
-    if (input.sizes !== undefined) product.sizes = input.sizes;
     if (input.colors !== undefined) product.colors = input.colors;
 
     /* SKU update */
@@ -576,13 +574,19 @@ export async function getProductStats(): Promise<
   try {
     await connectDB();
 
-    const [total, active, draft, outofstock, lowStock] = await Promise.all([
+    const [total, active, draft, outofstock, lowStockAgg] = await Promise.all([
       Product.countDocuments(),
       Product.countDocuments({ status: "active" }),
       Product.countDocuments({ status: "draft" }),
       Product.countDocuments({ status: "outofstock" }),
-      Product.countDocuments({ stock: { $gt: 0, $lte: 5 } }),
+      Product.aggregate([
+        { $addFields: { totalStock: { $sum: "$sizeStock.stock" } } },
+        { $match: { totalStock: { $gt: 0, $lte: 5 } } },
+        { $count: "count" },
+      ]),
     ]);
+
+    const lowStock = lowStockAgg[0]?.count ?? 0;
 
     return {
       success: true,

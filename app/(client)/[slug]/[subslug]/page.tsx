@@ -292,6 +292,7 @@ function ProductDetailPage({
   const [addedToCart, setAddedToCart] = useState(false);
   const [imageZoomed, setImageZoomed] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+  const [shareCopied, setShareCopied] = useState(false);
 
   const mainImageRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
@@ -305,6 +306,11 @@ function ProductDetailPage({
     if (p.sizes.length > 0 && !selectedSize) {
       setSizeError(true);
       return;
+    }
+    /* Check per-size stock */
+    if (selectedSize && p.sizeStock) {
+      const entry = p.sizeStock.find((ss) => ss.size === selectedSize);
+      if (entry && entry.stock < quantity) return;
     }
     setSizeError(false);
     addItem({
@@ -362,6 +368,26 @@ function ProductDetailPage({
     },
     [handleNextImage, handlePrevImage],
   );
+
+  const handleShare = useCallback(async () => {
+    const url = window.location.href;
+    const shareData = { title: p.name, url };
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch {
+        /* user cancelled — fall through to clipboard */
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch {
+      /* clipboard unavailable */
+    }
+  }, [p.name]);
 
   /* Keyboard navigation for gallery */
   useEffect(() => {
@@ -564,23 +590,35 @@ function ProductDetailPage({
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2 sm:gap-2.5">
-                    {p.sizes.map((size) => (
-                      <button
-                        key={size}
-                        type="button"
-                        onClick={() => {
-                          setSelectedSize(size);
-                          setSizeError(false);
-                        }}
-                        className={`min-w-[2.75rem] sm:min-w-[3rem] md:min-w-[3.25rem] rounded-lg border px-3 sm:px-3.5 md:px-4 py-2.5 md:py-3 font-poppins text-[0.68rem] sm:text-[0.72rem] md:text-[0.75rem] font-medium transition-all duration-200 active:scale-95 ${
-                          selectedSize === size
-                            ? "border-primary bg-primary text-background"
-                            : "border-dark/15 text-dark/70 hover:border-dark/30"
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    ))}
+                    {p.sizes.map((size) => {
+                      const sizeEntry = p.sizeStock?.find(
+                        (ss) => ss.size === size,
+                      );
+                      const sizeAvailable = sizeEntry
+                        ? sizeEntry.stock > 0
+                        : true;
+                      return (
+                        <button
+                          key={size}
+                          type="button"
+                          onClick={() => {
+                            if (!sizeAvailable) return;
+                            setSelectedSize(size);
+                            setSizeError(false);
+                          }}
+                          disabled={!sizeAvailable}
+                          className={`min-w-[2.75rem] sm:min-w-[3rem] md:min-w-[3.25rem] rounded-lg border px-3 sm:px-3.5 md:px-4 py-2.5 md:py-3 font-poppins text-[0.68rem] sm:text-[0.72rem] md:text-[0.75rem] font-medium transition-all duration-200 active:scale-95 ${
+                            !sizeAvailable
+                              ? "border-dark/10 text-dark/25 line-through cursor-not-allowed"
+                              : selectedSize === size
+                                ? "border-primary bg-primary text-background"
+                                : "border-dark/15 text-dark/70 hover:border-dark/30"
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      );
+                    })}
                   </div>
                   {sizeError && (
                     <p className="mt-2 font-poppins text-[0.72rem] text-primary">
@@ -658,10 +696,11 @@ function ProductDetailPage({
               {/* Share */}
               <button
                 type="button"
+                onClick={handleShare}
                 className="flex items-center gap-1.5 sm:gap-2 font-poppins text-[0.68rem] sm:text-[0.72rem] text-dark/45 hover:text-primary transition-colors duration-200"
               >
                 <Share2 className="h-3.5 w-3.5" strokeWidth={2} />
-                Partager ce produit
+                {shareCopied ? "Lien copié ✓" : "Partager ce produit"}
               </button>
 
               <div className="h-px bg-dark/8" />

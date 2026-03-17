@@ -22,7 +22,7 @@ import {
   X,
 } from "lucide-react";
 
-import { COLORS, SIZES, SORT_OPTIONS, slugify } from "@/lib/categories";
+import { SIZES, SORT_OPTIONS } from "@/lib/categories";
 import { useCart } from "@/lib/cart";
 import WishlistButton from "./WishlistButton";
 
@@ -47,6 +47,7 @@ export interface ClientProduct {
   image: string;
   images: ClientProductImage[];
   sizes: string[];
+  sizeStock: { size: string; stock: number }[];
   colors: string[];
   categoryMere: string;
   categoryMereSlug: string;
@@ -232,6 +233,10 @@ function QuickViewModal({
       setSizeError(true);
       return;
     }
+    if (selectedSize && product.sizeStock) {
+      const entry = product.sizeStock.find((ss) => ss.size === selectedSize);
+      if (entry && entry.stock < quantity) return;
+    }
     setSizeError(false);
     addItem({
       productId: product.id,
@@ -258,6 +263,10 @@ function QuickViewModal({
     if (product.sizes.length > 0 && !selectedSize) {
       setSizeError(true);
       return;
+    }
+    if (selectedSize && product.sizeStock) {
+      const entry = product.sizeStock.find((ss) => ss.size === selectedSize);
+      if (entry && entry.stock < quantity) return;
     }
     setSizeError(false);
     addItem({
@@ -575,23 +584,35 @@ function QuickViewModal({
                   )}
                 </p>
                 <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                  {product.sizes.map((size) => (
-                    <button
-                      key={size}
-                      type="button"
-                      onClick={() => {
-                        setSelectedSize(size);
-                        setSizeError(false);
-                      }}
-                      className={`min-w-[2.2rem] sm:min-w-[2.6rem] lg:min-w-[2.8rem] rounded-lg border px-2 sm:px-3 lg:px-3.5 py-1 sm:py-1.5 lg:py-2 font-poppins text-[0.62rem] sm:text-[0.68rem] lg:text-[0.72rem] font-medium transition-all duration-200 active:scale-95 ${
-                        selectedSize === size
-                          ? "border-primary bg-primary text-background"
-                          : "border-dark/12 text-dark/60 hover:border-dark/25"
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
+                  {product.sizes.map((size) => {
+                    const sizeEntry = product.sizeStock?.find(
+                      (ss) => ss.size === size,
+                    );
+                    const sizeAvailable = sizeEntry
+                      ? sizeEntry.stock > 0
+                      : true;
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => {
+                          if (!sizeAvailable) return;
+                          setSelectedSize(size);
+                          setSizeError(false);
+                        }}
+                        disabled={!sizeAvailable}
+                        className={`min-w-[2.2rem] sm:min-w-[2.6rem] lg:min-w-[2.8rem] rounded-lg border px-2 sm:px-3 lg:px-3.5 py-1 sm:py-1.5 lg:py-2 font-poppins text-[0.62rem] sm:text-[0.68rem] lg:text-[0.72rem] font-medium transition-all duration-200 active:scale-95 ${
+                          !sizeAvailable
+                            ? "border-dark/10 text-dark/25 line-through cursor-not-allowed"
+                            : selectedSize === size
+                              ? "border-primary bg-primary text-background"
+                              : "border-dark/12 text-dark/60 hover:border-dark/25"
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    );
+                  })}
                 </div>
                 {sizeError && (
                   <p className="mt-1.5 sm:mt-2 font-poppins text-[0.64rem] sm:text-[0.68rem] text-primary">
@@ -775,7 +796,6 @@ export default function ProductsListing({
 }: ProductsListingProps) {
   /* ── State ── */
   const [products] = useState<ClientProduct[]>(initialProducts);
-  const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>(
     [],
@@ -869,7 +889,6 @@ export default function ProductsListing({
   }, []);
 
   const resetFilters = useCallback(() => {
-    setSearchQuery("");
     setSelectedSubcategories([]);
     setSelectedSizes([]);
     setSelectedColors([]);
@@ -882,17 +901,11 @@ export default function ProductsListing({
     selectedSizes.length > 0 ||
     selectedColors.length > 0 ||
     priceRange[0] > 0 ||
-    priceRange[1] < 300 ||
-    searchQuery.length > 0;
+    priceRange[1] < 300;
 
   /* ── Filtered & sorted products ── */
   const filteredProducts = useMemo(() => {
     let result = [...products];
-
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter((p) => p.name.toLowerCase().includes(q));
-    }
 
     if (selectedSubcategories.length > 0) {
       result = result.filter((p) =>
@@ -937,7 +950,6 @@ export default function ProductsListing({
     return result;
   }, [
     products,
-    searchQuery,
     selectedSubcategories,
     selectedSizes,
     selectedColors,
@@ -947,6 +959,27 @@ export default function ProductsListing({
 
   const visibleProducts = filteredProducts.slice(0, visibleCount);
   const hasMore = visibleCount < filteredProducts.length;
+
+  /* Derive available colors from actual products, with hex lookup */
+  const availableColors = useMemo(() => {
+    const hexMap: Record<string, string> = {};
+    for (const p of products) {
+      for (const img of p.images) {
+        if (img.color && img.colorHex) hexMap[img.color] = img.colorHex;
+      }
+    }
+    const seen = new Set<string>();
+    const result: { name: string; hex: string }[] = [];
+    for (const p of products) {
+      for (const color of p.colors) {
+        if (!seen.has(color)) {
+          seen.add(color);
+          result.push({ name: color, hex: hexMap[color] ?? colorHex(color) });
+        }
+      }
+    }
+    return result;
+  }, [products]);
 
   /* ──────────────────── Filter Sidebar Content ──────────────────── */
   const filterContent = (
@@ -1105,28 +1138,34 @@ export default function ProductsListing({
           className={`transition-all duration-300 ease-out ${expandedFilters.includes("color") ? "max-h-60 overflow-y-auto opacity-100 mt-2" : "max-h-0 overflow-hidden opacity-0"}`}
         >
           <div className="space-y-1 pr-1">
-            {COLORS.map((color) => (
-              <button
-                key={color.name}
-                type="button"
-                onClick={() => toggleColor(color.name)}
-                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left font-poppins text-[0.78rem] transition-all duration-200 ${
-                  selectedColors.includes(color.name)
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "text-dark/70 hover:bg-dark/[0.03] hover:text-dark"
-                }`}
-              >
-                <span
-                  className={`h-4 w-4 shrink-0 rounded-full border-2 transition-all duration-200 ${
+            {availableColors.length > 0 ? (
+              availableColors.map((color) => (
+                <button
+                  key={color.name}
+                  type="button"
+                  onClick={() => toggleColor(color.name)}
+                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left font-poppins text-[0.78rem] transition-all duration-200 ${
                     selectedColors.includes(color.name)
-                      ? "border-primary ring-2 ring-primary/30"
-                      : "border-dark/15"
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-dark/70 hover:bg-dark/[0.03] hover:text-dark"
                   }`}
-                  style={{ backgroundColor: color.hex }}
-                />
-                <span>{color.name}</span>
-              </button>
-            ))}
+                >
+                  <span
+                    className={`h-4 w-4 shrink-0 rounded-full border-2 transition-all duration-200 ${
+                      selectedColors.includes(color.name)
+                        ? "border-primary ring-2 ring-primary/30"
+                        : "border-dark/15"
+                    }`}
+                    style={{ backgroundColor: color.hex }}
+                  />
+                  <span>{color.name}</span>
+                </button>
+              ))
+            ) : (
+              <p className="px-3 py-2 font-poppins text-[0.75rem] text-dark/35">
+                Aucune couleur disponible
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -1197,33 +1236,6 @@ export default function ProductsListing({
                 </span>
               )}
             </button>
-
-            {/* Search */}
-            <div className="relative flex-1 min-w-0">
-              <Search
-                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-dark/35"
-                strokeWidth={2}
-              />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setVisibleCount(ITEMS_PER_PAGE);
-                }}
-                placeholder="Rechercher..."
-                className="w-full sm:w-56 lg:w-64 rounded-lg border border-dark/15 bg-background py-2 sm:py-2.5 pl-10 pr-4 font-poppins text-[0.76rem] sm:text-[0.78rem] text-dark placeholder:text-dark/35 outline-none transition-all duration-200 focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-dark/35 hover:text-dark"
-                >
-                  <X className="h-3.5 w-3.5" strokeWidth={2} />
-                </button>
-              )}
-            </div>
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4 shrink-0">
@@ -1382,7 +1394,12 @@ export default function ProductsListing({
                         }}
                       >
                         {/* ── Image container ── */}
-                        <div className="relative aspect-3/4 overflow-hidden bg-dark/2">
+                        <Link
+                          href={`/${categorySlug}/${product.slug}`}
+                          className="relative block aspect-3/4 overflow-hidden bg-dark/2"
+                          tabIndex={-1}
+                          aria-label={product.name}
+                        >
                           <Image
                             src={product.image || "/images/placeholder.png"}
                             alt={product.name}
@@ -1409,7 +1426,7 @@ export default function ProductsListing({
                               </span>
                             </div>
                           )}
-                        </div>
+                        </Link>
 
                         {/* ── Product info ── */}
                         <Link

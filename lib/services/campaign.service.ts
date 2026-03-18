@@ -284,12 +284,12 @@ export async function sendCampaign(
 }
 
 /* ══════════════════════════════════════════════════════════════
-   Email Template Builder — Luxury Kinyn style
+   Email Template Builder — KinyN Luxury Editorial
    ══════════════════════════════════════════════════════════════ */
 
 const FONT_POPPINS =
   "'Poppins', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-const FONT_EROTIQUE = "Georgia, 'Times New Roman', serif";
+const FONT_EROTIQUE = "Georgia, 'Times New Roman', Times, serif";
 const COLOR_PRIMARY = "#7a0c1c";
 const COLOR_DARK = "#17171a";
 const COLOR_BG = "#f0f0ec";
@@ -305,8 +305,10 @@ function buildCampaignEmail(
   campaign: INewsletterCampaign,
   appUrl: string,
 ): string {
+  const logoUrl = `${appUrl}/images/logo.png`;
+
   const typeLabels: Record<string, string> = {
-    promotion: "Promotion",
+    promotion: "Offre Exclusive",
     new_arrival: "Nouveautés",
     collection: "Nouvelle Collection",
     announcement: "Annonce",
@@ -323,22 +325,28 @@ function buildCampaignEmail(
       const imgUrl = absUrl(p.image, appUrl);
       const productUrl = `${appUrl}/${p.slug}`;
       const priceHtml = p.promoPrice
-        ? `<span style="text-decoration:line-through;color:#999;font-size:13px;font-family:${FONT_POPPINS};">${p.price.toFixed(3)} TND</span>
-           <span style="color:${COLOR_PRIMARY};font-weight:700;font-size:15px;margin-left:6px;font-family:${FONT_POPPINS};">${p.promoPrice.toFixed(3)} TND</span>`
-        : `<span style="color:${COLOR_DARK};font-weight:700;font-size:15px;font-family:${FONT_POPPINS};">${p.price.toFixed(3)} TND</span>`;
+        ? `<span style="text-decoration:line-through;color:${COLOR_DARK};opacity:0.35;font-size:12px;font-family:${FONT_POPPINS};font-weight:400;">${p.price.toFixed(3)} TND</span>
+           <span style="color:${COLOR_PRIMARY};font-weight:600;font-size:14px;margin-left:6px;font-family:${FONT_POPPINS};">${p.promoPrice.toFixed(3)} TND</span>`
+        : `<span style="color:${COLOR_DARK};font-weight:600;font-size:14px;font-family:${FONT_POPPINS};">${p.price.toFixed(3)} TND</span>`;
 
       return `
-      <td width="50%" style="padding:8px;vertical-align:top;">
+      <td width="50%" class="mobile-stack" style="padding:6px;vertical-align:top;">
         <a href="${productUrl}" style="text-decoration:none;color:inherit;display:block;">
-          <div style="background-color:#f7f7f5;border-radius:4px;overflow:hidden;">
-            <img src="${imgUrl}" alt="${p.name}" width="260" style="display:block;width:100%;height:220px;object-fit:cover;" />
-            <div style="padding:12px 14px;">
-              <p style="margin:0 0 6px;font-family:${FONT_POPPINS};font-size:14px;color:${COLOR_DARK};line-height:1.3;font-weight:500;">
-                ${p.name}
-              </p>
-              <p style="margin:0;">${priceHtml}</p>
-            </div>
-          </div>
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+              <td style="background-color:${COLOR_BG};text-align:center;">
+                <img src="${imgUrl}" alt="${p.name}" width="260" class="mobile-img" style="display:block;width:100%;height:280px;object-fit:cover;" />
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 4px 16px;">
+                <p style="margin:0 0 6px;font-family:${FONT_POPPINS};font-size:13px;color:${COLOR_DARK};line-height:1.4;font-weight:500;letter-spacing:0.2px;">
+                  ${p.name}
+                </p>
+                <p style="margin:0;">${priceHtml}</p>
+              </td>
+            </tr>
+          </table>
         </a>
       </td>`;
     });
@@ -346,12 +354,12 @@ function buildCampaignEmail(
     const rows: string[] = [];
     for (let i = 0; i < cards.length; i += 2) {
       rows.push(
-        `<tr>${cards.slice(i, i + 2).join("")}${cards.length - i === 1 ? '<td width="50%"></td>' : ""}</tr>`,
+        `<tr>${cards.slice(i, i + 2).join("")}${cards.length - i === 1 ? '<td width="50%" style="padding:6px;"></td>' : ""}</tr>`,
       );
     }
 
     productsHtml = `
-    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-top:24px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
       ${rows.join("")}
     </table>`;
   }
@@ -364,16 +372,27 @@ function buildCampaignEmail(
       const collectionUrl = `${appUrl}/${c.slug}`;
 
       return `
-      <td width="50%" style="padding:8px;vertical-align:top;">
+      <td width="50%" class="mobile-stack" style="padding:6px;vertical-align:top;">
         <a href="${collectionUrl}" style="text-decoration:none;color:inherit;display:block;">
-          <div style="border-radius:4px;overflow:hidden;position:relative;">
-            <img src="${imgUrl}" alt="${c.name}" width="260" style="display:block;width:100%;height:200px;object-fit:cover;" />
-            <div style="background:linear-gradient(transparent,rgba(0,0,0,0.6));padding:16px 14px 14px;position:absolute;bottom:0;left:0;right:0;">
-              <p style="margin:0;font-family:${FONT_EROTIQUE};font-size:16px;color:#ffffff;letter-spacing:1px;text-transform:uppercase;">
-                ${c.name}
-              </p>
-            </div>
-          </div>
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+              <td style="background-color:${COLOR_DARK};text-align:center;">
+                <img src="${imgUrl}" alt="${c.name}" width="260" class="mobile-img" style="display:block;width:100%;height:240px;object-fit:cover;opacity:0.8;" />
+              </td>
+            </tr>
+            <tr>
+              <td style="background-color:${COLOR_DARK};padding:0 16px 16px;">
+                <p style="margin:0;font-family:${FONT_EROTIQUE};font-size:15px;color:#ffffff;letter-spacing:2px;text-transform:uppercase;line-height:1.4;">
+                  ${c.name}
+                </p>
+                <p style="margin:6px 0 0;">
+                  <span style="font-family:${FONT_POPPINS};font-size:10px;font-weight:600;color:#ffffff;letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid ${COLOR_PRIMARY};padding-bottom:2px;">
+                    D\u00e9couvrir
+                  </span>
+                </p>
+              </td>
+            </tr>
+          </table>
         </a>
       </td>`;
     });
@@ -381,12 +400,12 @@ function buildCampaignEmail(
     const rows: string[] = [];
     for (let i = 0; i < cards.length; i += 2) {
       rows.push(
-        `<tr>${cards.slice(i, i + 2).join("")}${cards.length - i === 1 ? '<td width="50%"></td>' : ""}</tr>`,
+        `<tr>${cards.slice(i, i + 2).join("")}${cards.length - i === 1 ? '<td width="50%" style="padding:6px;"></td>' : ""}</tr>`,
       );
     }
 
     collectionsHtml = `
-    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-top:24px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
       ${rows.join("")}
     </table>`;
   }
@@ -398,134 +417,306 @@ function buildCampaignEmail(
         .filter((l) => l.trim())
         .map(
           (p) =>
-            `<p style="margin:0 0 12px;font-family:${FONT_POPPINS};font-size:15px;line-height:1.7;color:#444;">${p}</p>`,
+            `<p style="margin:0 0 16px;font-family:${FONT_POPPINS};font-size:15px;line-height:1.8;color:${COLOR_DARK};opacity:0.7;font-weight:300;">${p}</p>`,
         )
         .join("")
     : "";
 
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="x-apple-disable-message-reformatting" />
   <title>${campaign.subject}</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <!--[if !mso]><!-->
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+    @media only screen and (max-width: 620px) {
+      .email-container { width: 100% !important; max-width: 100% !important; }
+      .mobile-padding { padding-left: 24px !important; padding-right: 24px !important; }
+      .mobile-stack { display: block !important; width: 100% !important; }
+      .mobile-img { height: 200px !important; }
+    }
   </style>
   <!--<![endif]-->
+  <!--[if mso]>
+  <style>
+    * { font-family: 'Georgia', serif !important; }
+  </style>
+  <![endif]-->
 </head>
-<body style="margin:0;padding:0;background-color:${COLOR_BG};font-family:${FONT_POPPINS};">
+<body style="margin:0;padding:0;background-color:${COLOR_BG};font-family:${FONT_POPPINS};-webkit-font-smoothing:antialiased;">
+
+  <!-- Preheader (hidden preview text) -->
+  <div style="display:none;font-size:1px;color:${COLOR_BG};line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
+    ${campaign.heading || campaign.subject} \u2014 KinyN
+  </div>
+
   <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color:${COLOR_BG};">
     <tr>
-      <td align="center" style="padding:40px 20px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="max-width:600px;background-color:#ffffff;border-radius:2px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+      <td align="center" style="padding:0;">
+
+        <!-- Top spacer -->
+        <table role="presentation" cellpadding="0" cellspacing="0" width="600" class="email-container" style="max-width:600px;">
+          <tr><td style="height:40px;font-size:0;line-height:0;">&nbsp;</td></tr>
+        </table>
+
+        <!-- Main Email Container -->
+        <table role="presentation" cellpadding="0" cellspacing="0" width="600" class="email-container" style="max-width:600px;background-color:#ffffff;">
 
           <!-- Brand Header -->
           <tr>
-            <td style="background-color:${COLOR_DARK};padding:36px 40px;text-align:center;">
-              <h1 style="margin:0;font-family:${FONT_EROTIQUE};font-size:32px;font-weight:400;letter-spacing:6px;color:#ffffff;text-transform:uppercase;">
-                KINYN
-              </h1>
-              <div style="margin-top:8px;width:40px;height:2px;background-color:${COLOR_PRIMARY};display:inline-block;"></div>
+            <td style="background-color:${COLOR_DARK};padding:0;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <tr><td style="height:44px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                <tr>
+                  <td align="center" style="padding:0 40px;">
+                    <img src="${logoUrl}" alt="KinyN" width="120" style="display:block;width:120px;height:auto;" />
+                  </td>
+                </tr>
+                <tr><td style="height:12px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                <tr>
+                  <td align="center">
+                    <table role="presentation" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="width:32px;height:1px;background-color:${COLOR_PRIMARY};font-size:0;line-height:0;">&nbsp;</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr><td style="height:36px;font-size:0;line-height:0;">&nbsp;</td></tr>
+              </table>
             </td>
           </tr>
 
-          <!-- Type Badge -->
+          <!-- Hero Section -->
           <tr>
-            <td style="padding:28px 40px 0;text-align:center;">
-              <span style="display:inline-block;padding:4px 16px;background-color:${COLOR_PRIMARY};color:#ffffff;font-family:${FONT_POPPINS};font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-radius:2px;">
-                ${typeLabel}
-              </span>
+            <td style="padding:0;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <tr><td style="height:48px;font-size:0;line-height:0;">&nbsp;</td></tr>
+
+                <!-- Type Badge -->
+                <tr>
+                  <td align="center" class="mobile-padding" style="padding:0 48px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:5px 20px;border:1px solid ${COLOR_PRIMARY};font-family:${FONT_POPPINS};font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:${COLOR_PRIMARY};text-align:center;">
+                          ${typeLabel}
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                ${
+                  campaign.heading
+                    ? `<tr><td style="height:28px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                <tr>
+                  <td align="center" class="mobile-padding" style="padding:0 48px;">
+                    <h1 style="margin:0;font-family:${FONT_EROTIQUE};font-size:34px;font-weight:400;color:${COLOR_DARK};line-height:1.25;letter-spacing:0.5px;text-align:center;">
+                      ${campaign.heading}
+                    </h1>
+                  </td>
+                </tr>`
+                    : ""
+                }
+
+                <!-- Thin accent line under heading -->
+                <tr><td style="height:24px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                <tr>
+                  <td align="center">
+                    <table role="presentation" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="width:48px;height:1px;background-color:${COLOR_DARK};opacity:0.15;font-size:0;line-height:0;">&nbsp;</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                ${
+                  bodyHtml
+                    ? `<tr><td style="height:28px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                <tr>
+                  <td class="mobile-padding" style="padding:0 56px;text-align:center;">
+                    ${bodyHtml}
+                  </td>
+                </tr>`
+                    : ""
+                }
+
+                <tr><td style="height:12px;font-size:0;line-height:0;">&nbsp;</td></tr>
+              </table>
             </td>
           </tr>
 
-          <!-- Heading -->
-          ${
-            campaign.heading
-              ? `<tr>
-            <td style="padding:20px 40px 0;text-align:center;">
-              <h2 style="margin:0;font-family:${FONT_EROTIQUE};font-size:26px;font-weight:400;color:${COLOR_DARK};line-height:1.3;">
-                ${campaign.heading}
-              </h2>
-            </td>
-          </tr>`
-              : ""
-          }
-
-          <!-- Body -->
-          ${
-            bodyHtml
-              ? `<tr>
-            <td style="padding:20px 40px 0;">
-              ${bodyHtml}
-            </td>
-          </tr>`
-              : ""
-          }
-
-          <!-- Products -->
           ${
             productsHtml
-              ? `<tr>
-            <td style="padding:0 32px;">
-              <p style="margin:0 0 4px 8px;font-family:${FONT_POPPINS};font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:${COLOR_DARK};">Nos produits</p>
-              ${productsHtml}
+              ? `<!-- Products Section -->
+          <tr>
+            <td style="padding:0;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <tr><td style="height:20px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                <tr>
+                  <td class="mobile-padding" style="padding:0 42px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td style="border-top:1px solid ${COLOR_DARK};opacity:0.08;font-size:0;line-height:0;">&nbsp;</td>
+                      </tr>
+                    </table>
+                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                      <tr><td style="height:20px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                      <tr>
+                        <td>
+                          <p style="margin:0 0 4px;font-family:${FONT_POPPINS};font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:${COLOR_DARK};opacity:0.4;">
+                            S\u00e9lection
+                          </p>
+                        </td>
+                      </tr>
+                      <tr><td style="height:8px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                    </table>
+                    ${productsHtml}
+                  </td>
+                </tr>
+                <tr><td style="height:16px;font-size:0;line-height:0;">&nbsp;</td></tr>
+              </table>
             </td>
           </tr>`
               : ""
           }
 
-          <!-- Collections -->
           ${
             collectionsHtml
-              ? `<tr>
-            <td style="padding:${productsHtml ? "16px" : "0"} 32px 0;">
-              <p style="margin:0 0 4px 8px;font-family:${FONT_POPPINS};font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:${COLOR_DARK};">Nos collections</p>
-              ${collectionsHtml}
+              ? `<!-- Collections Section -->
+          <tr>
+            <td style="padding:0;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <tr><td style="height:20px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                <tr>
+                  <td class="mobile-padding" style="padding:0 42px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td style="border-top:1px solid ${COLOR_DARK};opacity:0.08;font-size:0;line-height:0;">&nbsp;</td>
+                      </tr>
+                    </table>
+                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                      <tr><td style="height:20px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                      <tr>
+                        <td>
+                          <p style="margin:0 0 4px;font-family:${FONT_POPPINS};font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:${COLOR_DARK};opacity:0.4;">
+                            Collections
+                          </p>
+                        </td>
+                      </tr>
+                      <tr><td style="height:8px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                    </table>
+                    ${collectionsHtml}
+                  </td>
+                </tr>
+                <tr><td style="height:16px;font-size:0;line-height:0;">&nbsp;</td></tr>
+              </table>
             </td>
           </tr>`
               : ""
           }
 
-          <!-- CTA Button -->
           ${
             campaign.ctaText
-              ? `<tr>
-            <td style="padding:28px 40px 0;text-align:center;">
-              <a href="${ctaUrl}" style="display:inline-block;padding:14px 40px;background-color:${COLOR_PRIMARY};color:#ffffff;font-family:${FONT_POPPINS};font-size:14px;font-weight:600;letter-spacing:1px;text-decoration:none;text-transform:uppercase;border-radius:2px;">
-                ${campaign.ctaText}
-              </a>
+              ? `<!-- CTA Button -->
+          <tr>
+            <td style="padding:0;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <tr><td style="height:32px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                <tr>
+                  <td align="center" style="padding:0 48px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="background-color:${COLOR_DARK};padding:16px 52px;">
+                          <a href="${ctaUrl}" style="font-family:${FONT_POPPINS};font-size:12px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:#ffffff;text-decoration:none;display:block;">
+                            ${campaign.ctaText}
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr><td style="height:40px;font-size:0;line-height:0;">&nbsp;</td></tr>
+              </table>
             </td>
           </tr>`
               : ""
           }
-
-          <!-- Divider -->
-          <tr>
-            <td style="padding:32px 40px 0;">
-              <div style="border-top:1px solid #eee;"></div>
-            </td>
-          </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="padding:20px 40px 32px;text-align:center;">
-              <p style="margin:0 0 8px;font-family:${FONT_EROTIQUE};font-size:18px;letter-spacing:4px;color:${COLOR_DARK};text-transform:uppercase;">
-                KINYN
-              </p>
-              <p style="margin:0;font-family:${FONT_POPPINS};font-size:12px;color:#999;line-height:1.6;">
-                Vous recevez cet email car vous faites partie de notre communauté.<br />
-                <a href="${appUrl}" style="color:${COLOR_PRIMARY};text-decoration:underline;">Visiter la boutique</a>
-              </p>
+            <td style="background-color:${COLOR_DARK};padding:0;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <tr><td style="height:40px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                <tr>
+                  <td align="center" style="padding:0 40px;">
+                    <img src="${logoUrl}" alt="KinyN" width="80" style="display:block;width:80px;height:auto;opacity:0.6;" />
+                  </td>
+                </tr>
+                <tr><td style="height:16px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                <tr>
+                  <td align="center">
+                    <table role="presentation" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="width:24px;height:1px;background-color:${COLOR_PRIMARY};font-size:0;line-height:0;">&nbsp;</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr><td style="height:20px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                <tr>
+                  <td align="center" style="padding:0 40px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:0 12px;">
+                          <a href="${appUrl}" style="font-family:${FONT_POPPINS};font-size:10px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#ffffff;opacity:0.5;text-decoration:none;">Boutique</a>
+                        </td>
+                        <td style="width:1px;background-color:#ffffff;opacity:0.15;font-size:0;">&nbsp;</td>
+                        <td style="padding:0 12px;">
+                          <a href="${appUrl}/about" style="font-family:${FONT_POPPINS};font-size:10px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#ffffff;opacity:0.5;text-decoration:none;">\u00c0 propos</a>
+                        </td>
+                        <td style="width:1px;background-color:#ffffff;opacity:0.15;font-size:0;">&nbsp;</td>
+                        <td style="padding:0 12px;">
+                          <a href="${appUrl}/contact" style="font-family:${FONT_POPPINS};font-size:10px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#ffffff;opacity:0.5;text-decoration:none;">Contact</a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr><td style="height:24px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                <tr>
+                  <td align="center" style="padding:0 48px;">
+                    <p style="margin:0;font-family:${FONT_POPPINS};font-size:10px;color:#ffffff;opacity:0.3;line-height:1.7;font-weight:300;">
+                      Vous recevez cet email car vous faites partie de la communaut\u00e9 KinyN.<br />
+                      &copy; ${new Date().getFullYear()} KinyN. Tous droits r\u00e9serv\u00e9s.
+                    </p>
+                  </td>
+                </tr>
+                <tr><td style="height:40px;font-size:0;line-height:0;">&nbsp;</td></tr>
+              </table>
             </td>
           </tr>
 
         </table>
+
+        <!-- Bottom spacer -->
+        <table role="presentation" cellpadding="0" cellspacing="0" width="600" class="email-container" style="max-width:600px;">
+          <tr><td style="height:40px;font-size:0;line-height:0;">&nbsp;</td></tr>
+        </table>
+
       </td>
     </tr>
   </table>
+
 </body>
 </html>`;
 }

@@ -6,15 +6,37 @@ import { FormEvent, useCallback, useState } from "react";
 export default function Newsletter() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = useCallback(
-    (e: FormEvent) => {
+    async (e: FormEvent) => {
       e.preventDefault();
-      if (!email.trim()) return;
-      setSubmitted(true);
-      setEmail("");
+      if (!email.trim() || loading) return;
+      setError("");
+      setLoading(true);
+
+      try {
+        const res = await fetch("/api/newsletter", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim() }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(data.error ?? "Une erreur est survenue.");
+        } else {
+          setSubmitted(true);
+          setEmail("");
+        }
+      } catch {
+        setError("Erreur réseau. Veuillez réessayer.");
+      } finally {
+        setLoading(false);
+      }
     },
-    [email],
+    [email, loading],
   );
 
   return (
@@ -46,29 +68,41 @@ export default function Newsletter() {
             </p>
           </div>
         ) : (
-          <form
-            onSubmit={handleSubmit}
-            className="mt-8 sm:mt-10 flex flex-col items-center gap-3 sm:flex-row sm:gap-0"
-            aria-label="Inscription newsletter"
-          >
-            <div className="relative w-full sm:flex-1">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Votre adresse e-mail"
-                required
-                className="w-full rounded-full border border-background/15 bg-background/10 px-6 py-3.5 font-poppins text-[0.82rem] text-background placeholder-background/35 outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/30 sm:rounded-r-none sm:pr-4"
-                aria-label="Adresse e-mail"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full rounded-full bg-primary px-8 py-3.5 font-poppins text-[0.82rem] font-semibold tracking-wide text-background transition-transform duration-200 ease-out hover:scale-105 active:scale-[0.98] sm:w-auto sm:rounded-l-none"
+          <>
+            <form
+              onSubmit={handleSubmit}
+              className="mt-8 sm:mt-10 flex flex-col items-center gap-3 sm:flex-row sm:gap-0"
+              aria-label="Inscription newsletter"
             >
-              S&apos;abonner
-            </button>
-          </form>
+              <div className="relative w-full sm:flex-1">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setError("");
+                  }}
+                  placeholder="Votre adresse e-mail"
+                  required
+                  disabled={loading}
+                  className="w-full rounded-full border border-background/15 bg-background/10 px-6 py-3.5 font-poppins text-[0.82rem] text-background placeholder-background/35 outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/30 sm:rounded-r-none sm:pr-4 disabled:opacity-50"
+                  aria-label="Adresse e-mail"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-full bg-primary px-8 py-3.5 font-poppins text-[0.82rem] font-semibold tracking-wide text-background transition-transform duration-200 ease-out hover:scale-105 active:scale-[0.98] sm:w-auto sm:rounded-l-none disabled:opacity-50 disabled:hover:scale-100"
+              >
+                {loading ? "Inscription…" : "S'abonner"}
+              </button>
+            </form>
+            {error && (
+              <p className="mt-3 font-poppins text-[0.78rem] text-red-400">
+                {error}
+              </p>
+            )}
+          </>
         )}
 
         <p className="mt-5 font-poppins text-[0.68rem] text-background/30">

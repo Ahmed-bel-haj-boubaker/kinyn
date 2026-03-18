@@ -1,9 +1,11 @@
 /* eslint-disable @next/next/no-html-link-for-pages */
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import NotificationBell from "./NotificationBell";
 import { useNotifications } from "../../hooks/useNotifications";
+import { useAdminAuth } from "../../context/AdminAuthContext";
 
 interface AdminNavbarProps {
   onMenuToggle: () => void;
@@ -14,11 +16,35 @@ export default function AdminNavbar({
   onMenuToggle,
   isSidebarOpen,
 }: AdminNavbarProps) {
+  const { user } = useAdminAuth();
+  const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [signingOut, setSigningOut] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const { notifications, unreadCount, markAsRead, markAllAsRead } =
     useNotifications();
+
+  const initials = user
+    ? `${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()
+    : "A";
+
+  const roleLabel =
+    user?.role === "super_admin"
+      ? "Super Admin"
+      : user?.role === "admin"
+        ? "Admin"
+        : "Modérateur";
+
+  const handleSignOut = useCallback(async () => {
+    setSigningOut(true);
+    try {
+      await fetch("/api/auth/sign-out", { method: "POST" });
+    } catch {
+      /* ignore */
+    }
+    router.replace("/auth/sign-in");
+  }, [router]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -155,11 +181,14 @@ export default function AdminNavbar({
               aria-expanded={isProfileOpen}
               aria-haspopup="true"
             >
-              <div className="w-8 h-8 rounded-full bg-dark flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
                 <span className="font-poppins text-xs font-semibold text-white">
-                  A
+                  {initials}
                 </span>
               </div>
+              <span className="hidden sm:block font-poppins text-sm font-medium text-dark max-w-30 truncate">
+                {user?.firstName}
+              </span>
               <svg
                 className={`hidden sm:block w-4 h-4 text-dark transition-transform duration-200 ${
                   isProfileOpen ? "rotate-180" : ""
@@ -187,6 +216,19 @@ export default function AdminNavbar({
               role="menu"
               aria-label="Options du profil"
             >
+              {/* User info header */}
+              <div className="px-4 py-3 border-b border-gray-100">
+                <p className="font-poppins text-sm font-medium text-dark truncate">
+                  {user?.firstName} {user?.lastName}
+                </p>
+                <p className="font-poppins text-xs text-gray-400 truncate">
+                  {user?.email}
+                </p>
+                <span className="mt-1.5 inline-block px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider rounded-full bg-primary/10 text-primary">
+                  {roleLabel}
+                </span>
+              </div>
+
               <a
                 href="/admin/profile"
                 className="flex items-center gap-3 px-4 py-2.5 font-poppins text-sm text-dark hover:bg-primary/5 hover:text-primary transition-colors duration-150"
@@ -207,35 +249,12 @@ export default function AdminNavbar({
                 </svg>
                 Profil
               </a>
-              <a
-                href="#"
-                className="flex items-center gap-3 px-4 py-2.5 font-poppins text-sm text-dark hover:bg-primary/5 hover:text-primary transition-colors duration-150"
-                role="menuitem"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                Paramètres
-              </a>
               <div className="my-1 border-t border-gray-100" />
-              <a
-                href="#"
-                className="flex items-center gap-3 px-4 py-2.5 font-poppins text-sm text-red-600 hover:bg-red-50 transition-colors duration-150"
+              <button
+                type="button"
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="w-full flex items-center gap-3 px-4 py-2.5 font-poppins text-sm text-red-600 hover:bg-red-50 transition-colors duration-150 disabled:opacity-50"
                 role="menuitem"
               >
                 <svg
@@ -251,8 +270,8 @@ export default function AdminNavbar({
                     d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                   />
                 </svg>
-                Déconnexion
-              </a>
+                {signingOut ? "Déconnexion..." : "Déconnexion"}
+              </button>
             </div>
           </div>
         </div>

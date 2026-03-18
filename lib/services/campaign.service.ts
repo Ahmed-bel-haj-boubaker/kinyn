@@ -103,7 +103,8 @@ export async function updateCampaign(
     if (input.ctaText !== undefined) doc.ctaText = input.ctaText.trim();
     if (input.ctaUrl !== undefined) doc.ctaUrl = input.ctaUrl.trim();
     if (input.products !== undefined) doc.products = input.products.slice(0, 6);
-    if (input.collections !== undefined) doc.collections = input.collections.slice(0, 6);
+    if (input.collections !== undefined)
+      doc.collections = input.collections.slice(0, 6);
 
     await doc.save();
     return { success: true, data: campaignToSafe(doc) };
@@ -286,7 +287,8 @@ export async function sendCampaign(
    Email Template Builder — Luxury Kinyn style
    ══════════════════════════════════════════════════════════════ */
 
-const FONT_POPPINS = "'Poppins', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+const FONT_POPPINS =
+  "'Poppins', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const FONT_EROTIQUE = "Georgia, 'Times New Roman', serif";
 const COLOR_PRIMARY = "#7a0c1c";
 const COLOR_DARK = "#17171a";
@@ -294,7 +296,9 @@ const COLOR_BG = "#f0f0ec";
 
 function absUrl(path: string, appUrl: string): string {
   if (!path) return "";
-  return path.startsWith("http") ? path : `${appUrl}${path.startsWith("/") ? "" : "/"}${path}`;
+  return path.startsWith("http")
+    ? path
+    : `${appUrl}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
 function buildCampaignEmail(
@@ -310,9 +314,7 @@ function buildCampaignEmail(
   };
   const typeLabel = typeLabels[campaign.type] || "Newsletter";
 
-  const ctaUrl = campaign.ctaUrl
-    ? absUrl(campaign.ctaUrl, appUrl)
-    : appUrl;
+  const ctaUrl = campaign.ctaUrl ? absUrl(campaign.ctaUrl, appUrl) : appUrl;
 
   /* ── Product cards ── */
   let productsHtml = "";
@@ -343,7 +345,9 @@ function buildCampaignEmail(
 
     const rows: string[] = [];
     for (let i = 0; i < cards.length; i += 2) {
-      rows.push(`<tr>${cards.slice(i, i + 2).join("")}${cards.length - i === 1 ? '<td width="50%"></td>' : ""}</tr>`);
+      rows.push(
+        `<tr>${cards.slice(i, i + 2).join("")}${cards.length - i === 1 ? '<td width="50%"></td>' : ""}</tr>`,
+      );
     }
 
     productsHtml = `
@@ -376,7 +380,9 @@ function buildCampaignEmail(
 
     const rows: string[] = [];
     for (let i = 0; i < cards.length; i += 2) {
-      rows.push(`<tr>${cards.slice(i, i + 2).join("")}${cards.length - i === 1 ? '<td width="50%"></td>' : ""}</tr>`);
+      rows.push(
+        `<tr>${cards.slice(i, i + 2).join("")}${cards.length - i === 1 ? '<td width="50%"></td>' : ""}</tr>`,
+      );
     }
 
     collectionsHtml = `

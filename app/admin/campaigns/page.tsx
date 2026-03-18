@@ -107,7 +107,9 @@ export default function CampaignsPage() {
   const [formCtaText, setFormCtaText] = useState("Découvrir");
   const [formCtaUrl, setFormCtaUrl] = useState("");
   const [formProducts, setFormProducts] = useState<CampaignProduct[]>([]);
-  const [formCollections, setFormCollections] = useState<CampaignCollection[]>([]);
+  const [formCollections, setFormCollections] = useState<CampaignCollection[]>(
+    [],
+  );
   const [saving, setSaving] = useState(false);
 
   /* Product search */
@@ -117,7 +119,9 @@ export default function CampaignsPage() {
 
   /* Collection search */
   const [collectionSearch, setCollectionSearch] = useState("");
-  const [collectionResults, setCollectionResults] = useState<SearchCollection[]>([]);
+  const [collectionResults, setCollectionResults] = useState<
+    SearchCollection[]
+  >([]);
   const [searchingCollections, setSearchingCollections] = useState(false);
 
   /* Modals */

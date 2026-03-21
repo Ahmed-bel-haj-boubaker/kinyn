@@ -5,6 +5,7 @@ import type {
   SafeProduct,
   ProductStatus,
   IProductImage,
+  ISizeStock,
 } from "@/models/Product";
 import mongoose from "mongoose";
 
@@ -41,10 +42,9 @@ interface LeanProduct {
   categoryFinale: PopulatedCatRef | mongoose.Types.ObjectId | null;
   price: number;
   promoPrice: number | null;
-  stock: number;
+  sizeStock: ISizeStock[];
   status: ProductStatus;
   images: IProductImage[];
-  sizes: string[];
   colors: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -69,6 +69,10 @@ function leanToSafe(doc: LeanProduct): SafeProduct {
   const sous = resolveCatRef(doc.categorySous);
   const finale = resolveCatRef(doc.categoryFinale);
 
+  const sizeStock = doc.sizeStock ?? [];
+  const stock = sizeStock.reduce((sum, s) => sum + s.stock, 0);
+  const sizes = sizeStock.map((s) => s.size);
+
   return {
     id: doc._id.toString(),
     name: doc.name,
@@ -83,10 +87,11 @@ function leanToSafe(doc: LeanProduct): SafeProduct {
     categoryFinaleName: finale.name,
     price: doc.price,
     promoPrice: doc.promoPrice,
-    stock: doc.stock,
+    sizeStock,
+    stock,
+    sizes,
     status: doc.status,
     images: doc.images ?? [],
-    sizes: doc.sizes ?? [],
     colors: doc.colors ?? [],
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,

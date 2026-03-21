@@ -306,7 +306,7 @@ function buildCampaignEmail(
   campaign: INewsletterCampaign,
   appUrl: string,
 ): string {
-  const logoUrl = `${appUrl}/images/logo.png`;
+  const logoUrl = `${appUrl}/images/logo2.png`;
   const fontUrl = `${appUrl}/fonts/ErotiqueTrial-Bold.ttf`;
 
   const typeLabels: Record<string, string> = {
@@ -502,7 +502,7 @@ function buildCampaignEmail(
                     <img src="${logoUrl}" alt="KinyN" width="140" style="display:block;width:140px;height:auto;" />
                     <![endif]-->
                     <!--[if !mso]><!-->
-                    <img src="${logoUrl}" alt="KinyN" width="140" style="display:block;width:140px;height:auto;filter:brightness(0) invert(1);-webkit-filter:brightness(0) invert(1);" />
+                    <img src="${logoUrl}" alt="KinyN" width="140" style="display:block;width:140px;height:auto;filter:brightness(0) invert(1);-webkit-filter:brightness(0) invert(1);opacity:0.9;" />
                     <!--<![endif]-->
                   </td>
                 </tr>
@@ -689,7 +689,7 @@ function buildCampaignEmail(
                     <img src="${logoUrl}" alt="KinyN" width="100" style="display:block;width:100px;height:auto;" />
                     <![endif]-->
                     <!--[if !mso]><!-->
-                    <img src="${logoUrl}" alt="KinyN" width="100" style="display:block;width:100px;height:auto;filter:brightness(0) invert(1);-webkit-filter:brightness(0) invert(1);opacity:0.5;" />
+                    <img src="${logoUrl}" alt="KinyN" width="100" style="display:block;width:100px;height:auto;filter:brightness(0) invert(1);-webkit-filter:brightness(0) invert(1);opacity:0.9;" />
                     <!--<![endif]-->
                   </td>
                 </tr>

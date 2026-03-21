@@ -751,4 +751,3 @@ function buildCampaignEmail(
 </body>
 </html>`;
 }
-

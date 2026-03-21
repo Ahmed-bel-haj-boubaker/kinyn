@@ -121,6 +121,8 @@ function CollectionFormInner({
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const nameRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
 
   /* ── Product picker state ── */
   const [allProducts, setAllProducts] = useState<ProductOption[]>([]);
@@ -166,6 +168,28 @@ function CollectionFormInner({
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  const handleImageUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("images", files[0]);
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const json = await res.json();
+      if (res.ok && json.urls?.[0]) {
+        setForm((prev) => ({ ...prev, image: json.urls[0] }));
+      }
+    } catch {
+      /* silent */
+    } finally {
+      setUploading(false);
+      if (imageInputRef.current) imageInputRef.current.value = "";
+    }
+  };
 
   const filteredProducts = allProducts.filter(
     (p) =>
@@ -285,34 +309,99 @@ function CollectionFormInner({
           />
         </div>
 
-        {/* Image URL */}
+        {/* Image Upload */}
         <div>
-          <label
-            htmlFor="col-image"
-            className="block font-poppins text-sm font-medium text-dark mb-1.5"
-          >
-            Image URL
+          <label className="block font-poppins text-sm font-medium text-dark mb-1.5">
+            Image
           </label>
           <input
-            id="col-image"
-            type="text"
-            value={form.image}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, image: e.target.value }))
-            }
-            className="w-full font-poppins px-4 py-2.5 rounded-lg border border-gray-300 text-sm text-dark placeholder:text-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:border-primary focus:ring-primary/20"
-            placeholder="https://..."
+            ref={imageInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+            className="hidden"
+            onChange={(e) => handleImageUpload(e.target.files)}
           />
-          {form.image && (
-            <img
-              src={form.image}
-              alt="Aperçu"
-              className="mt-2 w-20 h-20 rounded-lg object-cover bg-dark/5"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
-            />
-          )}
+          <div className="flex items-center gap-3">
+            {form.image && (
+              <div className="relative shrink-0">
+                <img
+                  src={form.image}
+                  alt="Aperçu"
+                  className="w-20 h-20 rounded-lg object-cover bg-dark/5"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setForm((prev) => ({ ...prev, image: "" }))}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-red-50 hover:border-red-300 transition-colors shadow-sm"
+                  aria-label="Supprimer l'image"
+                >
+                  <svg
+                    className="w-3 h-3 text-dark/50"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => imageInputRef.current?.click()}
+              disabled={uploading}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 hover:border-primary/50 hover:bg-primary/2 font-poppins text-sm text-dark/60 hover:text-primary transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
+            >
+              {uploading ? (
+                <svg
+                  className="w-4 h-4 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+                  />
+                </svg>
+              )}
+              {uploading
+                ? "Envoi en cours..."
+                : form.image
+                  ? "Changer l'image"
+                  : "Téléverser une image"}
+            </button>
+          </div>
         </div>
 
         {/* Order */}

@@ -289,7 +289,8 @@ export async function sendCampaign(
 
 const FONT_POPPINS =
   "'Poppins', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-const FONT_EROTIQUE = "Georgia, 'Times New Roman', Times, serif";
+const FONT_EROTIQUE =
+  "'ErotiqueTrial', Georgia, 'Times New Roman', Times, serif";
 const COLOR_PRIMARY = "#7a0c1c";
 const COLOR_DARK = "#17171a";
 const COLOR_BG = "#f0f0ec";
@@ -434,6 +435,12 @@ function buildCampaignEmail(
   <!--[if !mso]><!-->
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    @font-face {
+      font-family: 'ErotiqueTrial';
+      src: url('${appUrl}/fonts/ErotiqueTrial-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+    }
     * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
     body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
     img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }

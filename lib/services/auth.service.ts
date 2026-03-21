@@ -757,6 +757,16 @@ export async function listAdmins(
       addresses: [],
       wishlist: [],
       orders: [],
+      businessProfile: a.businessProfile ?? {
+        logo: "",
+        phone: "",
+        email: "",
+        address: "",
+        city: "",
+        country: "",
+        postalCode: "",
+        socialLinks: { instagram: "", facebook: "" },
+      },
     }));
 
     return { success: true, data: { admins: safeAdmins, total } };

@@ -171,7 +171,7 @@ async function getTopProducts() {
         name: prod?.name ?? a.name,
         totalSold: a.totalSold,
         totalRevenue: a.totalRevenue,
-        stock: prod?.stock ?? 0,
+        stock: prod?.sizeStock?.reduce((sum, s) => sum + (s.stock ?? 0), 0) ?? 0,
         image: prod?.images?.[0]?.url ?? "",
       };
     });

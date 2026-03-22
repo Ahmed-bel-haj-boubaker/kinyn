@@ -244,7 +244,11 @@ export async function sendCampaign(
       tls: { rejectUnauthorized: false },
     });
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://localhost:3000");
     const html = buildCampaignEmail(campaign, appUrl);
 
     /* Send in batches of 10 to avoid rate limits */
@@ -306,7 +310,7 @@ function buildCampaignEmail(
   campaign: INewsletterCampaign,
   appUrl: string,
 ): string {
-  const logoUrl = `${appUrl}/images/logo2.png`;
+  const logoUrl = `${appUrl}/images/logo-white.png`;
   const fontUrl = `${appUrl}/fonts/ErotiqueTrial-Bold.ttf`;
 
   const typeLabels: Record<string, string> = {
@@ -498,12 +502,7 @@ function buildCampaignEmail(
                 <tr><td style="height:52px;font-size:0;line-height:0;">&nbsp;</td></tr>
                 <tr>
                   <td align="center" style="padding:0 40px;">
-                    <!--[if mso]>
                     <img src="${logoUrl}" alt="KinyN" width="140" style="display:block;width:140px;height:auto;" />
-                    <![endif]-->
-                    <!--[if !mso]><!-->
-                    <img src="${logoUrl}" alt="KinyN" width="140" style="display:block;width:140px;height:auto;filter:brightness(0) invert(1);-webkit-filter:brightness(0) invert(1);opacity:0.9;" />
-                    <!--<![endif]-->
                   </td>
                 </tr>
                 <tr><td style="height:16px;font-size:0;line-height:0;">&nbsp;</td></tr>
@@ -685,12 +684,7 @@ function buildCampaignEmail(
                 <tr><td style="height:52px;font-size:0;line-height:0;">&nbsp;</td></tr>
                 <tr>
                   <td align="center" style="padding:0 40px;">
-                    <!--[if mso]>
                     <img src="${logoUrl}" alt="KinyN" width="100" style="display:block;width:100px;height:auto;" />
-                    <![endif]-->
-                    <!--[if !mso]><!-->
-                    <img src="${logoUrl}" alt="KinyN" width="100" style="display:block;width:100px;height:auto;filter:brightness(0) invert(1);-webkit-filter:brightness(0) invert(1);opacity:0.9;" />
-                    <!--<![endif]-->
                   </td>
                 </tr>
                 <tr><td style="height:20px;font-size:0;line-height:0;">&nbsp;</td></tr>

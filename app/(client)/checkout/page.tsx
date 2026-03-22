@@ -5,7 +5,14 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import {
+  Loader2,
+  CheckCircle2,
+  MapPin,
+  Plus,
+  Check,
+  Truck,
+} from "lucide-react";
 import { useCart } from "@/lib/cart";
 
 interface FormData {
@@ -17,7 +24,7 @@ interface FormData {
   city: string;
   address: string;
   postalCode: string;
-  shippingMethod: "standard" | "express";
+  shippingMethod: string;
   paymentMethod: "card" | "cod";
 }
 
@@ -30,6 +37,14 @@ interface FormErrors {
   city?: string;
   address?: string;
   postalCode?: string;
+}
+
+interface DeliveryMethodOption {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  estimatedDays: string;
 }
 
 interface SavedAddress {
@@ -67,12 +82,24 @@ export default function CheckoutPage() {
     city: "",
     address: "",
     postalCode: "",
-    shippingMethod: "standard",
+    shippingMethod: "",
     paymentMethod: "cod",
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  /* — Address selection state — */
+  const [selectedAddressIdx, setSelectedAddressIdx] = useState<number | null>(
+    null,
+  );
+  const [showNewAddress, setShowNewAddress] = useState(false);
+
+  /* — Delivery methods state — */
+  const [deliveryMethods, setDeliveryMethods] = useState<
+    DeliveryMethodOption[]
+  >([]);
+  const [methodsLoading, setMethodsLoading] = useState(true);
 
   /* â”€â”€ Check auth on mount, redirect if not logged in â”€â”€ */
   useEffect(() => {
@@ -89,8 +116,15 @@ export default function CheckoutPage() {
         setUser(u);
 
         /* Pre-fill personal info */
-        const defaultAddr =
-          u.addresses?.find((a) => a.isDefault) ?? u.addresses?.[0];
+        const addresses = u.addresses ?? [];
+        const defaultIdx = addresses.findIndex((a) => a.isDefault);
+        const pickIdx =
+          defaultIdx >= 0 ? defaultIdx : addresses.length > 0 ? 0 : -1;
+        const defaultAddr = pickIdx >= 0 ? addresses[pickIdx] : undefined;
+
+        if (pickIdx >= 0) setSelectedAddressIdx(pickIdx);
+        if (addresses.length === 0) setShowNewAddress(true);
+
         setFormData((prev) => ({
           ...prev,
           firstName: u.firstName ?? "",
@@ -111,12 +145,35 @@ export default function CheckoutPage() {
     checkAuth();
   }, [router]);
 
-  const shippingCosts = {
-    standard: 8,
-    express: 20,
-  };
+  /* — Fetch delivery methods on mount — */
+  useEffect(() => {
+    async function fetchMethods() {
+      try {
+        const res = await fetch("/api/delivery-methods");
+        if (res.ok) {
+          const data = await res.json();
+          const methods: DeliveryMethodOption[] = data.methods ?? [];
+          setDeliveryMethods(methods);
+          if (methods.length > 0) {
+            setFormData((prev) => ({
+              ...prev,
+              shippingMethod: prev.shippingMethod || methods[0].id,
+            }));
+          }
+        }
+      } catch {
+        /* ignore */
+      } finally {
+        setMethodsLoading(false);
+      }
+    }
+    fetchMethods();
+  }, []);
 
-  const shipping = shippingCosts[formData.shippingMethod];
+  const selectedMethod = deliveryMethods.find(
+    (m) => m.id === formData.shippingMethod,
+  );
+  const shipping = selectedMethod?.price ?? 0;
   const total = subtotal + shipping;
 
   const handleInputChange = useCallback(
@@ -455,103 +512,286 @@ export default function CheckoutPage() {
                 <h2 className="font-erotique text-2xl sm:text-3xl text-dark mb-6">
                   Adresse de livraison
                 </h2>
-                <div className="space-y-4">
-                  {/* Country */}
-                  <div>
-                    <label
-                      htmlFor="country"
-                      className="block font-poppins text-sm font-medium text-dark mb-2"
+
+                {/* Saved addresses picker (logged-in users only) */}
+                {user && (user.addresses?.length ?? 0) > 0 && (
+                  <div className="mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {user.addresses!.map((addr, idx) => {
+                        const selected =
+                          !showNewAddress && selectedAddressIdx === idx;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              setSelectedAddressIdx(idx);
+                              setShowNewAddress(false);
+                              setFormData((prev) => ({
+                                ...prev,
+                                country: addr.country || prev.country,
+                                city: addr.city,
+                                address: addr.address,
+                                postalCode: addr.postalCode,
+                              }));
+                              setErrors((prev) => ({
+                                ...prev,
+                                city: undefined,
+                                address: undefined,
+                                postalCode: undefined,
+                              }));
+                            }}
+                            className={`relative text-left p-4 rounded-xl border-2 transition-all duration-200 ${
+                              selected
+                                ? "border-primary bg-primary/5"
+                                : "border-gray-200 hover:border-gray-300 bg-white"
+                            }`}
+                          >
+                            {selected && (
+                              <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                                <Check
+                                  className="w-3 h-3 text-white"
+                                  strokeWidth={3}
+                                />
+                              </span>
+                            )}
+                            <div className="flex items-start gap-2.5">
+                              <MapPin
+                                className="w-4 h-4 text-dark/30 shrink-0 mt-0.5"
+                                strokeWidth={1.5}
+                              />
+                              <div className="min-w-0">
+                                <p className="font-poppins text-sm font-medium text-dark truncate">
+                                  {addr.address}
+                                </p>
+                                <p className="font-poppins text-xs text-dark/50 mt-0.5">
+                                  {addr.postalCode} {addr.city},{" "}
+                                  {addr.country || "Tunisie"}
+                                </p>
+                                {addr.isDefault && (
+                                  <span className="inline-block mt-1.5 font-poppins text-[10px] font-semibold uppercase tracking-wider text-primary">
+                                    Par défaut
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Add new address toggle */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowNewAddress(true);
+                        setSelectedAddressIdx(null);
+                        setFormData((prev) => ({
+                          ...prev,
+                          country: "Tunisie",
+                          city: "",
+                          address: "",
+                          postalCode: "",
+                        }));
+                      }}
+                      className={`mt-3 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 border-dashed transition-all duration-200 ${
+                        showNewAddress
+                          ? "border-primary bg-primary/5 text-primary"
+                          : "border-gray-200 text-dark/40 hover:border-gray-300 hover:text-dark/60"
+                      }`}
                     >
-                      Pays *
-                    </label>
-                    <input
-                      type="text"
-                      id="country"
-                      name="country"
-                      value={formData.country}
-                      onChange={handleInputChange}
-                      className="w-full font-poppins px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:border-primary focus:ring-primary/20 text-dark placeholder:text-gray-400 bg-white transition-all duration-200"
-                      placeholder="Tunisie"
-                      autoComplete="country-name"
-                    />
+                      <Plus className="w-4 h-4" strokeWidth={2} />
+                      <span className="font-poppins text-sm font-medium">
+                        Ajouter une nouvelle adresse
+                      </span>
+                    </button>
                   </div>
-                  {/* City + Postal code */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                )}
+
+                {/* Address form — shown for guests, or when "new address" is active, or when user has no saved addresses */}
+                {(isGuest || showNewAddress || !user?.addresses?.length) && (
+                  <div className="space-y-4">
+                    {/* Country */}
                     <div>
                       <label
-                        htmlFor="city"
+                        htmlFor="country"
                         className="block font-poppins text-sm font-medium text-dark mb-2"
                       >
-                        Ville *
+                        Pays *
                       </label>
                       <input
                         type="text"
-                        id="city"
-                        name="city"
-                        value={formData.city}
+                        id="country"
+                        name="country"
+                        value={formData.country}
                         onChange={handleInputChange}
-                        onBlur={handleBlur}
-                        className={inputCls("city")}
-                        placeholder="Tunis"
-                        autoComplete="address-level2"
+                        className="w-full font-poppins px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:border-primary focus:ring-primary/20 text-dark placeholder:text-gray-400 bg-white transition-all duration-200"
+                        placeholder="Tunisie"
+                        autoComplete="country-name"
                       />
-                      {touched.city && errors.city && (
-                        <p className="font-poppins text-xs text-red-500 mt-1">
-                          {errors.city}
-                        </p>
-                      )}
                     </div>
+                    {/* City + Postal code */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label
+                          htmlFor="city"
+                          className="block font-poppins text-sm font-medium text-dark mb-2"
+                        >
+                          Ville *
+                        </label>
+                        <input
+                          type="text"
+                          id="city"
+                          name="city"
+                          value={formData.city}
+                          onChange={handleInputChange}
+                          onBlur={handleBlur}
+                          className={inputCls("city")}
+                          placeholder="Tunis"
+                          autoComplete="address-level2"
+                        />
+                        {touched.city && errors.city && (
+                          <p className="font-poppins text-xs text-red-500 mt-1">
+                            {errors.city}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="postalCode"
+                          className="block font-poppins text-sm font-medium text-dark mb-2"
+                        >
+                          Code postal *
+                        </label>
+                        <input
+                          type="text"
+                          id="postalCode"
+                          name="postalCode"
+                          value={formData.postalCode}
+                          onChange={handleInputChange}
+                          onBlur={handleBlur}
+                          className={inputCls("postalCode")}
+                          placeholder="1000"
+                          autoComplete="postal-code"
+                        />
+                        {touched.postalCode && errors.postalCode && (
+                          <p className="font-poppins text-xs text-red-500 mt-1">
+                            {errors.postalCode}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    {/* Street address */}
                     <div>
                       <label
-                        htmlFor="postalCode"
+                        htmlFor="address"
                         className="block font-poppins text-sm font-medium text-dark mb-2"
                       >
-                        Code postal *
+                        Adresse *
                       </label>
                       <input
                         type="text"
-                        id="postalCode"
-                        name="postalCode"
-                        value={formData.postalCode}
+                        id="address"
+                        name="address"
+                        value={formData.address}
                         onChange={handleInputChange}
                         onBlur={handleBlur}
-                        className={inputCls("postalCode")}
-                        placeholder="1000"
-                        autoComplete="postal-code"
+                        className={inputCls("address")}
+                        placeholder="123 Avenue Habib Bourguiba"
+                        autoComplete="street-address"
                       />
-                      {touched.postalCode && errors.postalCode && (
+                      {touched.address && errors.address && (
                         <p className="font-poppins text-xs text-red-500 mt-1">
-                          {errors.postalCode}
+                          {errors.address}
                         </p>
                       )}
                     </div>
                   </div>
-                  {/* Street address */}
-                  <div>
-                    <label
-                      htmlFor="address"
-                      className="block font-poppins text-sm font-medium text-dark mb-2"
-                    >
-                      Adresse *
-                    </label>
-                    <input
-                      type="text"
-                      id="address"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      onBlur={handleBlur}
-                      className={inputCls("address")}
-                      placeholder="123 Avenue Habib Bourguiba"
-                      autoComplete="street-address"
+                )}
+              </section>
+
+              {/* Delivery Method */}
+              <section className="bg-white rounded-2xl shadow-sm p-6 sm:p-8">
+                <h2 className="font-erotique text-2xl sm:text-3xl text-dark mb-6">
+                  Mode de livraison
+                </h2>
+                {methodsLoading ? (
+                  <div className="flex items-center justify-center py-8 text-dark/30">
+                    <Loader2
+                      className="h-5 w-5 animate-spin"
+                      strokeWidth={1.5}
                     />
-                    {touched.address && errors.address && (
-                      <p className="font-poppins text-xs text-red-500 mt-1">
-                        {errors.address}
-                      </p>
-                    )}
                   </div>
-                </div>
+                ) : deliveryMethods.length === 0 ? (
+                  <p className="font-poppins text-sm text-dark/40 text-center py-6">
+                    Aucune méthode de livraison disponible.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {deliveryMethods.map((method) => {
+                      const isSelected = formData.shippingMethod === method.id;
+                      return (
+                        <button
+                          key={method.id}
+                          type="button"
+                          onClick={() =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              shippingMethod: method.id,
+                            }))
+                          }
+                          className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-200 ${
+                            isSelected
+                              ? "border-primary bg-primary/5"
+                              : "border-gray-200 hover:border-gray-300 bg-white"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                                  isSelected
+                                    ? "bg-primary text-white"
+                                    : "bg-gray-100 text-dark/30"
+                                }`}
+                              >
+                                <Truck className="w-4 h-4" strokeWidth={2} />
+                              </div>
+                              <div>
+                                <p className="font-poppins text-sm font-semibold text-dark">
+                                  {method.name}
+                                </p>
+                                {(method.description ||
+                                  method.estimatedDays) && (
+                                  <p className="font-poppins text-xs text-dark/40 mt-0.5">
+                                    {method.description}
+                                    {method.description && method.estimatedDays
+                                      ? " — "
+                                      : ""}
+                                    {method.estimatedDays}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 shrink-0">
+                              <span className="font-poppins text-sm font-semibold text-dark">
+                                {method.price.toFixed(3).replace(".", ",")} TND
+                              </span>
+                              {isSelected && (
+                                <span className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                                  <Check
+                                    className="w-3 h-3 text-white"
+                                    strokeWidth={3}
+                                  />
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </section>
             </div>
 
@@ -631,9 +871,12 @@ export default function CheckoutPage() {
                     </span>
                   </div>
                   <div className="flex justify-between font-poppins text-sm">
-                    <span className="text-dark/50">Livraison</span>
+                    <span className="text-dark/50">
+                      Livraison
+                      {selectedMethod ? ` (${selectedMethod.name})` : ""}
+                    </span>
                     <span className="font-medium text-dark">
-                      {shipping.toFixed(2).replace(".", ",")} TND
+                      {shipping.toFixed(3).replace(".", ",")} TND
                     </span>
                   </div>
                   <div className="pt-3 border-t border-gray-100 flex justify-between font-poppins">

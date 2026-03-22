@@ -4,17 +4,22 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 import DeliveryTable from "../component/deliveries/DeliveryTable";
 import DeliveryModal from "../component/deliveries/DeliveryModal";
 import DeliveryDetailModal from "../component/deliveries/DeliveryDetailModal";
+import DeliveryMethodTable from "../component/deliveries/DeliveryMethodTable";
+import DeliveryMethodModal from "../component/deliveries/DeliveryMethodModal";
 import DeleteConfirmModal from "../component/shared/DeleteConfirmModal";
 import Toast from "../component/shared/Toast";
 import { useToast } from "../hooks/useToast";
 import { useAdminAuth } from "../context/AdminAuthContext";
 import type { AdminDeliveryCompany } from "../component/deliveries/DeliveryTable";
+import type { AdminDeliveryMethod } from "../component/deliveries/DeliveryMethodTable";
 import type { CompanyFormData } from "../component/deliveries/DeliveryModal";
+import type { MethodFormData } from "../component/deliveries/DeliveryMethodModal";
 import type { DeliveryCompanyStatus } from "@/models/Delivery";
 
 /* ──────────────── API helper ──────────────── */
 
 const API_BASE = "/api/admin/deliveries";
+const METHOD_API = "/api/admin/delivery-methods";
 
 async function apiFetch<T>(
   url: string,
@@ -82,6 +87,18 @@ export default function AdminDeliveriesPage() {
     null,
   );
 
+  /* ── Delivery Methods state ── */
+  const [methods, setMethods] = useState<AdminDeliveryMethod[]>([]);
+  const [methodModalOpen, setMethodModalOpen] = useState(false);
+  const [methodModalMode, setMethodModalMode] = useState<"create" | "edit">(
+    "create",
+  );
+  const [editingMethod, setEditingMethod] =
+    useState<AdminDeliveryMethod | null>(null);
+  const [deleteMethodTarget, setDeleteMethodTarget] =
+    useState<AdminDeliveryMethod | null>(null);
+  const [savingMethod, setSavingMethod] = useState(false);
+
   /* ── Fetch companies ── */
 
   const fetchCompanies = useCallback(async () => {
@@ -101,9 +118,19 @@ export default function AdminDeliveriesPage() {
     setLoading(false);
   }, [addToast]);
 
+  const fetchMethods = useCallback(async () => {
+    const result = await apiFetch<{ methods: AdminDeliveryMethod[] }>(
+      METHOD_API,
+    );
+    if (result.ok && result.data) {
+      setMethods(result.data.methods);
+    }
+  }, []);
+
   useEffect(() => {
     fetchCompanies();
-  }, [fetchCompanies]);
+    fetchMethods();
+  }, [fetchCompanies, fetchMethods]);
 
   /* ── Filtered companies ── */
 
@@ -226,6 +253,84 @@ export default function AdminDeliveriesPage() {
   };
 
   const hasActiveFilters = search || filterStatus !== "all";
+
+  /* ── Delivery Methods handlers ── */
+
+  const handleCreateMethod = useCallback(() => {
+    setEditingMethod(null);
+    setMethodModalMode("create");
+    setMethodModalOpen(true);
+  }, []);
+
+  const handleEditMethod = useCallback((m: AdminDeliveryMethod) => {
+    setEditingMethod(m);
+    setMethodModalMode("edit");
+    setMethodModalOpen(true);
+  }, []);
+
+  const handleMethodModalSave = useCallback(
+    async (data: MethodFormData) => {
+      setSavingMethod(true);
+
+      if (methodModalMode === "create") {
+        const body = {
+          name: data.name,
+          description: data.description,
+          price: Number(data.price),
+          estimatedDays: data.estimatedDays,
+        };
+        const result = await apiFetch<{ method: AdminDeliveryMethod }>(
+          METHOD_API,
+          { method: "POST", body: JSON.stringify(body) },
+        );
+        if (result.ok) {
+          addToast("success", `Méthode "${data.name}" créée avec succès`);
+          await fetchMethods();
+        } else {
+          addToast("error", result.error ?? "Erreur lors de la création.");
+        }
+      } else if (editingMethod) {
+        const body = {
+          name: data.name,
+          description: data.description,
+          price: Number(data.price),
+          estimatedDays: data.estimatedDays,
+          status: data.status,
+        };
+        const result = await apiFetch<{ method: AdminDeliveryMethod }>(
+          `${METHOD_API}/${editingMethod.id}`,
+          { method: "PATCH", body: JSON.stringify(body) },
+        );
+        if (result.ok) {
+          addToast("success", `Méthode "${data.name}" modifiée avec succès`);
+          await fetchMethods();
+        } else {
+          addToast("error", result.error ?? "Erreur lors de la modification.");
+        }
+      }
+
+      setSavingMethod(false);
+      setMethodModalOpen(false);
+      setEditingMethod(null);
+    },
+    [methodModalMode, editingMethod, addToast, fetchMethods],
+  );
+
+  const handleDeleteMethod = useCallback(
+    async (methodId: string) => {
+      const result = await apiFetch(`${METHOD_API}/${methodId}`, {
+        method: "DELETE",
+      });
+      if (result.ok) {
+        addToast("success", "Méthode supprimée avec succès.");
+        setMethods((prev) => prev.filter((m) => m.id !== methodId));
+      } else {
+        addToast("error", result.error ?? "Erreur lors de la suppression.");
+      }
+      setDeleteMethodTarget(null);
+    },
+    [addToast],
+  );
 
   const selectClass =
     "px-3 py-2 rounded-xl border border-gray-200 bg-white font-poppins text-sm text-dark placeholder:text-dark/30 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200 appearance-none bg-no-repeat bg-position-[right_0.75rem_center] bg-size-[1rem] bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2317171a'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")] pr-9";
@@ -499,6 +604,49 @@ export default function AdminDeliveriesPage() {
         onDelete={canWrite ? setDeleteTarget : undefined}
       />
 
+      {/* ════════════════ Delivery Methods Section ════════════════ */}
+      <div className="mt-16 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div>
+            <h2 className="font-erotique text-2xl sm:text-3xl text-dark">
+              Méthodes de livraison
+            </h2>
+            <p className="font-poppins text-sm text-dark/50 mt-1">
+              Gérez les types de livraison proposés aux clients (Standard,
+              Express, etc.)
+            </p>
+          </div>
+          {canWrite && (
+            <button
+              type="button"
+              onClick={handleCreateMethod}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-poppins text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30 shrink-0 self-start sm:self-auto"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Ajouter une méthode
+            </button>
+          )}
+        </div>
+
+        <DeliveryMethodTable
+          methods={methods}
+          onEdit={canWrite ? handleEditMethod : undefined}
+          onDelete={canWrite ? setDeleteMethodTarget : undefined}
+        />
+      </div>
+
       {/* Company Detail Modal */}
       <DeliveryDetailModal
         isOpen={!!viewingCompany}
@@ -531,12 +679,45 @@ export default function AdminDeliveriesPage() {
         saving={saving}
       />
 
-      {/* Delete Confirm Modal */}
+      {/* Delete Confirm Modal (Company) */}
       <DeleteConfirmModal
         isOpen={!!deleteTarget}
         categoryName={deleteTarget?.name ?? ""}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && handleDelete(deleteTarget.id)}
+      />
+
+      {/* Create / Edit Method Modal */}
+      <DeliveryMethodModal
+        isOpen={methodModalOpen}
+        mode={methodModalMode}
+        initialData={
+          editingMethod
+            ? {
+                name: editingMethod.name,
+                description: editingMethod.description,
+                price: String(editingMethod.price),
+                estimatedDays: editingMethod.estimatedDays,
+                status: editingMethod.status,
+              }
+            : undefined
+        }
+        onCancel={() => {
+          setMethodModalOpen(false);
+          setEditingMethod(null);
+        }}
+        onSave={handleMethodModalSave}
+        saving={savingMethod}
+      />
+
+      {/* Delete Confirm Modal (Method) */}
+      <DeleteConfirmModal
+        isOpen={!!deleteMethodTarget}
+        categoryName={deleteMethodTarget?.name ?? ""}
+        onCancel={() => setDeleteMethodTarget(null)}
+        onConfirm={() =>
+          deleteMethodTarget && handleDeleteMethod(deleteMethodTarget.id)
+        }
       />
     </>
   );

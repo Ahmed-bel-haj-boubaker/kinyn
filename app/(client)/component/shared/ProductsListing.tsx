@@ -1433,7 +1433,10 @@ export default function ProductsListing({
                                 onClick={() => setQuickViewProduct(product)}
                                 className="mb-4 sm:mb-6 flex items-center gap-1.5 bg-background/95 backdrop-blur-sm px-4 py-2 sm:px-5 sm:py-2.5 rounded-full font-poppins text-[0.65rem] sm:text-[0.7rem] font-medium tracking-[0.06em] text-dark shadow-lg transition-all duration-300 hover:bg-background hover:shadow-xl active:scale-95"
                               >
-                                <Eye className="h-3.5 w-3.5" strokeWidth={1.8} />
+                                <Eye
+                                  className="h-3.5 w-3.5"
+                                  strokeWidth={1.8}
+                                />
                                 Aperçu
                               </button>
                             </div>

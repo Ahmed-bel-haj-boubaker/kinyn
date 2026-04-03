@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/preserve-manual-memoization */
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
@@ -21,102 +22,36 @@ import {
 import { createPortal } from "react-dom";
 import { useCart } from "@/lib/cart";
 
+interface ProductImage {
+  url: string;
+  color: string;
+  colorHex: string;
+}
+
 interface Product {
-  id: number;
+  id: string;
   name: string;
-  price: string;
-  originalPrice?: string;
+  slug: string;
+  price: number;
+  promoPrice: number | null;
   image: string;
+  images: ProductImage[];
+  sizes: string[];
+  colors: string[];
+  categoryMereSlug: string;
+  categoryFinaleSlug: string;
   href: string;
 }
 
-const PRODUCTS: Product[] = [
-  {
-    id: 1,
-    name: "T-shirt Oversize",
-    price: "89.000 DT",
-    image:
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80",
-    href: "/homme/t-shirt",
-  },
-  {
-    id: 2,
-    name: "Chemise Lin",
-    price: "119.000 DT",
-    originalPrice: "149.000 DT",
-    image:
-      "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80",
-    href: "/homme/chemise",
-  },
-  {
-    id: 3,
-    name: "Robe Élégante",
-    price: "159.000 DT",
-    originalPrice: "199.000 DT",
-    image:
-      "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&q=80",
-    href: "/femme/robe-courte",
-  },
-  {
-    id: 4,
-    name: "Pull Cachemire",
-    price: "259.000 DT",
-    image:
-      "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=800&q=80",
-    href: "/femme/pull-sweater",
-  },
-  {
-    id: 5,
-    name: "Pantalon Cargo",
-    price: "97.000 DT",
-    originalPrice: "129.000 DT",
-    image:
-      "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=800&q=80",
-    href: "/homme/pantalon",
-  },
-  {
-    id: 6,
-    name: "Blouse Satin",
-    price: "179.000 DT",
-    image:
-      "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=800&q=80",
-    href: "/femme/blouse",
-  },
-  {
-    id: 7,
-    name: "Hoodie Premium",
-    price: "135.000 DT",
-    originalPrice: "169.000 DT",
-    image:
-      "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&q=80",
-    href: "/homme/sweat-a-capuche-hoodie",
-  },
-  {
-    id: 8,
-    name: "Jupe Plissée",
-    price: "139.000 DT",
-    image:
-      "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=800&q=80",
-    href: "/femme/jupe",
-  },
-];
-
-/* ── Modal product data ── */
-const MODAL_IMAGES = [
-  "https://images.unsplash.com/photo-1434389677669-e08b4cda3a98?w=900&q=85",
-  "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=900&q=85",
-  "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=900&q=85",
-  "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=900&q=85",
-];
-
-const MODAL_COLORS = [
-  { name: "Noir", hex: "#1a1a1a" },
-  { name: "Blanc", hex: "#f5f5f5" },
-  { name: "Beige", hex: "#d4b896" },
-  { name: "Rouge", hex: "#b31b21" },
-];
-
-const MODAL_SIZES = ["XS", "S", "M", "L", "XL"];
+/* Format a numeric price → "89.000 DT" */
+function formatPrice(n: number): string {
+  return (
+    n.toLocaleString("fr-TN", {
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3,
+    }) + " DT"
+  );
+}
 
 /* ═══════════════════════════════════════════════
    Quick-view modal — full product details
@@ -133,10 +68,13 @@ function QuickViewModal({
 
   /* Image gallery */
   const [selectedImage, setSelectedImage] = useState(0);
-  const images = [product.image, ...MODAL_IMAGES.slice(1)];
+  const images =
+    product.images.length > 0
+      ? product.images.map((img) => img.url)
+      : [product.image];
 
   /* Selectors */
-  const [selectedColor, setSelectedColor] = useState(MODAL_COLORS[0].name);
+  const [selectedColor, setSelectedColor] = useState(product.colors[0] ?? "");
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -186,28 +124,16 @@ function QuickViewModal({
     }
     setSizeError(false);
 
-    /* Parse price string like "89.000 DT" → 89 */
-    const parsePrice = (s: string) =>
-      parseFloat(s.replace(/[^0-9.,]/g, "").replace(",", ".")) || 0;
-    const price = parsePrice(product.price);
-    const promoPrice = product.originalPrice ? parsePrice(product.price) : null;
-    const originalPrice = product.originalPrice
-      ? parsePrice(product.originalPrice)
-      : price;
-
-    /* Extract category slug from href e.g. "/homme/t-shirt" → "homme" */
-    const parts = product.href.split("/").filter(Boolean);
-
     addItem({
-      productId: String(product.id),
+      productId: product.id,
       name: product.name,
-      slug: parts[parts.length - 1] || String(product.id),
+      slug: product.slug,
       image: product.image,
-      price: product.originalPrice ? originalPrice : price,
-      promoPrice: promoPrice,
+      price: product.price,
+      promoPrice: product.promoPrice,
       color: selectedColor,
-      size: selectedSize || "",
-      categorySlug: parts[0] || "",
+      size: selectedSize,
+      categorySlug: product.categoryMereSlug,
       quantity: quantity,
     });
 
@@ -217,7 +143,6 @@ function QuickViewModal({
 
   const isVisible = phase === "visible";
   const isExiting = phase === "exit";
-  const hasDiscount = !!product.originalPrice;
 
   /* Stagger helper */
   const stagger = (ms: number) => ({
@@ -284,7 +209,7 @@ function QuickViewModal({
               />
 
               {/* Discount badge */}
-              {hasDiscount && (
+              {product.promoPrice && (
                 <div
                   className={`absolute top-3 left-3 sm:top-4 sm:left-4 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-primary text-background font-poppins text-[0.55rem] sm:text-[0.6rem] font-semibold uppercase tracking-[0.12em] transition-all duration-500 ${
                     isVisible
@@ -367,8 +292,9 @@ function QuickViewModal({
             >
               <div className="h-[3px] w-[3px] rounded-full bg-primary" />
               <span className="font-poppins text-[0.56rem] font-medium uppercase tracking-[0.22em] text-dark/35">
-                {product.href.split("/").filter(Boolean).join(" — ") ||
-                  "Collection"}
+                {[product.categoryMereSlug, product.categoryFinaleSlug]
+                  .filter(Boolean)
+                  .join(" — ") || "Collection"}
               </span>
             </div>
 
@@ -402,11 +328,11 @@ function QuickViewModal({
               style={stagger(340)}
             >
               <span className="font-poppins text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-dark">
-                {product.price}
+                {formatPrice(product.promoPrice ?? product.price)}
               </span>
-              {product.originalPrice && (
+              {product.promoPrice && (
                 <span className="font-poppins text-sm text-dark/30 line-through">
-                  {product.originalPrice}
+                  {formatPrice(product.price)}
                 </span>
               )}
             </div>
@@ -442,22 +368,35 @@ function QuickViewModal({
                   {selectedColor}
                 </span>
               </p>
-              <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-2.5 flex-wrap">
-                {MODAL_COLORS.map((color) => (
-                  <button
-                    key={color.name}
-                    type="button"
-                    onClick={() => setSelectedColor(color.name)}
-                    className={`h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 rounded-full border-2 transition-all duration-200 ${
-                      selectedColor === color.name
-                        ? "border-primary ring-2 ring-primary/20 scale-110"
-                        : "border-dark/12 hover:border-dark/25"
-                    }`}
-                    style={{ backgroundColor: color.hex }}
-                    aria-label={color.name}
-                  />
-                ))}
-              </div>
+              {product.colors.length > 0 ? (
+                <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-2.5 flex-wrap">
+                  {product.colors.map((color) => {
+                    const matchImg = product.images.find(
+                      (img) => img.color === color,
+                    );
+                    const hex = matchImg?.colorHex ?? "#cccccc";
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setSelectedColor(color)}
+                        className={`h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 rounded-full border-2 transition-all duration-200 ${
+                          selectedColor === color
+                            ? "border-primary ring-2 ring-primary/20 scale-110"
+                            : "border-dark/12 hover:border-dark/25"
+                        }`}
+                        style={{ backgroundColor: hex }}
+                        aria-label={color}
+                        title={color}
+                      />
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="font-poppins text-[0.64rem] text-dark/40">
+                  Couleur unique
+                </p>
+              )}
             </div>
 
             {/* ── Size Selector ── */}
@@ -478,7 +417,7 @@ function QuickViewModal({
                 )}
               </p>
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                {MODAL_SIZES.map((size) => (
+                {product.sizes.map((size) => (
                   <button
                     key={size}
                     type="button"
@@ -657,12 +596,50 @@ function QuickViewModal({
 const INITIAL_COUNT = 8;
 
 export default function ProductSlider() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
-  const displayed = showAll ? PRODUCTS : PRODUCTS.slice(0, INITIAL_COUNT);
+  /* ── Fetch femme products ── */
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    fetch("/api/products?mere=femme&limit=12&sort=newest")
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const items: Product[] = (data.products ?? []).map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          price: p.price,
+          promoPrice: p.promoPrice ?? null,
+          image: p.image ?? "",
+          images: p.images ?? [],
+          sizes: p.sizes ?? [],
+          colors: p.colors ?? [],
+          categoryMereSlug: p.categoryMereSlug ?? "",
+          categoryFinaleSlug: p.categoryFinaleSlug ?? "",
+          href: `/${p.categoryMereSlug ?? "femme"}/${p.slug}`,
+        }));
+        setProducts(items);
+      })
+      .catch(() => {
+        /* silently fail — grid stays empty */
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const displayed = showAll ? products : products.slice(0, INITIAL_COUNT);
 
   /* ── Scroll-reveal ── */
   useEffect(() => {
@@ -704,72 +681,85 @@ export default function ProductSlider() {
 
         {/* ── Product Grid ── */}
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8 sm:gap-x-5 sm:gap-y-10 lg:gap-x-6 lg:gap-y-12">
-          {displayed.map((product, i) => (
-            <div
-              key={product.id}
-              className={`transition-all duration-700 ease-out ${
-                isVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
-              }`}
-              style={{ transitionDelay: isVisible ? `${i * 80}ms` : "0ms" }}
-            >
-              <div className="group">
-                {/* Arch-shaped Image */}
-                <div className="relative aspect-[3/4] overflow-hidden rounded-t-full bg-dark/[0.03]">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  />
-
-                  {/* Hover overlay with quick-view */}
-                  <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-dark/40 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedProduct(product)}
-                      className="mb-6 sm:mb-8 flex items-center gap-1.5 bg-background/95 backdrop-blur-sm px-4 py-2 sm:px-5 sm:py-2.5 rounded-full font-poppins text-[0.65rem] sm:text-[0.7rem] font-medium tracking-[0.06em] text-dark shadow-lg transition-all duration-300 hover:bg-background hover:shadow-xl active:scale-95"
-                    >
-                      <Eye className="h-3.5 w-3.5" strokeWidth={1.8} />
-                      Aperçu
-                    </button>
+          {loading
+            ? Array.from({ length: INITIAL_COUNT }).map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="aspect-[3/4] rounded-t-full bg-dark/[0.07]" />
+                  <div className="pt-4 space-y-2">
+                    <div className="mx-auto h-3 w-2/3 rounded bg-dark/[0.06]" />
+                    <div className="mx-auto h-2.5 w-1/3 rounded bg-dark/[0.05]" />
+                    <div className="h-9 w-full rounded bg-dark/[0.05]" />
                   </div>
                 </div>
-
-                {/* Info */}
-                <div className="pt-3 sm:pt-4 pb-1 space-y-2 sm:space-y-3">
-                  <div className="text-center">
-                    <h3 className="font-erotique text-[0.8rem] sm:text-[0.95rem] lg:text-[1rem] text-dark leading-snug tracking-wide">
-                      {product.name}
-                    </h3>
-                    <div className="mt-1 flex items-center justify-center gap-2">
-                      <p className="font-poppins text-[0.75rem] sm:text-[0.85rem] font-medium text-dark/80">
-                        {product.price}
-                      </p>
-                      {product.originalPrice && (
-                        <p className="font-poppins text-[0.65rem] sm:text-[0.72rem] text-dark/35 line-through">
-                          {product.originalPrice}
-                        </p>
+              ))
+            : displayed.map((product, i) => (
+                <div
+                  key={product.id}
+                  className={`transition-all duration-700 ease-out ${
+                    isVisible
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 translate-y-10"
+                  }`}
+                  style={{ transitionDelay: isVisible ? `${i * 80}ms` : "0ms" }}
+                >
+                  <div className="group">
+                    {/* Arch-shaped Image */}
+                    <div className="relative aspect-[3/4] overflow-hidden rounded-t-full bg-dark/[0.03]">
+                      {product.image && (
+                        <Image
+                          src={product.image}
+                          alt={product.name}
+                          fill
+                          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        />
                       )}
+
+                      {/* Hover overlay with quick-view */}
+                      <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-dark/40 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedProduct(product)}
+                          className="mb-6 sm:mb-8 flex items-center gap-1.5 bg-background/95 backdrop-blur-sm px-4 py-2 sm:px-5 sm:py-2.5 rounded-full font-poppins text-[0.65rem] sm:text-[0.7rem] font-medium tracking-[0.06em] text-dark shadow-lg transition-all duration-300 hover:bg-background hover:shadow-xl active:scale-95"
+                        >
+                          <Eye className="h-3.5 w-3.5" strokeWidth={1.8} />
+                          Aperçu
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Info */}
+                    <div className="pt-3 sm:pt-4 pb-1 space-y-2 sm:space-y-3">
+                      <div className="text-center">
+                        <h3 className="font-erotique text-[0.8rem] sm:text-[0.95rem] lg:text-[1rem] text-dark leading-snug tracking-wide">
+                          {product.name}
+                        </h3>
+                        <div className="mt-1 flex items-center justify-center gap-2">
+                          <p className="font-poppins text-[0.75rem] sm:text-[0.85rem] font-medium text-dark/80">
+                            {formatPrice(product.promoPrice ?? product.price)}
+                          </p>
+                          {product.promoPrice && (
+                            <p className="font-poppins text-[0.65rem] sm:text-[0.72rem] text-dark/35 line-through">
+                              {formatPrice(product.price)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedProduct(product)}
+                        className="w-full border border-dark/15 py-2 sm:py-2.5 font-poppins text-[0.68rem] sm:text-[0.75rem] tracking-[0.06em] text-dark/70 transition-all duration-300 hover:border-primary hover:bg-primary hover:text-background active:scale-[0.97]"
+                      >
+                        Ajouter au panier
+                      </button>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedProduct(product)}
-                    className="w-full border border-dark/15 py-2 sm:py-2.5 font-poppins text-[0.68rem] sm:text-[0.75rem] tracking-[0.06em] text-dark/70 transition-all duration-300 hover:border-primary hover:bg-primary hover:text-background active:scale-[0.97]"
-                  >
-                    Ajouter au panier
-                  </button>
                 </div>
-              </div>
-            </div>
-          ))}
+              ))}
         </div>
 
         {/* ── Voir plus button ── */}
-        {!showAll && PRODUCTS.length > INITIAL_COUNT && (
+        {!showAll && products.length > INITIAL_COUNT && (
           <div
             className={`mt-10 sm:mt-14 lg:mt-16 text-center transition-all duration-700 ease-out ${
               isVisible

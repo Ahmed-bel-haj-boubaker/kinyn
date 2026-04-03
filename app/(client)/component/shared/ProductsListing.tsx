@@ -1388,89 +1388,84 @@ export default function ProductsListing({
                     return (
                       <div
                         key={product.id}
-                        className="group relative flex flex-col overflow-hidden rounded-xl sm:rounded-2xl bg-background border border-dark/6 transition-all duration-500 hover:shadow-[0_8px_40px_rgba(0,0,0,0.10)] hover:border-dark/12"
                         style={{
                           animationDelay: `${(idx % ITEMS_PER_PAGE) * 40}ms`,
                         }}
                       >
-                        {/* ── Image container ── */}
-                        <Link
-                          href={`/${categorySlug}/${product.slug}`}
-                          className="relative block aspect-3/4 overflow-hidden bg-dark/2"
-                          tabIndex={-1}
-                          aria-label={product.name}
-                        >
-                          <Image
-                            src={product.image || "/images/placeholder.png"}
-                            alt={product.name}
-                            fill
-                            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                            sizes="(max-width: 480px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          />
-
-                          {/* Gradient overlay on hover */}
-                          <div className="absolute inset-0 bg-linear-to-t from-dark/50 via-dark/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                          {/* Wishlist heart */}
-                          <WishlistButton
-                            productId={product.id}
-                            className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-dark/40 shadow-sm lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95"
-                            iconClassName="h-3 w-3 sm:h-4 sm:w-4"
-                          />
-
-                          {/* Out of stock overlay */}
-                          {product.stock <= 0 && (
-                            <div className="absolute inset-0 z-10 flex items-start justify-start p-2  ">
-                              <span className="rounded-full bg-dark/80 px-3 py-1 sm:px-4 sm:py-1.5 font-poppins text-[0.58rem] sm:text-[0.68rem] font-semibold text-background">
-                                Rupture de stock
-                              </span>
-                            </div>
-                          )}
-                        </Link>
-
-                        {/* ── Product info ── */}
-                        <Link
-                          href={`/${categorySlug}/${product.slug}`}
-                          className="flex flex-1 flex-col p-2.5 sm:p-4"
-                        >
-                          {/* Name */}
-                          <h3 className="font-poppins text-[0.68rem] sm:text-[0.82rem] font-medium text-dark leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-300">
-                            {product.name}
-                          </h3>
-
-                          {/* Price */}
-                          <div className="mt-auto pt-1.5 sm:pt-3 flex items-baseline gap-1.5 sm:gap-2">
-                            <span className="font-poppins text-[0.72rem] sm:text-[0.92rem] font-bold text-dark">
-                              {displayPrice.toFixed(2)}
-                              <span className="text-[0.55rem] sm:text-[0.7rem] font-semibold ml-0.5">
-                                TND
-                              </span>
-                            </span>
-                            {hasPromo && (
-                              <span className="font-poppins text-[0.52rem] sm:text-[0.68rem] text-dark/35 line-through">
-                                {product.price.toFixed(2)}
-                              </span>
-                            )}
-                          </div>
-                        </Link>
-
-                        {/* Choose option button */}
-                        <div className="px-2.5 pb-2.5 sm:px-4 sm:pb-4">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setQuickViewProduct(product);
-                            }}
-                            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary py-2 sm:py-2.5 font-poppins text-[0.6rem] sm:text-[0.72rem] font-semibold text-background shadow-sm transition-all duration-200 hover:bg-primary/90 active:scale-[0.97]"
-                          >
-                            <Eye
-                              className="h-3 w-3 sm:h-3.5 sm:w-3.5"
-                              strokeWidth={2.2}
+                        <div className="group">
+                          {/* ── Square image ── */}
+                          <div className="relative aspect-square overflow-hidden rounded-lg bg-dark/3">
+                            <Image
+                              src={product.image || "/images/placeholder.png"}
+                              alt={product.name}
+                              fill
+                              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                              sizes="(max-width: 480px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                             />
-                            Choisir option
-                          </button>
+
+                            {/* Promo badge */}
+                            {hasPromo && (
+                              <div className="absolute top-2 left-2 sm:top-3 sm:left-3 px-2 py-0.5 rounded-full bg-primary text-background font-poppins text-[0.52rem] sm:text-[0.58rem] font-semibold uppercase tracking-widest">
+                                -{discount}%
+                              </div>
+                            )}
+
+                            {/* Wishlist heart */}
+                            <WishlistButton
+                              productId={product.id}
+                              className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-dark/40 shadow-sm transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95"
+                              iconClassName="h-3 w-3 sm:h-4 sm:w-4"
+                            />
+
+                            {/* Out of stock badge */}
+                            {product.stock <= 0 && (
+                              <div className="absolute inset-0 z-10 flex items-start justify-start p-2">
+                                <span className="rounded-full bg-dark/80 px-3 py-1 sm:px-4 sm:py-1.5 font-poppins text-[0.58rem] sm:text-[0.68rem] font-semibold text-background">
+                                  Rupture de stock
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Hover overlay */}
+                            <div className="absolute inset-0 flex items-end justify-center bg-linear-to-t from-dark/40 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                              <button
+                                type="button"
+                                onClick={() => setQuickViewProduct(product)}
+                                className="mb-4 sm:mb-6 flex items-center gap-1.5 bg-background/95 backdrop-blur-sm px-4 py-2 sm:px-5 sm:py-2.5 rounded-full font-poppins text-[0.65rem] sm:text-[0.7rem] font-medium tracking-[0.06em] text-dark shadow-lg transition-all duration-300 hover:bg-background hover:shadow-xl active:scale-95"
+                              >
+                                <Eye className="h-3.5 w-3.5" strokeWidth={1.8} />
+                                Aperçu
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* ── Info ── */}
+                          <div className="pt-3 sm:pt-4 pb-1 space-y-2 sm:space-y-3">
+                            <div className="text-center">
+                              <Link href={`/${categorySlug}/${product.slug}`}>
+                                <h3 className="font-erotique text-[0.8rem] sm:text-[0.95rem] lg:text-[1rem] text-dark leading-snug tracking-wide hover:text-primary transition-colors duration-300">
+                                  {product.name}
+                                </h3>
+                              </Link>
+                              <div className="mt-1 flex items-center justify-center gap-2">
+                                <p className="font-poppins text-[0.75rem] sm:text-[0.85rem] font-medium text-dark/80">
+                                  {displayPrice.toFixed(3)} DT
+                                </p>
+                                {hasPromo && (
+                                  <p className="font-poppins text-[0.65rem] sm:text-[0.72rem] text-dark/35 line-through">
+                                    {product.price.toFixed(3)} DT
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setQuickViewProduct(product)}
+                              className="w-full border border-dark/15 py-2 sm:py-2.5 font-poppins text-[0.68rem] sm:text-[0.75rem] tracking-[0.06em] text-dark/70 transition-all duration-300 hover:border-primary hover:bg-primary hover:text-background active:scale-[0.97]"
+                            >
+                              Ajouter au panier
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );

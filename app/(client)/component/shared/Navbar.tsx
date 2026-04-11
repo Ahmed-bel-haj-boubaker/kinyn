@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -67,6 +67,12 @@ interface ApiMere {
   subcategories: ApiSous[];
 }
 
+interface ApiCollection {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 /* ─────────────────────── Props ─────────────────────── */
 
 interface NavbarProps {
@@ -86,10 +92,8 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDesktop, setActiveDesktop] = useState<string | null>(null);
   const [expandedMobile, setExpandedMobile] = useState<string | null>(null);
-  const [navLinks, setNavLinks] = useState<NavLink[]>([
-    ...staticBefore,
-    ...staticAfter,
-  ]);
+  const [rawCategories, setRawCategories] = useState<ApiMere[]>([]);
+  const [collections, setCollections] = useState<ApiCollection[]>([]);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { totalItems } = useCart();
   const [mounted, setMounted] = useState(false);
@@ -145,26 +149,65 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
     }
   };
 
-  /* ── Fetch categories from DB and build nav links ── */
-  const buildNavLinks = useCallback((meres: ApiMere[]): NavLink[] => {
-    const dynamic: NavLink[] = meres.map((mere) => {
-      const categories: MegaCategory[] = mere.subcategories.map((sous) => ({
+  /* ── Fetch collections ── */
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchCollections() {
+      try {
+        const res = await fetch("/api/collections");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && data.collections) {
+          setCollections(data.collections);
+        }
+      } catch {
+        /* keep empty */
+      }
+    }
+    fetchCollections();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /* ── Build nav links reactively from categories + collections ── */
+  const navLinks = useMemo<NavLink[]>(() => {
+    const dynamic: NavLink[] = rawCategories.map((mere) => {
+      const cats: MegaCategory[] = mere.subcategories.map((sous) => ({
         label: sous.name,
         items: sous.items.map((fin) => ({
           label: fin.name,
           href: `/${mere.slug}/${fin.slug}`,
         })),
       }));
-
       return {
         label: mere.name,
         href: `/${mere.slug}`,
-        ...(categories.length > 0 ? { categories } : {}),
+        ...(cats.length > 0 ? { categories: cats } : {}),
       };
     });
 
-    return [...staticBefore, ...dynamic, ...staticAfter];
-  }, []);
+    const collectionLinks: NavLink[] =
+      collections.length > 0
+        ? [
+            {
+              label: "Collections",
+              href: "/collections",
+              categories: [
+                {
+                  label: "Nos Collections",
+                  items: collections.map((c) => ({
+                    label: c.name,
+                    href: `/collections/${c.slug}`,
+                  })),
+                },
+              ],
+            },
+          ]
+        : [];
+
+    return [...staticBefore, ...dynamic, ...collectionLinks, ...staticAfter];
+  }, [rawCategories, collections]);
 
   useEffect(() => {
     let cancelled = false;
@@ -175,7 +218,7 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
         if (!res.ok) return;
         const data = await res.json();
         if (!cancelled && data.categories) {
-          setNavLinks(buildNavLinks(data.categories));
+          setRawCategories(data.categories);
         }
       } catch {
         /* keep static fallback */
@@ -186,7 +229,7 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
     return () => {
       cancelled = true;
     };
-  }, [buildNavLinks]);
+  }, []);
 
   /* Lock body scroll when mobile menu is open */
   useEffect(() => {

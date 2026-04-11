@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { signUp, setAuthCookie } from "@/lib/services/auth.service";
 import { apiGuard, parseBody } from "@/lib/security";
+import { notifyAdminsNewUser } from "@/lib/services/notification.service";
 
 /* ================================================================
    POST /api/auth/sign-up
@@ -41,6 +42,13 @@ export async function POST(req: NextRequest) {
     { message: "Compte créé avec succès.", user: result.data!.user },
     { status: 201 },
   );
+
+  /* Notify admins of the new user (fire-and-forget) */
+  notifyAdminsNewUser({
+    firstName: parsed.data.firstName,
+    lastName: parsed.data.lastName,
+    email: parsed.data.email,
+  }).catch(() => {});
 
   return setAuthCookie(response, result.data!.token);
 }

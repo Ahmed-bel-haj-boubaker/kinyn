@@ -30,6 +30,8 @@ export default function ContactSection() {
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
 
   useEffect(() => {
@@ -53,11 +55,29 @@ export default function ContactSection() {
   );
 
   const handleSubmit = useCallback(
-    (e: FormEvent) => {
+    async (e: FormEvent) => {
       e.preventDefault();
       if (!form.name.trim() || !form.email.trim() || !form.message.trim())
         return;
-      setSubmitted(true);
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch("/api/contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data?.error ?? "Une erreur est survenue.");
+        } else {
+          setSubmitted(true);
+        }
+      } catch {
+        setError("Une erreur est survenue. Veuillez réessayer.");
+      } finally {
+        setLoading(false);
+      }
     },
     [form],
   );
@@ -214,6 +234,7 @@ export default function ContactSection() {
                     type="button"
                     onClick={() => {
                       setSubmitted(false);
+                      setError(null);
                       setForm({
                         name: "",
                         email: "",
@@ -335,12 +356,20 @@ export default function ContactSection() {
                   />
                 </div>
 
+                {/* Error */}
+                {error && (
+                  <p className="font-poppins text-[0.82rem] text-red-600">
+                    {error}
+                  </p>
+                )}
+
                 {/* Submit */}
                 <button
                   type="submit"
-                  className="w-full rounded-lg bg-primary py-3.5 font-poppins text-[0.82rem] font-semibold tracking-[0.08em] text-white transition-all duration-300 hover:bg-primary/90 hover:scale-[1.01] active:scale-[0.99]"
+                  disabled={loading}
+                  className="w-full rounded-lg bg-primary py-3.5 font-poppins text-[0.82rem] font-semibold tracking-[0.08em] text-white transition-all duration-300 hover:bg-primary/90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
                 >
-                  Envoyer le message
+                  {loading ? "Envoi en cours..." : "Envoyer le message"}
                 </button>
               </form>
             )}

@@ -10,6 +10,7 @@ import Order, {
 import Product from "@/models/Product";
 import User from "@/models/User";
 import mongoose from "mongoose";
+import { checkAndNotifyLowStock } from "@/lib/services/notification.service";
 
 /* ================================================================
    Order Service — KINYN
@@ -156,6 +157,12 @@ export async function createOrder(
         { $inc: { "sizeStock.$.stock": -item.quantity } },
       );
     }
+
+    /* Check for low stock and notify admins (fire-and-forget) */
+    const affectedProductIds = orderItems.map((item) =>
+      item.product.toString(),
+    );
+    checkAndNotifyLowStock(affectedProductIds).catch(() => {});
 
     /* ── Sync phone & address back to user profile (skip for anonymous) ── */
     if (user) {

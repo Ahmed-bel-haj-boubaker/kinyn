@@ -112,36 +112,6 @@ export default function AdminNavbar({
 
         {/* Right: Search + Notifications + Profile */}
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* Search */}
-          <div className="hidden sm:block relative">
-            <label htmlFor="admin-search" className="sr-only">
-              Rechercher
-            </label>
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <svg
-                className="w-4 h-4 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </div>
-            <input
-              id="admin-search"
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Produits, commandes, clients..."
-              className="font-poppins w-52 lg:w-72 pl-9 pr-4 py-2 text-sm rounded-lg border border-gray-300/60 bg-white text-dark placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
-            />
-          </div>
-
           {/* Mobile Search Toggle */}
           <button
             type="button"

@@ -5,6 +5,7 @@ import Notification, {
   type NotificationType,
 } from "@/models/Notification";
 import User from "@/models/User";
+import Product from "@/models/Product";
 import { emitToAdmins } from "@/lib/socket";
 import { sendNewOrderEmail } from "@/lib/services/email.service";
 import type { SafeOrder } from "@/models/Order";
@@ -285,6 +286,140 @@ export async function deleteNotification(
   } catch (error) {
     console.error("[Notification Service] Delete error:", error);
     return { success: false, error: "Erreur.", status: 500 };
+  }
+}
+
+/* ──────────── Notify All Admins of New User Registration ──────────── */
+
+export async function notifyAdminsNewUser(user: {
+  firstName: string;
+  lastName: string;
+  email: string;
+}): Promise<void> {
+  try {
+    await connectDB();
+
+    const admins = await User.find(
+      { role: { $in: ["admin", "super_admin"] }, status: "active" },
+      { _id: 1 },
+    ).lean();
+
+    if (admins.length === 0) return;
+
+    const fullName = `${user.firstName} ${user.lastName}`;
+
+    const notifications = await Notification.insertMany(
+      admins.map((admin) => ({
+        userId: admin._id,
+        type: "user" as const,
+        title: "Nouveau client inscrit",
+        message: `${fullName} (${user.email}) vient de créer un compte.`,
+      })),
+    );
+
+    if (notifications.length > 0) {
+      const first = notifications[0];
+      const safeNotification: SafeNotification = {
+        _id: first._id.toString(),
+        userId: first.userId.toString(),
+        type: first.type as SafeNotification["type"],
+        title: first.title,
+        message: first.message,
+        orderId: undefined,
+        isRead: first.isRead,
+        createdAt: new Date(first.createdAt).toISOString(),
+        updatedAt: new Date(first.updatedAt).toISOString(),
+      };
+
+      emitToAdmins("new-notification", safeNotification);
+    }
+  } catch (error) {
+    console.error("[Notification Service] notifyAdminsNewUser error:", error);
+  }
+}
+
+/* ──────────── Check & Notify Low Stock After Order ──────────── */
+
+const LOW_STOCK_THRESHOLD = 5;
+
+export async function checkAndNotifyLowStock(
+  productIds: string[],
+): Promise<void> {
+  try {
+    await connectDB();
+
+    const uniqueIds = [...new Set(productIds)];
+
+    const products = await Product.find(
+      { _id: { $in: uniqueIds } },
+      { name: 1, sizeStock: 1 },
+    ).lean<
+      {
+        _id: { toString(): string };
+        name: string;
+        sizeStock: { size: string; stock: number }[];
+      }[]
+    >();
+
+    const lowStockProducts: { name: string; totalStock: number }[] = [];
+
+    for (const product of products) {
+      const totalStock = (product.sizeStock ?? []).reduce(
+        (sum, s) => sum + s.stock,
+        0,
+      );
+      if (totalStock <= LOW_STOCK_THRESHOLD && totalStock >= 0) {
+        lowStockProducts.push({ name: product.name, totalStock });
+      }
+    }
+
+    if (lowStockProducts.length === 0) return;
+
+    const admins = await User.find(
+      { role: { $in: ["admin", "super_admin"] }, status: "active" },
+      { _id: 1 },
+    ).lean();
+
+    if (admins.length === 0) return;
+
+    for (const lsp of lowStockProducts) {
+      const title = lsp.totalStock === 0 ? "Rupture de stock" : "Stock faible";
+      const message =
+        lsp.totalStock === 0
+          ? `"${lsp.name}" est en rupture de stock.`
+          : `"${lsp.name}" n'a plus que ${lsp.totalStock} unité${lsp.totalStock > 1 ? "s" : ""} en stock.`;
+
+      const notifications = await Notification.insertMany(
+        admins.map((admin) => ({
+          userId: admin._id,
+          type: "stock" as const,
+          title,
+          message,
+        })),
+      );
+
+      if (notifications.length > 0) {
+        const first = notifications[0];
+        const safeNotification: SafeNotification = {
+          _id: first._id.toString(),
+          userId: first.userId.toString(),
+          type: first.type as SafeNotification["type"],
+          title: first.title,
+          message: first.message,
+          orderId: undefined,
+          isRead: first.isRead,
+          createdAt: new Date(first.createdAt).toISOString(),
+          updatedAt: new Date(first.updatedAt).toISOString(),
+        };
+
+        emitToAdmins("new-notification", safeNotification);
+      }
+    }
+  } catch (error) {
+    console.error(
+      "[Notification Service] checkAndNotifyLowStock error:",
+      error,
+    );
   }
 }
 

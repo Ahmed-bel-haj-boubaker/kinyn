@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateProduct, deleteProduct } from "@/lib/services/product.service";
+import { checkAndNotifyLowStock } from "@/lib/services/notification.service";
 import { requireWriteAccess } from "@/lib/auth";
 import { apiGuard, parseBody } from "@/lib/security";
 import type { ProductStatus } from "@/models/Product";
@@ -51,6 +52,10 @@ export async function PUT(
       { error: result.error },
       { status: result.status ?? 400 },
     );
+  }
+
+  if (parsed.data.sizeStock !== undefined) {
+    checkAndNotifyLowStock([id]).catch(() => {});
   }
 
   return NextResponse.json(

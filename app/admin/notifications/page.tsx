@@ -11,8 +11,7 @@ import Toast from "../component/shared/Toast";
 
 const TYPE_LABELS: Record<string, string> = {
   order: "Commande",
-  system: "Système",
-  delivery: "Livraison",
+
   stock: "Stock",
   user: "Utilisateur",
 };
@@ -98,8 +97,7 @@ export default function NotificationsPage() {
     { key: "all", label: "Toutes" },
     { key: "unread", label: `Non lues (${unreadCount})` },
     { key: "order", label: "Commandes" },
-    { key: "system", label: "Système" },
-    { key: "delivery", label: "Livraison" },
+
     { key: "stock", label: "Stock" },
     { key: "user", label: "Utilisateurs" },
   ];

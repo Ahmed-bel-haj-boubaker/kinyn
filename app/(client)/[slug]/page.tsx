@@ -1,89 +1,63 @@
-"use client";
+import type { Metadata } from "next";
+import connectDB from "@/lib/mongodb";
+import Category from "@/models/Category";
+import CategoryPageClient from "./CategoryPageClient";
+import JsonLd, { breadcrumbJsonLd } from "../component/shared/JsonLd";
 
-import { useParams, notFound } from "next/navigation";
-import { useEffect, useState } from "react";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kinyn.tn";
 
-import ProductsListing from "../component/shared/ProductsListing";
-import type {
-  ClientProduct,
-  ClientSubCategory,
-} from "../component/shared/ProductsListing";
-
-/* ──────────────────────────── Types ──────────────────────────── */
-
-interface ApiCategory {
-  id: string;
-  name: string;
-  slug: string;
-  subcategories: ClientSubCategory[];
+interface PageProps {
+  params: Promise<{ slug: string }>;
 }
 
-/* ──────────────────────────── Component ──────────────────────────── */
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { slug } = await params;
 
-export default function CategoryPage() {
-  const params = useParams();
-  const slug = params.slug as string;
+  try {
+    await connectDB();
+    const cat = await Category.findOne({
+      slug,
+      level: "mere",
+      status: "active",
+    })
+      .select("name slug")
+      .lean<{ name: string; slug: string }>();
 
-  const [category, setCategory] = useState<ApiCategory | null>(null);
-  const [products, setProducts] = useState<ClientProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [notFoundFlag, setNotFoundFlag] = useState(false);
+    if (!cat) return { title: "Catégorie introuvable" };
 
-  useEffect(() => {
-    let cancelled = false;
+    const title = `${cat.name} — Mode ${cat.name} en Tunisie`;
+    const description = `Découvrez notre collection ${cat.name} chez KINYN. Vêtements élégants, qualité premium et livraison rapide partout en Tunisie.`;
 
-    async function fetchData() {
-      try {
-        const [catRes, prodRes] = await Promise.all([
-          fetch(`/api/categories/${slug}`),
-          fetch(`/api/products?mere=${slug}`),
-        ]);
-
-        if (!catRes.ok) {
-          if (!cancelled) setNotFoundFlag(true);
-          return;
-        }
-
-        const catData = await catRes.json();
-        const prodData = await prodRes.json();
-
-        if (!cancelled) {
-          setCategory(catData.category);
-          setProducts(prodData.products ?? []);
-        }
-      } catch {
-        if (!cancelled) setNotFoundFlag(true);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    fetchData();
-    return () => {
-      cancelled = true;
+    return {
+      title,
+      description,
+      alternates: { canonical: `${SITE_URL}/${cat.slug}` },
+      openGraph: {
+        title,
+        description,
+        url: `${SITE_URL}/${cat.slug}`,
+        type: "website",
+      },
     };
-  }, [slug]);
-
-  if (notFoundFlag) {
-    notFound();
+  } catch {
+    return { title: "Catégorie" };
   }
+}
 
-  if (loading || !category) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    );
-  }
+export default async function CategoryPage({ params }: PageProps) {
+  const { slug } = await params;
 
   return (
-    <ProductsListing
-      categorySlug={slug}
-      title={category.name}
-      subtitle=""
-      breadcrumbs={[{ label: "Accueil", href: "/" }, { label: category.name }]}
-      subcategories={category.subcategories}
-      products={products}
-    />
+    <>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Accueil", url: SITE_URL },
+          { name: slug, url: `${SITE_URL}/${slug}` },
+        ])}
+      />
+      <CategoryPageClient />
+    </>
   );
 }

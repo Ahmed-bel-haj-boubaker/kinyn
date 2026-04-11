@@ -10,6 +10,11 @@ import KinynSection from "./component/home/KinynSection";
 import LogoMarquee from "./component/home/LogoMarquee";
 import ContactSection from "./component/home/ContactSection";
 
+import JsonLd, {
+  organizationJsonLd,
+  webSiteJsonLd,
+} from "./component/shared/JsonLd";
+
 export default function Page() {
   const [ready, setReady] = useState(false);
 
@@ -48,8 +53,12 @@ export default function Page() {
     );
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kinyn.tn";
+
   return (
     <>
+      <JsonLd data={organizationJsonLd(siteUrl)} />
+      <JsonLd data={webSiteJsonLd(siteUrl)} />
       <HeroSection />
       <LogoMarquee />
       <ProductSlider />

@@ -1,6 +1,21 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Gem, Leaf, Heart } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "À propos",
+  description:
+    "Découvrez KINYN, marque tunisienne de mode premium pour femme et enfant. Notre histoire, nos valeurs d'excellence, de durabilité et d'authenticité.",
+  alternates: { canonical: "https://kinyn.tn/about" },
+  openGraph: {
+    title: "À propos de KINYN",
+    description:
+      "Découvrez KINYN, marque tunisienne de mode premium pour femme et enfant.",
+    url: "https://kinyn.tn/about",
+    type: "website",
+  },
+};
 
 const VALUES = [
   {

@@ -137,7 +137,8 @@ export async function createCollection(
   try {
     await connectDB();
 
-    const { name, description, image, products, category, status, order } = input;
+    const { name, description, image, products, category, status, order } =
+      input;
 
     if (!name?.trim()) {
       return { success: false, error: "Le nom est requis.", status: 400 };
@@ -231,7 +232,11 @@ export async function updateCollection(
         col.category = null;
       } else if (input.category) {
         if (!mongoose.isValidObjectId(input.category)) {
-          return { success: false, error: "ID catégorie invalide.", status: 400 };
+          return {
+            success: false,
+            error: "ID catégorie invalide.",
+            status: 400,
+          };
         }
         col.category = new mongoose.Types.ObjectId(input.category);
       }

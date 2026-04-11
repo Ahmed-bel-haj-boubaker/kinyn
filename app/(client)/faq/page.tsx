@@ -1,6 +1,22 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublishedFAQs } from "@/lib/services/faq.service";
 import FAQAccordion from "../component/faq/FAQAccordion";
+import JsonLd, { faqJsonLd } from "../component/shared/JsonLd";
+
+export const metadata: Metadata = {
+  title: "FAQ",
+  description:
+    "Questions fréquentes sur KINYN : livraison en Tunisie, retours, échanges, tailles, paiement et suivi de commande.",
+  alternates: { canonical: "https://kinyn.tn/faq" },
+  openGraph: {
+    title: "FAQ — KINYN",
+    description:
+      "Trouvez les réponses à vos questions sur la livraison, les retours, les tailles et le paiement.",
+    url: "https://kinyn.tn/faq",
+    type: "website",
+  },
+};
 
 /* ──────────── Fallback data (shown if DB returns nothing) ──────────── */
 
@@ -69,6 +85,7 @@ export default async function FAQPage() {
 
   return (
     <>
+      <JsonLd data={faqJsonLd(allFaqs)} />
       {/* ════════ 1. Hero ════════ */}
       <section className="relative w-full overflow-hidden bg-dark">
         <div className="relative h-[55vh] min-h-96 sm:h-[60vh] md:h-[65vh]">

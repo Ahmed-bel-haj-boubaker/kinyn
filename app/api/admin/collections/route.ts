@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
     description?: string;
     image?: string;
     products?: string[];
+    category?: string | null;
     status?: CollectionStatus;
     order?: number;
   }>(req);

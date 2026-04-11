@@ -103,7 +103,9 @@ export default function FeaturedCollection() {
               className={
                 count === 3
                   ? "grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 gap-3 md:auto-rows-fr"
-                  : "grid grid-cols-1 md:grid-cols-2 gap-3"
+                  : count === 1
+                    ? "flex justify-center"
+                    : "grid grid-cols-1 md:grid-cols-2 gap-3"
               }
             >
               {collections.map((col, idx) => {
@@ -115,7 +117,7 @@ export default function FeaturedCollection() {
                     href={col.href}
                     className={`group relative block overflow-hidden transition-all duration-700 ease-out ${
                       isHero ? "md:row-span-2" : ""
-                    } ${
+                    } ${count === 1 ? "w-full max-w-lg" : ""} ${
                       isVisible
                         ? "opacity-100 translate-y-0"
                         : "opacity-0 translate-y-10"

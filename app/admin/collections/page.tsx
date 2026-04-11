@@ -107,6 +107,7 @@ export default function CollectionsPage() {
             description: data.description,
             image: data.image,
             products: data.products,
+            category: data.category || null,
             status: data.status,
             order: data.order,
           }),
@@ -128,6 +129,7 @@ export default function CollectionsPage() {
               description: data.description,
               image: data.image,
               products: data.products,
+              category: data.category || null,
               status: data.status,
               order: data.order,
             }),
@@ -257,6 +259,7 @@ export default function CollectionsPage() {
                 description: editingCollection.description,
                 image: editingCollection.image,
                 products: editingCollection.products,
+                category: editingCollection.category ?? "",
                 status: editingCollection.status,
                 order: editingCollection.order,
               }

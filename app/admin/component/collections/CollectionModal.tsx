@@ -11,6 +11,7 @@ export interface CollectionFormData {
   description: string;
   image: string;
   products: string[];
+  category: string;
   status: CollectionStatus;
   order: number;
 }
@@ -32,11 +33,17 @@ interface CollectionModalProps {
   saving?: boolean;
 }
 
+interface CategoryOption {
+  id: string;
+  name: string;
+}
+
 const emptyForm: CollectionFormData = {
   name: "",
   description: "",
   image: "",
   products: [],
+  category: "",
   status: "active",
   order: 0,
 };
@@ -124,6 +131,9 @@ function CollectionFormInner({
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
+  /* ── Category picker state ── */
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+
   /* ── Product picker state ── */
   const [allProducts, setAllProducts] = useState<ProductOption[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
@@ -168,6 +178,23 @@ function CollectionFormInner({
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  /* ── Fetch categories ── */
+  useEffect(() => {
+    fetch("/api/admin/categories?level=mere&status=active")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.categories) {
+          setCategories(
+            data.categories.map((c: { id: string; name: string }) => ({
+              id: c.id,
+              name: c.name,
+            })),
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleImageUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -287,6 +314,31 @@ function CollectionFormInner({
               {errors.name}
             </p>
           )}
+        </div>
+
+        {/* Category */}
+        <div>
+          <label
+            htmlFor="col-category"
+            className="block font-poppins text-sm font-medium text-dark mb-1.5"
+          >
+            Catégorie associée
+          </label>
+          <select
+            id="col-category"
+            value={form.category}
+            onChange={(e) =>
+              setForm((prev) => ({ ...prev, category: e.target.value }))
+            }
+            className="w-full font-poppins px-4 py-2.5 rounded-lg border border-gray-300 text-sm text-dark transition-all duration-200 focus:outline-none focus:ring-2 focus:border-primary focus:ring-primary/20 bg-white"
+          >
+            <option value="">Aucune catégorie</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Description */}

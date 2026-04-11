@@ -26,6 +26,7 @@ export async function PUT(
     description?: string;
     image?: string;
     products?: string[];
+    category?: string | null;
     status?: CollectionStatus;
     order?: number;
   }>(req);

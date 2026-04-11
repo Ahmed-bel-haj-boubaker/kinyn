@@ -22,6 +22,7 @@ function toSafe(col: ICollection): SafeCollection {
     image: col.image,
     products: col.products.map((p) => p.toString()),
     productCount: col.products.length,
+    category: col.category ? col.category.toString() : null,
     status: col.status,
     order: col.order,
     createdAt: col.createdAt,
@@ -38,6 +39,7 @@ interface LeanCollection {
   products: mongoose.Types.ObjectId[];
   status: CollectionStatus;
   order: number;
+  category: { _id: mongoose.Types.ObjectId; name: string } | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -65,6 +67,7 @@ export async function listCollections(
     const [collections, total] = await Promise.all([
       Collection.find(filter)
         .sort({ order: 1, createdAt: -1 })
+        .populate("category", "name")
         .lean<LeanCollection[]>(),
       Collection.countDocuments(filter),
     ]);
@@ -77,6 +80,8 @@ export async function listCollections(
       image: col.image,
       products: col.products.map((p) => p.toString()),
       productCount: col.products.length,
+      category: col.category ? col.category._id.toString() : null,
+      categoryName: col.category ? col.category.name : undefined,
       status: col.status,
       order: col.order ?? 0,
       createdAt: col.createdAt,
@@ -121,6 +126,7 @@ interface CreateCollectionInput {
   description?: string;
   image?: string;
   products?: string[];
+  category?: string | null;
   status?: CollectionStatus;
   order?: number;
 }
@@ -131,7 +137,7 @@ export async function createCollection(
   try {
     await connectDB();
 
-    const { name, description, image, products, status, order } = input;
+    const { name, description, image, products, category, status, order } = input;
 
     if (!name?.trim()) {
       return { success: false, error: "Le nom est requis.", status: 400 };
@@ -152,11 +158,21 @@ export async function createCollection(
       }
     }
 
+    // Validate category ID
+    let categoryId: mongoose.Types.ObjectId | null = null;
+    if (category) {
+      if (!mongoose.isValidObjectId(category)) {
+        return { success: false, error: "ID catégorie invalide.", status: 400 };
+      }
+      categoryId = new mongoose.Types.ObjectId(category);
+    }
+
     const col = await Collection.create({
       name: name.trim(),
       description: description?.trim() ?? "",
       image: image?.trim() ?? "",
       products: productIds,
+      category: categoryId,
       status: status ?? "active",
       order: order ?? 0,
     });
@@ -182,6 +198,7 @@ interface UpdateCollectionInput {
   description?: string;
   image?: string;
   products?: string[];
+  category?: string | null;
   status?: CollectionStatus;
   order?: number;
 }
@@ -208,6 +225,17 @@ export async function updateCollection(
     if (input.image !== undefined) col.image = input.image.trim();
     if (input.status !== undefined) col.status = input.status;
     if (input.order !== undefined) col.order = input.order;
+
+    if ("category" in input) {
+      if (input.category === null || input.category === "") {
+        col.category = null;
+      } else if (input.category) {
+        if (!mongoose.isValidObjectId(input.category)) {
+          return { success: false, error: "ID catégorie invalide.", status: 400 };
+        }
+        col.category = new mongoose.Types.ObjectId(input.category);
+      }
+    }
 
     if (input.products !== undefined) {
       const productIds: mongoose.Types.ObjectId[] = [];

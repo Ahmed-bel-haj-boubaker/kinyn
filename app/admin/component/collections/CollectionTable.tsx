@@ -11,6 +11,8 @@ export interface Collection {
   image: string;
   products: string[];
   productCount: number;
+  category: string | null;
+  categoryName?: string;
   status: CollectionStatus;
   order: number;
 }
@@ -60,6 +62,9 @@ export default function CollectionTable({
             <tr className="border-b border-gray-100">
               <th className="text-left font-poppins text-xs font-semibold text-dark/40 uppercase tracking-wider px-6 py-4">
                 Collection
+              </th>
+              <th className="text-left font-poppins text-xs font-semibold text-dark/40 uppercase tracking-wider px-6 py-4">
+                Catégorie
               </th>
               <th className="text-left font-poppins text-xs font-semibold text-dark/40 uppercase tracking-wider px-6 py-4">
                 Produits
@@ -117,6 +122,11 @@ export default function CollectionTable({
                       )}
                     </div>
                   </div>
+                </td>
+                <td className="px-6 py-3.5">
+                  <span className="inline-block font-poppins text-xs font-medium px-2.5 py-1 rounded-full bg-primary/8 text-primary/80">
+                    {col.categoryName ?? "—"}
+                  </span>
                 </td>
                 <td className="px-6 py-3.5">
                   <span className="inline-block font-poppins text-xs font-medium px-2.5 py-1 rounded-full bg-dark/5 text-dark/60">
@@ -233,6 +243,7 @@ export default function CollectionTable({
                   <span className="font-poppins text-xs text-dark/40">
                     {col.productCount} produit
                     {col.productCount !== 1 ? "s" : ""}
+                    {col.categoryName ? ` · ${col.categoryName}` : ""}
                   </span>
                 </div>
               </div>

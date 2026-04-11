@@ -8,6 +8,7 @@ export interface ICollection extends Document {
   description: string;
   image: string;
   products: mongoose.Types.ObjectId[];
+  category: mongoose.Types.ObjectId | null;
   status: CollectionStatus;
   order: number;
   createdAt: Date;
@@ -22,6 +23,8 @@ export interface SafeCollection {
   image: string;
   products: string[];
   productCount: number;
+  category: string | null;
+  categoryName?: string;
   status: CollectionStatus;
   order: number;
   createdAt: Date;
@@ -65,6 +68,11 @@ const collectionSchema = new Schema<ICollection>(
     products: {
       type: [{ type: Schema.Types.ObjectId, ref: "Product" }],
       default: [],
+    },
+    category: {
+      type: Schema.Types.ObjectId,
+      ref: "Category",
+      default: null,
     },
     status: {
       type: String,

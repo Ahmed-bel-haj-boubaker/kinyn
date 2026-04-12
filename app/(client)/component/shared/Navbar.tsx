@@ -71,6 +71,8 @@ interface ApiCollection {
   id: string;
   name: string;
   slug: string;
+  categoryId: string | null;
+  categorySlug: string | null;
 }
 
 /* ─────────────────────── Props ─────────────────────── */
@@ -180,6 +182,21 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
           href: `/${mere.slug}/${fin.slug}`,
         })),
       }));
+
+      // Attach collections that belong to this parent category
+      const relatedCollections = collections.filter(
+        (c) => c.categorySlug === mere.slug,
+      );
+      if (relatedCollections.length > 0) {
+        cats.push({
+          label: "Collections",
+          items: relatedCollections.map((c) => ({
+            label: c.name,
+            href: `/collections/${c.slug}`,
+          })),
+        });
+      }
+
       return {
         label: mere.name,
         href: `/${mere.slug}`,
@@ -187,26 +204,7 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
       };
     });
 
-    const collectionLinks: NavLink[] =
-      collections.length > 0
-        ? [
-            {
-              label: "Collections",
-              href: "/collections",
-              categories: [
-                {
-                  label: "Nos Collections",
-                  items: collections.map((c) => ({
-                    label: c.name,
-                    href: `/collections/${c.slug}`,
-                  })),
-                },
-              ],
-            },
-          ]
-        : [];
-
-    return [...staticBefore, ...dynamic, ...collectionLinks, ...staticAfter];
+    return [...staticBefore, ...dynamic, ...staticAfter];
   }, [rawCategories, collections]);
 
   useEffect(() => {

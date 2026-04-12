@@ -10,6 +10,7 @@ interface LeanCollection {
   description: string;
   image: string;
   products: string[];
+  category: { _id: string; name: string; slug: string } | null;
   status: CollectionStatus;
   order: number;
 }
@@ -19,9 +20,10 @@ export async function GET() {
     await connectDB();
 
     const collections = await Collection.find({ status: "active" })
-      .select("name slug description image products order")
+      .select("name slug description image products category order")
       .sort({ order: 1, createdAt: -1 })
       .populate("products", "name slug price promoPrice images status")
+      .populate("category", "name slug")
       .lean<LeanCollection[]>();
 
     const result = collections.map((col) => ({
@@ -32,6 +34,8 @@ export async function GET() {
       image: col.image,
       products: col.products,
       productCount: col.products.length,
+      categoryId: col.category ? String(col.category._id) : null,
+      categorySlug: col.category?.slug ?? null,
     }));
 
     return NextResponse.json(

@@ -83,7 +83,7 @@ const SECTIONS: { key: Section; label: string; icon: ReactNode }[] = [
   },
   {
     key: "pricing",
-    label: "Prix & Stock",
+    label: "Prix",
     icon: (
       <svg
         className="w-4 h-4"

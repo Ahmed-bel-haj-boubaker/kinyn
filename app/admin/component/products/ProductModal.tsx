@@ -233,6 +233,39 @@ function ProductFormInner({
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  /* ── Drag-and-drop reorder ── */
+  const dragIndex = useRef<number | null>(null);
+
+  const handleDragStart = (i: number) => {
+    dragIndex.current = i;
+  };
+
+  const handleDragOver = (e: React.DragEvent, i: number) => {
+    e.preventDefault();
+    if (dragIndex.current === null || dragIndex.current === i) return;
+    setImages((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(dragIndex.current!, 1);
+      next.splice(i, 0, moved);
+      dragIndex.current = i;
+      return next;
+    });
+  };
+
+  const handleDragEnd = () => {
+    dragIndex.current = null;
+  };
+
+  const setAsPrincipal = (i: number) => {
+    if (i === 0) return;
+    setImages((prev) => {
+      const next = [...prev];
+      const [img] = next.splice(i, 1);
+      next.unshift(img);
+      return next;
+    });
+  };
+
   /* Validation */
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -661,8 +694,12 @@ function ProductFormInner({
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {images.map((img, i) => (
                 <div
-                  key={i}
-                  className="relative rounded-xl border-2 border-dashed border-gray-200 bg-dark/2 group overflow-hidden"
+                  key={img.url + i}
+                  draggable
+                  onDragStart={() => handleDragStart(i)}
+                  onDragOver={(e) => handleDragOver(e, i)}
+                  onDragEnd={handleDragEnd}
+                  className="relative rounded-xl border-2 border-dashed border-gray-200 bg-dark/2 group overflow-hidden cursor-grab active:cursor-grabbing"
                 >
                   <div className="aspect-square flex items-center justify-center">
                     {img.url ? (
@@ -739,11 +776,23 @@ function ProductFormInner({
                       />
                     </svg>
                   </button>
-                  {i === 0 && (
-                    <span className="absolute top-1 left-1 bg-dark/70 text-white font-poppins text-[10px] px-1.5 py-0.5 rounded-md">
-                      Principal
-                    </span>
-                  )}
+                  {/* Drag handle */}
+                  <div className="absolute top-1 left-1 flex items-center gap-1">
+                    {i === 0 ? (
+                      <span className="bg-primary text-white font-poppins text-[10px] px-1.5 py-0.5 rounded-md leading-none">
+                        Principal
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setAsPrincipal(i)}
+                        title="Définir comme image principale"
+                        className="bg-dark/60 hover:bg-primary text-white font-poppins text-[10px] px-1.5 py-0.5 rounded-md leading-none transition-colors duration-150 opacity-0 group-hover:opacity-100 focus:outline-none focus:opacity-100"
+                      >
+                        ★ Principal
+                      </button>
+                    )}
+                  </div>
                   {img.color && (
                     <span
                       className="absolute top-1 right-8 w-4 h-4 rounded-full border-2 border-white shadow-sm"

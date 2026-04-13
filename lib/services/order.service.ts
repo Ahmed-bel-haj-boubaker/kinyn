@@ -9,6 +9,7 @@ import Order, {
 } from "@/models/Order";
 import Product from "@/models/Product";
 import User from "@/models/User";
+import DeliveryMethod from "@/models/DeliveryMethod";
 import mongoose from "mongoose";
 import { checkAndNotifyLowStock } from "@/lib/services/notification.service";
 
@@ -56,11 +57,6 @@ interface CreateOrderInput {
   paymentMethod: PaymentMethod;
   notes?: string;
 }
-
-const SHIPPING_COSTS: Record<ShippingMethod, number> = {
-  standard: 8,
-  express: 20,
-};
 
 export async function createOrder(
   input: CreateOrderInput,
@@ -133,8 +129,14 @@ export async function createOrder(
       });
     }
 
-    const shippingCost =
-      SHIPPING_COSTS[input.shippingMethod] ?? SHIPPING_COSTS.standard;
+    /* Look up shipping cost from the DB delivery method */
+    let shippingCost = 0;
+    if (input.shippingMethod) {
+      const method = await DeliveryMethod.findById(input.shippingMethod).lean<{
+        price: number;
+      }>();
+      shippingCost = method?.price ?? 0;
+    }
     const totalAmount = subtotal + shippingCost;
 
     /* Create the order */

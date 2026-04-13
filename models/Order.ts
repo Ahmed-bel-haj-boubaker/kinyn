@@ -23,7 +23,7 @@ export type OrderStatus =
   | "returned";
 
 export type PaymentMethod = "card" | "cod";
-export type ShippingMethod = "standard" | "express";
+export type ShippingMethod = string;
 
 /* ─── Sub-document interfaces ─── */
 
@@ -204,8 +204,8 @@ const orderSchema = new Schema<IOrder>(
     },
     shippingMethod: {
       type: String,
-      enum: ["standard", "express"],
-      default: "standard",
+      trim: true,
+      default: "",
     },
     paymentMethod: {
       type: String,
@@ -303,7 +303,11 @@ export function orderToSafe(doc: IOrder): SafeOrder {
 
 /* ──────────────────── Export ──────────────────── */
 
-const Order: Model<IOrder> =
-  mongoose.models.Order || mongoose.model<IOrder>("Order", orderSchema);
+/* Delete cached model in dev so schema changes are always picked up */
+if (mongoose.models.Order) {
+  delete mongoose.models.Order;
+}
+
+const Order: Model<IOrder> = mongoose.model<IOrder>("Order", orderSchema);
 
 export default Order;

@@ -270,15 +270,18 @@ function ProductDetailPage({
     p.colors.length > 0 ? p.colors[0] : "",
   );
 
-  /* Switch to first image matching the selected color */
-  const handleColorSelect = useCallback(
-    (color: string) => {
-      setSelectedColor(color);
-      const idx = images.findIndex((img) => img.color === color);
-      if (idx !== -1) setSelectedImage(idx);
-    },
-    [images],
-  );
+  /* Images filtered by selected color (falls back to all if no match) */
+  const filteredImages = useMemo(() => {
+    if (!selectedColor) return images;
+    const colorImages = images.filter((img) => img.color === selectedColor);
+    return colorImages.length > 0 ? colorImages : images;
+  }, [images, selectedColor]);
+
+  /* Switch to first image of the selected color */
+  const handleColorSelect = useCallback((color: string) => {
+    setSelectedColor(color);
+    setSelectedImage(0);
+  }, []);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [expandedSection, setExpandedSection] = useState<string | null>(
@@ -332,12 +335,16 @@ function ProductDetailPage({
   }, [selectedSize, selectedColor, quantity, p, slug, addItem]);
 
   const handlePrevImage = useCallback(() => {
-    setSelectedImage((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-  }, [images.length]);
+    setSelectedImage((prev) =>
+      prev === 0 ? filteredImages.length - 1 : prev - 1,
+    );
+  }, [filteredImages.length]);
 
   const handleNextImage = useCallback(() => {
-    setSelectedImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-  }, [images.length]);
+    setSelectedImage((prev) =>
+      prev === filteredImages.length - 1 ? 0 : prev + 1,
+    );
+  }, [filteredImages.length]);
 
   const handleImageMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -436,8 +443,11 @@ function ProductDetailPage({
               onTouchEnd={handleTouchEnd}
             >
               <Image
-                src={images[selectedImage].src}
-                alt={images[selectedImage].alt}
+                src={
+                  filteredImages[selectedImage]?.src ??
+                  "/images/placeholder.png"
+                }
+                alt={filteredImages[selectedImage]?.alt ?? ""}
                 fill
                 className="object-cover transition-transform duration-300"
                 style={{
@@ -481,13 +491,13 @@ function ProductDetailPage({
 
               {/* Image counter */}
               <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-dark/60 backdrop-blur-sm px-2.5 py-0.5 sm:px-3 sm:py-1 font-poppins text-[0.58rem] sm:text-[0.65rem] text-background/90">
-                {selectedImage + 1} / {images.length}
+                {selectedImage + 1} / {filteredImages.length}
               </div>
             </div>
 
             {/* Thumbnails */}
             <div className="flex gap-1.5 sm:gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
-              {images.map((img, idx) => (
+              {filteredImages.map((img, idx) => (
                 <button
                   key={idx}
                   type="button"

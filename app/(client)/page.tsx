@@ -1,10 +1,4 @@
-import HeroSection from "./component/home/HeroSection";
-import ProductSlider from "./component/home/ProductSlider";
-import FeaturedCollection from "./component/home/FeaturedCollection";
-import Newsletter from "./component/home/Newsletter";
-import KinynSection from "./component/home/KinynSection";
-import LogoMarquee from "./component/home/LogoMarquee";
-import ContactSection from "./component/home/ContactSection";
+import HomeClient from "./component/home/HomeClient";
 import connectDB from "@/lib/mongodb";
 import Collection from "@/models/Collection";
 
@@ -51,15 +45,7 @@ export default async function Page() {
     <>
       <JsonLd data={organizationJsonLd(siteUrl)} />
       <JsonLd data={webSiteJsonLd(siteUrl)} />
-      <HeroSection />
-      <LogoMarquee />
-      <ProductSlider />
-      <FeaturedCollection initialCollections={collections} />
-
-      <KinynSection />
-
-      <Newsletter />
-      <ContactSection />
+      <HomeClient collections={collections} />
     </>
   );
 }

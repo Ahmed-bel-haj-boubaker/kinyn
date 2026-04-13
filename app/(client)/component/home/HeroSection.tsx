@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 
-export default function HeroSection() {
+export default function HeroSection({
+  onVideoReady,
+}: {
+  onVideoReady?: () => void;
+}) {
   return (
     <section className="relative w-full overflow-hidden min-h-[60vh] sm:min-h-[80vh]">
       <video
@@ -11,6 +15,7 @@ export default function HeroSection() {
         muted
         playsInline
         preload="auto"
+        onCanPlay={onVideoReady}
         className="absolute inset-0 w-full h-full object-cover"
       >
         <source src="/video/hero.mp4" type="video/mp4" />

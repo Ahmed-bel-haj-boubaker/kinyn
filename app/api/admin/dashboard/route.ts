@@ -159,7 +159,7 @@ async function getTopProducts() {
     /* Enrich with current stock & image */
     const ids = agg.map((a) => a._id);
     const products = await Product.find({ _id: { $in: ids } })
-      .select("name stock images")
+      .select("name sizeStock images")
       .lean();
 
     const productMap = new Map(products.map((p) => [p._id.toString(), p]));

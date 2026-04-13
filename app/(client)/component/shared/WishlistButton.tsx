@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { Heart } from "lucide-react";
+import { useWishlist } from "@/lib/wishlist";
 
 interface WishlistButtonProps {
   productId: string;
@@ -22,47 +23,16 @@ export default function WishlistButton({
   inactiveClassName = "",
   iconClassName = "",
 }: WishlistButtonProps) {
-  const [wishlisted, setWishlisted] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { has, toggle: wishlistToggle } = useWishlist();
+  const wishlisted = has(productId);
 
-  /* Check if this product is already in the user's wishlist on mount */
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (Array.isArray(data?.user?.wishlist)) {
-          setWishlisted((data.user.wishlist as string[]).includes(productId));
-        }
-      })
-      .catch(() => {});
-  }, [productId]);
-
-  const toggle = useCallback(
-    async (e: React.MouseEvent) => {
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      if (loading) return;
-      setLoading(true);
-      try {
-        if (wishlisted) {
-          const res = await fetch(`/api/auth/me/wishlist/${productId}`, {
-            method: "DELETE",
-          });
-          if (res.ok) setWishlisted(false);
-        } else {
-          const res = await fetch("/api/auth/me/wishlist", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ productId }),
-          });
-          if (res.ok) setWishlisted(true);
-          /* 401 = not authenticated, silently ignore */
-        }
-      } finally {
-        setLoading(false);
-      }
+      wishlistToggle(productId);
     },
-    [loading, wishlisted, productId],
+    [wishlistToggle, productId],
   );
 
   const stateClass = wishlisted ? activeClassName : inactiveClassName;
@@ -70,8 +40,7 @@ export default function WishlistButton({
   return (
     <button
       type="button"
-      onClick={toggle}
-      disabled={loading}
+      onClick={handleClick}
       aria-label={wishlisted ? "Retirer des favoris" : "Ajouter aux favoris"}
       className={`${className} ${stateClass}`}
     >

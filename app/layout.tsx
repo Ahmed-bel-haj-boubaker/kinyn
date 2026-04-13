@@ -8,7 +8,8 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kinyn.tn";
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
 });
 
 const erotique = localFont({
@@ -21,11 +22,11 @@ const erotique = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "KINYN — Mode Femme & Enfant en Tunisie | Livraison Rapide",
+    default: "KINYN — Mode Femme en Tunisie | Livraison Rapide",
     template: "%s | KINYN",
   },
   description:
-    "Découvrez KINYN, votre boutique en ligne tunisienne de mode femme et enfant. Vêtements élégants, qualité premium et livraison partout en Tunisie.",
+    "Découvrez KINYN, votre boutique en ligne tunisienne de mode femme . Vêtements élégants, qualité premium et livraison partout en Tunisie.",
   keywords: [
     "mode femme Tunisie",
     "vêtements enfant Tunisie",

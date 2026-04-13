@@ -156,7 +156,7 @@ export default function FeaturedCollection({
                             ? "(max-width: 768px) 100vw, 50vw"
                             : "(max-width: 768px) 100vw, 50vw"
                         }
-                        priority={idx < 2}
+                        loading="lazy"
                       />
 
                       {/* Gradient overlay */}

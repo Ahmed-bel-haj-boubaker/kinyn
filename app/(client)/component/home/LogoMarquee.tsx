@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 
-const LOGO_COUNT = 16;
+const LOGO_COUNT = 8;
 
 export default function LogoMarquee() {
   const logos = Array.from({ length: LOGO_COUNT });
@@ -24,9 +24,10 @@ export default function LogoMarquee() {
                 <Image
                   src="/images/logo.png"
                   alt="KINYN"
-                  width={400}
-                  height={400}
+                  width={80}
+                  height={80}
                   className="h-6 w-auto object-contain transition-all duration-500 hover:opacity-100 sm:h-8 md:h-9 lg:h-12"
+                  loading="lazy"
                   draggable={false}
                 />
               </div>

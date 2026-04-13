@@ -17,11 +17,6 @@ import {
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
-interface CategoryItem {
-  name: string;
-  slug: string;
-}
-
 interface BusinessProfile {
   phone: string;
   email: string;
@@ -38,12 +33,22 @@ interface BusinessProfile {
 /*  Static data                                                        */
 /* ------------------------------------------------------------------ */
 
+const ACCOUNT = [
+  { label: "Mon profil", href: "/profile" },
+  { label: "Suivi de commande", href: "/profile?tab=orders" },
+  { label: "Mes adresses", href: "/profile?tab=addresses" },
+  { label: "Informations personnelles", href: "/profile?tab=info" },
+];
+
 const SERVICE = [
   { label: "Contactez-nous", href: "/contact" },
   { label: "FAQ", href: "/faq" },
-  { label: "Livraison & Retours", href: "/livraison" },
-  { label: "Suivi de commande", href: "/suivi" },
-  { label: "Politique de confidentialité", href: "/confidentialite" },
+  { label: "Livraison & Retours", href: "/livraison-retours" },
+
+  {
+    label: "Politique de confidentialité",
+    href: "/politique-de-confidentialite",
+  },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -52,26 +57,9 @@ const SERVICE = [
 export default function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
-  const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
 
   useEffect(() => {
-    /* Fetch categories (mère level only) */
-    fetch("/api/categories")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.categories) {
-          const meres = data.categories.map(
-            (c: { name: string; slug: string }) => ({
-              name: c.name,
-              slug: c.slug,
-            }),
-          );
-          setCategories(meres);
-        }
-      })
-      .catch(() => {});
-
     /* Fetch business profile */
     fetch("/api/business-profile")
       .then((r) => (r.ok ? r.json() : null))
@@ -159,20 +147,20 @@ export default function Footer() {
             )}
           </div>
 
-          {/* ---------- col 2: categories ---------- */}
+          {/* ---------- col 2: votre compte ---------- */}
           <div>
             <h3 className="font-erotique text-white text-lg mb-5 tracking-wide">
-              Catégories
+              Votre Compte
             </h3>
             <ul className="space-y-2.5">
-              {categories.map((item) => (
-                <li key={item.slug}>
+              {ACCOUNT.map((item) => (
+                <li key={item.label}>
                   <Link
-                    href={`/${item.slug}`}
+                    href={item.href}
                     className="font-poppins text-white/50 text-sm hover:text-primary
                                transition-colors duration-200 inline-block"
                   >
-                    {item.name}
+                    {item.label}
                   </Link>
                 </li>
               ))}

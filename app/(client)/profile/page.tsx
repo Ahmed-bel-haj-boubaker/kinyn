@@ -8,7 +8,6 @@ import {
   Trash2,
   Plus,
   Package,
-  Heart,
   ShoppingBag,
   ChevronRight,
   Clock,
@@ -21,7 +20,6 @@ import ProfileSidebar, {
 import ProfileInfo from "../component/profile/ProfileInfo";
 import AddressModal from "../component/profile/AddressModal";
 import OrdersList from "../component/profile/OrdersList";
-import WishlistGrid from "../component/profile/WishlistGrid";
 
 /* ─────────── User type (matches SafeUser from API) ─────────── */
 
@@ -93,7 +91,6 @@ function ProfilePageInner() {
   /* ── Overview stats (real data) ── */
   const [recentOrders, setRecentOrders] = useState<OverviewOrder[]>([]);
   const [orderCount, setOrderCount] = useState<number | null>(null);
-  const [wishlistCount, setWishlistCount] = useState<number | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
   const validSections: ProfileSection[] = [
@@ -101,7 +98,6 @@ function ProfilePageInner() {
     "info",
     "addresses",
     "orders",
-    "wishlist",
   ];
   const [section, setSection] = useState<ProfileSection>("overview");
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -116,24 +112,17 @@ function ProfilePageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  /* ── Fetch overview stats (orders + wishlist) ── */
+  /* ── Fetch overview stats (orders) ── */
   useEffect(() => {
     async function fetchStats() {
       setStatsLoading(true);
       try {
-        const [ordersRes, wishlistRes] = await Promise.all([
-          fetch("/api/orders"),
-          fetch("/api/auth/me/wishlist"),
-        ]);
+        const ordersRes = await fetch("/api/orders");
         if (ordersRes.ok) {
           const data = await ordersRes.json();
           const orders: OverviewOrder[] = data.orders ?? [];
           setOrderCount(orders.length);
           setRecentOrders(orders.slice(0, 2));
-        }
-        if (wishlistRes.ok) {
-          const data = await wishlistRes.json();
-          setWishlistCount((data.products ?? []).length);
         }
       } catch {
         /* silently fail */
@@ -275,10 +264,9 @@ function ProfilePageInner() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
         {[
           { label: "Commandes", value: orderCount, icon: Package },
-          { label: "Souhaits", value: wishlistCount, icon: Heart },
           { label: "Panier", value: cartCount, icon: ShoppingBag },
         ].map(({ label, value, icon: Icon }) => (
           <div
@@ -581,7 +569,6 @@ function ProfilePageInner() {
     info: <ProfileInfo user={user} onUpdate={handleUserUpdate} />,
     addresses: renderAddresses(),
     orders: <OrdersList />,
-    wishlist: <WishlistGrid />,
   };
 
   return (

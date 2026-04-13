@@ -4,6 +4,7 @@ import { X, Loader2, Heart } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useWishlist } from "@/lib/wishlist";
 
 interface WishlistProduct {
   id: string;
@@ -15,42 +16,85 @@ interface WishlistProduct {
   categoryMereName: string;
 }
 
+/* Fetch product details by IDs (for guest wishlist) */
+async function fetchProductsByIds(ids: string[]): Promise<WishlistProduct[]> {
+  const results: WishlistProduct[] = [];
+  for (const id of ids) {
+    try {
+      const res = await fetch(`/api/products/${id}`);
+      if (!res.ok) continue;
+      const data = await res.json();
+      const p = data.product;
+      if (p) {
+        results.push({
+          id: p.id ?? p._id ?? id,
+          name: p.name,
+          slug: p.slug,
+          price: p.price,
+          promoPrice: p.promoPrice ?? null,
+          images: p.images ?? [],
+          categoryMereName: p.categoryMereName ?? p.categoryMere ?? "",
+        });
+      }
+    } catch {
+      /* skip this product */
+    }
+  }
+  return results;
+}
+
 export default function WishlistGrid() {
-  const [items, setItems] = useState<WishlistProduct[]>([]);
+  const { items: wishlistIds, remove } = useWishlist();
+  const [products, setProducts] = useState<WishlistProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
+  /* Fetch product details for all wishlisted IDs */
   useEffect(() => {
-    async function fetchWishlist() {
+    async function fetchProducts() {
+      if (wishlistIds.length === 0) {
+        setProducts([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
       try {
+        /* Try server wishlist first (has product details) */
         const res = await fetch("/api/auth/me/wishlist");
         if (res.ok) {
           const data = await res.json();
-          setItems(data.products ?? []);
+          const serverProducts: WishlistProduct[] = data.products ?? [];
+          /* Filter to only items in context (in case of stale server data) */
+          const inContext = serverProducts.filter((p) =>
+            wishlistIds.includes(p.id),
+          );
+          /* For any local-only IDs not in server response, fetch individually */
+          const serverIds = new Set(serverProducts.map((p) => p.id));
+          const localOnly = wishlistIds.filter((id) => !serverIds.has(id));
+          const extraProducts = await fetchProductsByIds(localOnly);
+          setProducts([...inContext, ...extraProducts]);
+        } else {
+          /* Guest / not authenticated — fetch all by IDs */
+          const fetched = await fetchProductsByIds(wishlistIds);
+          setProducts(fetched);
         }
       } catch {
-        /* silently fail */
+        /* Fallback: fetch individually */
+        const fetched = await fetchProductsByIds(wishlistIds);
+        setProducts(fetched);
       } finally {
         setLoading(false);
       }
     }
-    fetchWishlist();
-  }, []);
+    fetchProducts();
+  }, [wishlistIds]);
 
-  const removeItem = async (productId: string) => {
+  const removeItem = (productId: string) => {
     setRemovingId(productId);
-    try {
-      const res = await fetch(`/api/auth/me/wishlist/${productId}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        setItems((prev) => prev.filter((item) => item.id !== productId));
-      }
-    } catch {
-      /* silently fail */
-    } finally {
-      setRemovingId(null);
-    }
+    remove(productId);
+    setProducts((prev) => prev.filter((item) => item.id !== productId));
+    setRemovingId(null);
   };
 
   const slugify = (str: string) =>
@@ -77,9 +121,9 @@ export default function WishlistGrid() {
             strokeWidth={1.5}
           />
         </div>
-      ) : items.length > 0 ? (
+      ) : products.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
-          {items.map((item) => (
+          {products.map((item) => (
             <div
               key={item.id}
               className="group relative overflow-hidden rounded-lg sm:rounded-xl bg-white border border-[#EEECE7] shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-shadow duration-200 hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)]"

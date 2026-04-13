@@ -54,7 +54,12 @@ export async function GET(
 
     const { slug } = await params;
 
-    const product = await Product.findOne({ slug, status: "active" })
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(slug);
+    const query = isObjectId
+      ? { _id: slug, status: "active" }
+      : { slug, status: "active" };
+
+    const product = await Product.findOne(query)
       .populate([
         { path: "categoryMere", select: "name slug" },
         { path: "categorySous", select: "name slug" },

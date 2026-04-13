@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import UserDropdown from "./UserDropdown";
 import { useCart } from "@/lib/cart";
+import { useWishlist } from "@/lib/wishlist";
 
 /* ─────────────────────── Types ─────────────────────── */
 
@@ -79,6 +80,7 @@ interface ApiCollection {
 
 interface NavbarProps {
   onCartClick: () => void;
+  onWishlistClick: () => void;
   onSearchClick: () => void;
 }
 
@@ -90,7 +92,11 @@ interface MobileUser {
   email: string;
 }
 
-export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
+export default function Navbar({
+  onCartClick,
+  onWishlistClick,
+  onSearchClick,
+}: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDesktop, setActiveDesktop] = useState<string | null>(null);
   const [expandedMobile, setExpandedMobile] = useState<string | null>(null);
@@ -98,6 +104,7 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
   const [collections, setCollections] = useState<ApiCollection[]>([]);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { totalItems } = useCart();
+  const { count: wishlistCount } = useWishlist();
   const [mounted, setMounted] = useState(false);
   const [mobileUser, setMobileUser] = useState<MobileUser | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -363,16 +370,22 @@ export default function Navbar({ onCartClick, onSearchClick }: NavbarProps) {
               strokeWidth={1.4}
             />
           </button>
-          <Link
-            href="/profile?tab=wishlist"
+          <button
+            type="button"
+            onClick={onWishlistClick}
             aria-label="Wishlist"
-            className="cursor-pointer text-[#2C2C2C] transition-colors duration-200 hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-2 rounded-sm"
+            className="relative cursor-pointer text-[#2C2C2C] transition-colors duration-200 hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-2 rounded-sm"
           >
             <Heart
               className="h-4 w-4 sm:h-[18px] sm:w-[18px]"
               strokeWidth={1.4}
             />
-          </Link>
+            {mounted && wishlistCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold font-poppins text-white leading-none">
+                {wishlistCount > 99 ? "99+" : wishlistCount}
+              </span>
+            )}
+          </button>
           <button
             type="button"
             onClick={onCartClick}

@@ -1,20 +1,8 @@
 "use client";
 
-import {
-  User,
-  MapPin,
-  Package,
-  Heart,
-  LogOut,
-  LayoutDashboard,
-} from "lucide-react";
+import { User, MapPin, Package, LogOut, LayoutDashboard } from "lucide-react";
 
-export type ProfileSection =
-  | "overview"
-  | "info"
-  | "addresses"
-  | "orders"
-  | "wishlist";
+export type ProfileSection = "overview" | "info" | "addresses" | "orders";
 
 interface ProfileSidebarProps {
   active: ProfileSection;
@@ -33,7 +21,6 @@ const menuItems: {
   { key: "info", label: "Informations Personnelles", icon: User },
   { key: "addresses", label: "Adresses", icon: MapPin },
   { key: "orders", label: "Commandes", icon: Package },
-  { key: "wishlist", label: "Liste de Souhaits", icon: Heart },
   { key: "logout", label: "Déconnexion", icon: LogOut },
 ];
 

@@ -104,7 +104,7 @@ export default function KinynSection() {
                 fill
                 sizes="(max-width:1024px)100vw,50vw"
                 className="object-cover"
-                priority
+                loading="lazy"
               />
               {/* subtle gradient overlay at bottom */}
               <div className="absolute inset-0 bg-gradient-to-t from-dark/30 via-transparent to-transparent" />
@@ -119,9 +119,10 @@ export default function KinynSection() {
               <Image
                 src="/images/logo2.png"
                 alt="Kinyn"
-                width={400}
-                height={400}
+                width={112}
+                height={112}
                 className="object-contain"
+                loading="lazy"
               />
             </div>
 

@@ -1,7 +1,3 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import Image from "next/image";
 import HeroSection from "./component/home/HeroSection";
 import ProductSlider from "./component/home/ProductSlider";
 import FeaturedCollection from "./component/home/FeaturedCollection";
@@ -9,49 +5,45 @@ import Newsletter from "./component/home/Newsletter";
 import KinynSection from "./component/home/KinynSection";
 import LogoMarquee from "./component/home/LogoMarquee";
 import ContactSection from "./component/home/ContactSection";
+import connectDB from "@/lib/mongodb";
+import Collection from "@/models/Collection";
 
 import JsonLd, {
   organizationJsonLd,
   webSiteJsonLd,
 } from "./component/shared/JsonLd";
 
-export default function Page() {
-  const [ready, setReady] = useState(false);
+interface LeanCollection {
+  _id: string;
+  name: string;
+  slug: string;
+  description: string;
+  image: string;
+  products: string[];
+}
 
-  useEffect(() => {
-    let cancelled = false;
-    async function preload() {
-      try {
-        const res = await fetch("/api/categories");
-        if (!res.ok) throw new Error("fetch failed");
-        await res.json();
-      } catch {
-        /* show page even if categories fail */
-      } finally {
-        if (!cancelled) setReady(true);
-      }
-    }
-    preload();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+async function getCollections() {
+  try {
+    await connectDB();
+    const collections = await Collection.find({ status: "active" })
+      .select("name slug description image products order")
+      .sort({ order: 1, createdAt: -1 })
+      .lean<LeanCollection[]>();
 
-  if (!ready) {
-    return (
-      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-background">
-        <Image
-          src="/images/logo.png"
-          alt="KINYN"
-          width={120}
-          height={120}
-          priority
-          className="mb-8 animate-pulse"
-        />
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    );
+    return collections.slice(0, 3).map((c) => ({
+      id: String(c._id),
+      title: c.name,
+      description: c.description,
+      image: c.image,
+      href: `/collections/${c.slug}`,
+    }));
+  } catch {
+    return [];
   }
+}
+
+export default async function Page() {
+  const collections = await getCollections();
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kinyn.tn";
 
@@ -62,7 +54,7 @@ export default function Page() {
       <HeroSection />
       <LogoMarquee />
       <ProductSlider />
-      <FeaturedCollection />
+      <FeaturedCollection initialCollections={collections} />
 
       <KinynSection />
 

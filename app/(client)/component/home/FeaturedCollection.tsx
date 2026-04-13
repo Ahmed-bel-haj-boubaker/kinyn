@@ -13,13 +13,20 @@ interface Collection {
   href: string;
 }
 
-export default function FeaturedCollection() {
+export default function FeaturedCollection({
+  initialCollections,
+}: {
+  initialCollections?: Collection[];
+}) {
   const sectionRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [collections, setCollections] = useState<Collection[]>([]);
+  const [collections, setCollections] = useState<Collection[]>(
+    initialCollections ?? [],
+  );
 
   useEffect(() => {
+    if (initialCollections && initialCollections.length > 0) return;
     fetch("/api/collections")
       .then((res) => res.json())
       .then((data) => {
@@ -46,7 +53,7 @@ export default function FeaturedCollection() {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [initialCollections]);
 
   useEffect(() => {
     const el = sectionRef.current;

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useCart } from "@/lib/cart";
+import { useWishlist } from "@/lib/wishlist";
 
 interface ProductImage {
   url: string;
@@ -78,9 +79,10 @@ function QuickViewModal({
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
   const { addItem } = useCart();
+  const { has, toggle } = useWishlist();
+  const isWishlisted = has(product.id);
 
   /* Enter animation */
   useEffect(() => {
@@ -509,7 +511,7 @@ function QuickViewModal({
                 {/* Wishlist */}
                 <button
                   type="button"
-                  onClick={() => setIsWishlisted(!isWishlisted)}
+                  onClick={() => toggle(product.id)}
                   className={`flex h-9 w-9 sm:h-10 sm:w-10 lg:h-11 lg:w-11 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 active:scale-90 ${
                     isWishlisted
                       ? "border-primary bg-primary/10 text-primary"

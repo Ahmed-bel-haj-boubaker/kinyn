@@ -1144,29 +1144,22 @@ export default function ProductsListing({
         <div
           className={`transition-all duration-300 ease-out ${expandedFilters.includes("color") ? "max-h-60 overflow-y-auto opacity-100 mt-2" : "max-h-0 overflow-hidden opacity-0"}`}
         >
-          <div className="space-y-1 pr-1">
+          <div className="flex flex-wrap items-center gap-2 pr-1">
             {availableColors.length > 0 ? (
               availableColors.map((color) => (
                 <button
                   key={color.name}
                   type="button"
                   onClick={() => toggleColor(color.name)}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left font-poppins text-[0.78rem] transition-all duration-200 ${
+                  title={isHexColor(color.name) ? undefined : color.name}
+                  aria-label={color.name}
+                  className={`h-7 w-7 shrink-0 rounded-full border-2 transition-all duration-200 ${
                     selectedColors.includes(color.name)
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-dark/70 hover:bg-dark/[0.03] hover:text-dark"
+                      ? "border-primary ring-2 ring-primary/30 scale-110"
+                      : "border-dark/15 hover:border-dark/30"
                   }`}
-                >
-                  <span
-                    className={`h-4 w-4 shrink-0 rounded-full border-2 transition-all duration-200 ${
-                      selectedColors.includes(color.name)
-                        ? "border-primary ring-2 ring-primary/30"
-                        : "border-dark/15"
-                    }`}
-                    style={{ backgroundColor: color.hex }}
-                  />
-                  {!isHexColor(color.name) && <span>{color.name}</span>}
-                </button>
+                  style={{ backgroundColor: color.hex }}
+                />
               ))
             ) : (
               <p className="px-3 py-2 font-poppins text-[0.75rem] text-dark/35">

@@ -18,7 +18,7 @@ import crypto from "crypto";
    ================================================================ */
 
 const BLOB_PREFIX = "products"; // folder/prefix inside the blob store
-const MAX_FILE_SIZE = 8.0 * 1024 * 1024; // 4.5 MB — Vercel serverless body limit
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 4.5 MB — Vercel serverless body limit
 const MAX_FILES = 10;
 const ALLOWED_TYPES = [
   "image/jpeg",

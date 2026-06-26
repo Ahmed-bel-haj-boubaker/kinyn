@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        /* Vercel Blob — uploaded product/collection images */
+        protocol: "https",
+        hostname: "*.public.blob.vercel-storage.com",
+      },
     ],
     /* Prefer modern formats for smaller file sizes */
     formats: ["image/avif", "image/webp"],

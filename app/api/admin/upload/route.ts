@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/lib/auth";
 import { apiGuard } from "@/lib/security";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { put } from "@vercel/blob";
 import crypto from "crypto";
 
 /* ================================================================
@@ -10,12 +9,16 @@ import crypto from "crypto";
    ================================================================
    POST — Upload one or more images (multipart/form-data)
    Returns an array of public URL paths for the uploaded files.
-   Files are stored in /public/uploads/products/.
+   Files are stored on Vercel Blob (product images).
    Admin-only endpoint.
+
+   Requires the BLOB_READ_WRITE_TOKEN env var. On Vercel this is
+   injected automatically once a Blob store is connected to the
+   project; locally add it to .env (see `vercel env pull`).
    ================================================================ */
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "products");
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB per file
+const BLOB_PREFIX = "products"; // folder/prefix inside the blob store
+const MAX_FILE_SIZE = 4.5 * 1024 * 1024; // 4.5 MB — Vercel serverless body limit
 const MAX_FILES = 10;
 const ALLOWED_TYPES = [
   "image/jpeg",
@@ -72,9 +75,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    /* Ensure upload directory exists */
-    await mkdir(UPLOAD_DIR, { recursive: true });
-
     const urls: string[] = [];
 
     for (const file of files) {
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
       if (file.size > MAX_FILE_SIZE) {
         return NextResponse.json(
           {
-            error: `Le fichier "${file.name}" dépasse la taille maximale de 5 MB.`,
+            error: `Le fichier "${file.name}" dépasse la taille maximale de 4.5 MB.`,
           },
           { status: 400 },
         );
@@ -100,15 +100,16 @@ export async function POST(req: NextRequest) {
 
       /* Generate unique filename */
       const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
-      const uniqueName = `${Date.now()}-${crypto.randomBytes(8).toString("hex")}.${ext}`;
-      const filePath = path.join(UPLOAD_DIR, uniqueName);
+      const uniqueName = `${BLOB_PREFIX}/${Date.now()}-${crypto.randomBytes(8).toString("hex")}.${ext}`;
 
-      /* Write to disk */
-      const buffer = Buffer.from(await file.arrayBuffer());
-      await writeFile(filePath, buffer);
+      /* Upload to Vercel Blob */
+      const blob = await put(uniqueName, file, {
+        access: "public",
+        contentType: file.type,
+      });
 
-      /* Public URL path */
-      urls.push(`/uploads/products/${uniqueName}`);
+      /* Public CDN URL */
+      urls.push(blob.url);
     }
 
     return NextResponse.json(

@@ -537,7 +537,7 @@ function ProductDetailPage({
                   {p.categoryMere}
                   {p.categorySous ? ` — ${p.categorySous}` : ""}
                 </p>
-                <h1 className="font-erotique text-xl sm:text-2xl md:text-3xl lg:text-4xl text-dark leading-tight">
+                <h1 className="font-poppins text-xl sm:text-2xl md:text-3xl lg:text-4xl text-dark leading-tight">
                   {p.name}
                 </h1>
               </div>

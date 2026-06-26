@@ -1457,7 +1457,7 @@ export default function ProductsListing({
                           <div className="pt-3 sm:pt-4 pb-1 space-y-2 sm:space-y-3">
                             <div className="text-center">
                               <Link href={`/${categorySlug}/${product.slug}`}>
-                                <h3 className="font-erotique text-[0.8rem] sm:text-[0.95rem] lg:text-[1rem] text-dark leading-snug tracking-wide hover:text-primary transition-colors duration-300">
+                                <h3 className="font-family-poppins text-[0.8rem] sm:text-[0.95rem] lg:text-[1rem] text-dark leading-snug tracking-wide hover:text-primary transition-colors duration-300">
                                   {product.name}
                                 </h3>
                               </Link>

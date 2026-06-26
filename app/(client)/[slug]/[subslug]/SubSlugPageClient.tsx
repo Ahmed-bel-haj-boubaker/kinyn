@@ -17,7 +17,9 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-import ProductsListing from "../../component/shared/ProductsListing";
+import ProductsListing, {
+  QuickViewModal,
+} from "../../component/shared/ProductsListing";
 import type { ClientProduct } from "../../component/shared/ProductsListing";
 import WishlistButton from "../../component/shared/WishlistButton";
 import { useCart } from "@/lib/cart";
@@ -232,6 +234,10 @@ function ProductDetailPage({
 }) {
   const categoryLabel = p.categoryMere || slug;
   const { addItem } = useCart();
+
+  /* Quick-view modal for recommended products */
+  const [quickViewProduct, setQuickViewProduct] =
+    useState<ClientProduct | null>(null);
 
   /* Build image list from DB objects */
   const images = useMemo(
@@ -863,25 +869,31 @@ function ProductDetailPage({
 
             <div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:gap-4 lg:grid-cols-4">
               {relatedProducts.map((item) => (
-                <Link
+                <div
                   key={item.id}
-                  href={`/${slug}/${item.slug}`}
-                  className="group relative block overflow-hidden rounded-lg sm:rounded-xl bg-background transition-all duration-300 hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)]"
+                  className="group relative flex flex-col overflow-hidden rounded-lg sm:rounded-xl bg-background transition-all duration-300 hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)]"
                 >
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-lg sm:rounded-xl bg-dark/[0.03]">
-                    <Image
-                      src={item.image || "/images/placeholder.png"}
-                      alt={item.name}
-                      fill
-                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    />
-                    <div className="absolute inset-0 bg-dark/0 group-hover:bg-dark/10 transition-colors duration-300" />
-                  </div>
-                  <div className="p-2 sm:p-2.5 md:p-3 lg:p-3.5">
-                    <h3 className="font-poppins text-[0.68rem] sm:text-[0.72rem] md:text-[0.78rem] font-medium text-dark leading-snug line-clamp-1 group-hover:text-primary transition-colors duration-200">
-                      {item.name}
-                    </h3>
+                  <Link
+                    href={`/${slug}/${item.slug}`}
+                    className="block"
+                  >
+                    <div className="relative aspect-[3/4] overflow-hidden rounded-lg sm:rounded-xl bg-dark/[0.03]">
+                      <Image
+                        src={item.image || "/images/placeholder.png"}
+                        alt={item.name}
+                        fill
+                        className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      />
+                      <div className="absolute inset-0 bg-dark/0 group-hover:bg-dark/10 transition-colors duration-300" />
+                    </div>
+                  </Link>
+                  <div className="flex flex-1 flex-col p-2 sm:p-2.5 md:p-3 lg:p-3.5">
+                    <Link href={`/${slug}/${item.slug}`}>
+                      <h3 className="font-poppins text-[0.68rem] sm:text-[0.72rem] md:text-[0.78rem] font-medium text-dark leading-snug line-clamp-1 group-hover:text-primary transition-colors duration-200">
+                        {item.name}
+                      </h3>
+                    </Link>
                     <div className="mt-0.5 sm:mt-1 flex items-center gap-1.5 sm:gap-2">
                       <p className="font-poppins text-[0.68rem] sm:text-[0.72rem] md:text-[0.75rem] font-semibold text-dark/80">
                         {(item.promoPrice ?? item.price).toFixed(2)} TND
@@ -892,13 +904,29 @@ function ProductDetailPage({
                         </p>
                       )}
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => setQuickViewProduct(item)}
+                      className="mt-2 sm:mt-3 w-full border border-dark/15 py-2 sm:py-2.5 font-poppins text-[0.68rem] sm:text-[0.75rem] tracking-[0.06em] text-dark/70 transition-all duration-300 hover:border-primary hover:bg-primary hover:text-background active:scale-[0.97]"
+                    >
+                      Ajouter au panier
+                    </button>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           </div>
         )}
       </div>
+
+      {/* Quick-view modal for recommended products */}
+      {quickViewProduct && (
+        <QuickViewModal
+          product={quickViewProduct}
+          categorySlug={slug}
+          onClose={() => setQuickViewProduct(null)}
+        />
+      )}
     </div>
   );
 }

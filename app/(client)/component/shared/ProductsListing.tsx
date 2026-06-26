@@ -123,7 +123,7 @@ function isHexColor(name: string): boolean {
    Quick-view modal — mirrors the ProductSlider QuickViewModal
    but works with real ClientProduct data from the database
    ═══════════════════════════════════════════════════════════════════ */
-function QuickViewModal({
+export function QuickViewModal({
   product,
   categorySlug,
   onClose,

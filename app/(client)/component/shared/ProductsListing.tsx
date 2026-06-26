@@ -988,6 +988,17 @@ export default function ProductsListing({
     return result;
   }, [products]);
 
+  /* Count actual products per subcategory (by categorySous name) */
+  const subcategoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const p of products) {
+      if (p.categorySous) {
+        counts[p.categorySous] = (counts[p.categorySous] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }, [products]);
+
   /* ──────────────────── Filter Sidebar Content ──────────────────── */
   const filterContent = (
     <div className="space-y-6">
@@ -1045,7 +1056,7 @@ export default function ProductsListing({
                   </div>
                   <span>{sub.name}</span>
                   <span className="ml-auto font-poppins text-[0.65rem] text-dark/35">
-                    {sub.items.length}
+                    {subcategoryCounts[sub.name] ?? 0}
                   </span>
                 </button>
               ))}
@@ -1142,9 +1153,9 @@ export default function ProductsListing({
           />
         </button>
         <div
-          className={`transition-all duration-300 ease-out ${expandedFilters.includes("color") ? "max-h-60 overflow-y-auto opacity-100 mt-2" : "max-h-0 overflow-hidden opacity-0"}`}
+          className={`transition-all duration-300 ease-out ${expandedFilters.includes("color") ? "max-h-60 overflow-visible opacity-100 mt-2" : "max-h-0 overflow-hidden opacity-0"}`}
         >
-          <div className="flex flex-wrap items-center gap-2 pr-1">
+          <div className="flex flex-wrap items-center gap-2 p-1">
             {availableColors.length > 0 ? (
               availableColors.map((color) => (
                 <button

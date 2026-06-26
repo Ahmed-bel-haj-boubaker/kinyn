@@ -3,6 +3,8 @@ import connectDB from "@/lib/mongodb";
 import Category from "@/models/Category";
 import type { CategoryLevel, CategoryStatus } from "@/models/Category";
 
+export const dynamic = "force-dynamic";
+
 /* ================================================================
    /api/categories  (PUBLIC)
    ================================================================
@@ -78,7 +80,7 @@ export async function GET() {
       {
         status: 200,
         headers: {
-          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+          "Cache-Control": "private, no-cache",
         },
       },
     );

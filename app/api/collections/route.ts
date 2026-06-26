@@ -3,6 +3,8 @@ import connectDB from "@/lib/mongodb";
 import Collection from "@/models/Collection";
 import type { CollectionStatus } from "@/models/Collection";
 
+export const dynamic = "force-dynamic";
+
 interface LeanCollection {
   _id: string;
   name: string;
@@ -43,7 +45,7 @@ export async function GET() {
       {
         status: 200,
         headers: {
-          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+          "Cache-Control": "private, no-cache",
         },
       },
     );

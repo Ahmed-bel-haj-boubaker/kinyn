@@ -219,6 +219,7 @@ function ProductFormInner({
     initialData?.images ?? [],
   );
   const [uploading, setUploading] = useState(false);
+  const [bulkColor, setBulkColor] = useState("#cccccc");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   /* ── Drag-and-drop reorder ── */
@@ -336,6 +337,13 @@ function ProductFormInner({
       prev.map((img, idx) =>
         idx === i ? { ...img, color: hex, colorHex: hex } : img,
       ),
+    );
+
+  /* Apply one picked color to every image at once.
+     Individual images can still be changed afterwards. */
+  const applyColorToAll = (hex: string) =>
+    setImages((prev) =>
+      prev.map((img) => ({ ...img, color: hex, colorHex: hex })),
     );
 
   const handleFileUpload = async (files: FileList | null) => {
@@ -669,6 +677,32 @@ function ProductFormInner({
               className="hidden"
               onChange={(e) => handleFileUpload(e.target.files)}
             />
+
+            {/* Apply one color to all images */}
+            {images.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 mb-3 p-2.5 rounded-xl border border-gray-200 bg-dark/2">
+                <span className="font-poppins text-xs text-dark/60">
+                  Couleur pour toutes les images :
+                </span>
+                <input
+                  type="color"
+                  value={bulkColor}
+                  onChange={(e) => setBulkColor(e.target.value)}
+                  className="w-7 h-7 rounded-md border border-gray-200 cursor-pointer p-0 bg-transparent shrink-0"
+                  title="Choisir la couleur"
+                />
+                <button
+                  type="button"
+                  onClick={() => applyColorToAll(bulkColor)}
+                  className="px-3 py-1.5 rounded-lg bg-primary text-white font-poppins text-xs font-medium hover:bg-primary/90 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                >
+                  Appliquer à toutes
+                </button>
+                <span className="font-poppins text-[10px] text-dark/40">
+                  Vous pouvez ensuite ajuster chaque image individuellement.
+                </span>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {images.map((img, i) => (

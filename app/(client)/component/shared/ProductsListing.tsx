@@ -109,7 +109,14 @@ const COLOR_HEX_MAP: Record<string, string> = {
 };
 
 function colorHex(name: string): string {
+  /* Colors are now stored as raw hex values (picked by admin). */
+  if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(name)) return name;
   return COLOR_HEX_MAP[name] ?? "#cccccc";
+}
+
+/* True when the color identifier is a raw hex value (no human label). */
+function isHexColor(name: string): boolean {
+  return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(name);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1158,7 +1165,7 @@ export default function ProductsListing({
                     }`}
                     style={{ backgroundColor: color.hex }}
                   />
-                  <span>{color.name}</span>
+                  {!isHexColor(color.name) && <span>{color.name}</span>}
                 </button>
               ))
             ) : (

@@ -209,7 +209,14 @@ const COLOR_HEX_MAP: Record<string, string> = {
 };
 
 function colorHex(name: string): string {
+  /* Colors are now stored as raw hex values (picked by admin). */
+  if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(name)) return name;
   return COLOR_HEX_MAP[name] ?? "#cccccc";
+}
+
+/* True when the color identifier is a raw hex value (no human label). */
+function isHexColor(name: string): boolean {
+  return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(name);
 }
 
 /* ── Component ── */
@@ -558,10 +565,15 @@ function ProductDetailPage({
               {p.colors.length > 0 && (
                 <div>
                   <p className="font-poppins text-[0.68rem] sm:text-[0.7rem] md:text-[0.75rem] font-medium text-dark mb-2 sm:mb-2.5 md:mb-3">
-                    Couleur :{" "}
-                    <span className="font-normal text-dark/60">
-                      {selectedColor}
-                    </span>
+                    Couleur
+                    {!isHexColor(selectedColor) && (
+                      <>
+                        {" : "}
+                        <span className="font-normal text-dark/60">
+                          {selectedColor}
+                        </span>
+                      </>
+                    )}
                   </p>
                   <div className="flex items-center gap-2.5 sm:gap-3">
                     {p.colors.map((color) => (
@@ -805,7 +817,21 @@ function ProductDetailPage({
                     {p.colors.length > 0 && (
                       <li className="flex items-center gap-2 font-poppins text-[0.72rem] sm:text-[0.75rem] md:text-[0.78rem] text-dark/65">
                         <span className="h-1 w-1 rounded-full bg-primary shrink-0" />
-                        Couleurs : {p.colors.join(", ")}
+                        <span>Couleurs :</span>
+                        <span className="flex items-center gap-1.5">
+                          {p.colors.map((color) =>
+                            isHexColor(color) ? (
+                              <span
+                                key={color}
+                                className="h-4 w-4 rounded-full border border-dark/15"
+                                style={{ backgroundColor: resolveHex(color) }}
+                                title={color}
+                              />
+                            ) : (
+                              <span key={color}>{color}</span>
+                            ),
+                          )}
+                        </span>
                       </li>
                     )}
                     <li className="flex items-center gap-2 font-poppins text-[0.72rem] sm:text-[0.75rem] md:text-[0.78rem] text-dark/65">

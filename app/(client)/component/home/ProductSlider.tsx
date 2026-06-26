@@ -44,6 +44,11 @@ interface Product {
   href: string;
 }
 
+/* True when the color identifier is a raw hex value (no human label). */
+function isHexColor(name: string): boolean {
+  return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(name);
+}
+
 /* Format a numeric price → "89.000 DT" */
 function formatPrice(n: number): string {
   return (
@@ -365,10 +370,15 @@ function QuickViewModal({
               style={stagger(420)}
             >
               <p className="font-poppins text-[0.65rem] sm:text-[0.7rem] lg:text-[0.74rem] font-medium text-dark mb-1.5 sm:mb-2">
-                Couleur :{" "}
-                <span className="font-normal text-dark/50">
-                  {selectedColor}
-                </span>
+                Couleur
+                {!isHexColor(selectedColor) && (
+                  <>
+                    {" : "}
+                    <span className="font-normal text-dark/50">
+                      {selectedColor}
+                    </span>
+                  </>
+                )}
               </p>
               {product.colors.length > 0 ? (
                 <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-2.5 flex-wrap">

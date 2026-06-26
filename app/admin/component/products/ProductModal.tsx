@@ -157,18 +157,6 @@ const ALL_SIZES = [
   "43",
   "44",
 ];
-const ALL_COLORS = [
-  { name: "Noir", hex: "#000000" },
-  { name: "Blanc", hex: "#FFFFFF" },
-  { name: "Rouge", hex: "#b31b21" },
-  { name: "Bleu", hex: "#1e40af" },
-  { name: "Vert", hex: "#16a34a" },
-  { name: "Beige", hex: "#d4c5a9" },
-  { name: "Gris", hex: "#6b7280" },
-  { name: "Rose", hex: "#ec4899" },
-  { name: "Marron", hex: "#92400e" },
-];
-
 function ProductFormInner({
   mode,
   initialData,
@@ -341,22 +329,13 @@ function ProductFormInner({
   const removeImage = (i: number) =>
     setImages((prev) => prev.filter((_, idx) => idx !== i));
 
-  const setImageColor = (i: number, color: string, colorHex?: string) =>
-    setImages((prev) =>
-      prev.map((img, idx) => {
-        if (idx !== i) return img;
-        const hex =
-          colorHex ??
-          ALL_COLORS.find((c) => c.name === color)?.hex ??
-          img.colorHex ??
-          "";
-        return { ...img, color, colorHex: hex };
-      }),
-    );
-
+  /* The picked hex is the single source of truth for an image's color:
+     it identifies the color (img.color) AND renders it (img.colorHex). */
   const setImageColorHex = (i: number, hex: string) =>
     setImages((prev) =>
-      prev.map((img, idx) => (idx === i ? { ...img, colorHex: hex } : img)),
+      prev.map((img, idx) =>
+        idx === i ? { ...img, color: hex, colorHex: hex } : img,
+      ),
     );
 
   const handleFileUpload = async (files: FileList | null) => {
@@ -725,36 +704,20 @@ function ProductFormInner({
                       </svg>
                     )}
                   </div>
-                  {/* Color selector for this image */}
+                  {/* Color picker for this image */}
                   <div className="px-1.5 py-1.5 border-t border-gray-100 bg-white rounded-b-xl">
-                    <div className="flex items-center gap-1">
-                      <div className="relative flex-1">
-                        <input
-                          type="text"
-                          value={img.color}
-                          onChange={(e) => setImageColor(i, e.target.value)}
-                          list={`color-suggestions-${i}`}
-                          placeholder="Couleur…"
-                          className="w-full px-2 py-1 rounded-lg border border-gray-200 bg-white font-poppins text-[11px] text-dark/70 focus:outline-none focus:border-primary/50 pr-2"
-                        />
-                        <datalist id={`color-suggestions-${i}`}>
-                          {ALL_COLORS.map((c) => (
-                            <option key={c.name} value={c.name} />
-                          ))}
-                        </datalist>
-                      </div>
+                    <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="color"
-                        value={
-                          img.colorHex ||
-                          ALL_COLORS.find((c) => c.name === img.color)?.hex ||
-                          "#cccccc"
-                        }
+                        value={img.colorHex || "#cccccc"}
                         onChange={(e) => setImageColorHex(i, e.target.value)}
                         className="w-6 h-6 rounded-md border border-gray-200 cursor-pointer p-0 bg-transparent shrink-0"
                         title="Choisir la couleur"
                       />
-                    </div>
+                      <span className="font-poppins text-[11px] text-dark/60">
+                        {img.colorHex ? "Couleur choisie" : "Choisir la couleur"}
+                      </span>
+                    </label>
                   </div>
                   <button
                     type="button"
@@ -793,15 +756,10 @@ function ProductFormInner({
                       </button>
                     )}
                   </div>
-                  {img.color && (
+                  {img.colorHex && (
                     <span
                       className="absolute top-1 right-8 w-4 h-4 rounded-full border-2 border-white shadow-sm"
-                      style={{
-                        backgroundColor:
-                          img.colorHex ||
-                          (ALL_COLORS.find((c) => c.name === img.color)?.hex ??
-                            "#ccc"),
-                      }}
+                      style={{ backgroundColor: img.colorHex }}
                     />
                   )}
                 </div>

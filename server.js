@@ -4,7 +4,7 @@ const next = require("next");
 const { Server: SocketIOServer } = require("socket.io");
 
 const dev = process.env.NODE_ENV !== "production";
-const hostname = "localhost";
+const hostname = "127.0.0.1";
 const port = parseInt(process.env.PORT || "3000", 10);
 
 const app = next({ dev, hostname, port });
@@ -51,7 +51,7 @@ app.prepare().then(() => {
   /* Expose io instance globally so lib/socket.ts can pick it up */
   globalThis.__socketIO = io;
 
-  server.listen(port, () => {
+  server.listen(port, hostname, () => {
     console.log(`> Ready on http://${hostname}:${port}`);
     console.log(`> Socket.IO listening on /api/socketio`);
   });

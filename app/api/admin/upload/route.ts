@@ -1,24 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/lib/auth";
 import { apiGuard } from "@/lib/security";
-import { put } from "@vercel/blob";
 import crypto from "crypto";
+import { mkdir, writeFile } from "fs/promises";
+import path from "path";
 
 /* ================================================================
    /api/admin/upload
    ================================================================
    POST — Upload one or more images (multipart/form-data)
    Returns an array of public URL paths for the uploaded files.
-   Files are stored on Vercel Blob (product images).
-   Admin-only endpoint.
 
-   Requires the BLOB_READ_WRITE_TOKEN env var. On Vercel this is
-   injected automatically once a Blob store is connected to the
-   project; locally add it to .env (see `vercel env pull`).
+   Files are stored on the local filesystem, under UPLOAD_DIR
+   (default: <project>/public/uploads). They are served back at
+   /uploads/products/<file> — either by Next's static handler or,
+   in production, directly by Nginx.
+   Admin-only endpoint.
    ================================================================ */
 
-const BLOB_PREFIX = "products"; // folder/prefix inside the blob store
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 4.5 MB — Vercel serverless body limit
+const UPLOAD_SUBDIR = "products"; // folder inside the uploads directory
+const PUBLIC_PREFIX = "/uploads"; // URL prefix the files are served under
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const MAX_FILES = 10;
 const ALLOWED_TYPES = [
   "image/jpeg",
@@ -27,6 +29,19 @@ const ALLOWED_TYPES = [
   "image/avif",
   "image/gif",
 ];
+
+/* Extension per mime type — never trust the extension sent by the client */
+const EXT_BY_TYPE: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/avif": "avif",
+  "image/gif": "gif",
+};
+
+/* Absolute directory images are written to */
+const UPLOAD_ROOT =
+  process.env.UPLOAD_DIR ?? path.join(process.cwd(), "public", "uploads");
 
 function requireAdmin(req: NextRequest) {
   const payload = getAuthFromRequest(req);
@@ -75,6 +90,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    /* Ensure the destination exists (first upload after a fresh deploy) */
+    const destDir = path.join(UPLOAD_ROOT, UPLOAD_SUBDIR);
+    await mkdir(destDir, { recursive: true });
+
     const urls: string[] = [];
 
     for (const file of files) {
@@ -92,24 +111,22 @@ export async function POST(req: NextRequest) {
       if (file.size > MAX_FILE_SIZE) {
         return NextResponse.json(
           {
-            error: `Le fichier "${file.name}" dépasse la taille maximale de 4.5 MB.`,
+            error: `Le fichier "${file.name}" dépasse la taille maximale de 10 MB.`,
           },
           { status: 400 },
         );
       }
 
-      /* Generate unique filename */
-      const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
-      const uniqueName = `${BLOB_PREFIX}/${Date.now()}-${crypto.randomBytes(8).toString("hex")}.${ext}`;
+      /* Generate unique filename — derived from the mime type, not user input */
+      const ext = EXT_BY_TYPE[file.type] ?? "jpg";
+      const uniqueName = `${Date.now()}-${crypto.randomBytes(8).toString("hex")}.${ext}`;
 
-      /* Upload to Vercel Blob */
-      const blob = await put(uniqueName, file, {
-        access: "public",
-        contentType: file.type,
-      });
+      /* Write to disk */
+      const buffer = Buffer.from(await file.arrayBuffer());
+      await writeFile(path.join(destDir, uniqueName), buffer);
 
-      /* Public CDN URL */
-      urls.push(blob.url);
+      /* Public URL path */
+      urls.push(`${PUBLIC_PREFIX}/${UPLOAD_SUBDIR}/${uniqueName}`);
     }
 
     return NextResponse.json(

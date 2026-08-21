@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Deployment runbook — contains server credentials
+DEPLOY.md
+
+# Locally stored product images
+/public/uploads/*
+!/public/uploads/.gitkeep

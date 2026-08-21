@@ -8,9 +8,26 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com",
       },
       {
-        /* Vercel Blob — uploaded product/collection images */
+        /* Vercel Blob — legacy product images uploaded before the VPS move */
         protocol: "https",
         hostname: "*.public.blob.vercel-storage.com",
+      },
+      {
+        /* Product images stored on this VPS, served by Nginx from /uploads */
+        protocol: "https",
+        hostname: "kinyn.online",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.kinyn.online",
+        pathname: "/uploads/**",
+      },
+      {
+        /* Local development */
+        protocol: "http",
+        hostname: "localhost",
+        pathname: "/uploads/**",
       },
     ],
     /* Prefer modern formats for smaller file sizes */

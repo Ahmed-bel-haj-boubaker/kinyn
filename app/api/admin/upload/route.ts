@@ -20,6 +20,18 @@ import path from "path";
 
 const UPLOAD_SUBDIR = "products"; // folder inside the uploads directory
 const PUBLIC_PREFIX = "/uploads"; // URL prefix the files are served under
+
+/* Absolute origin for returned URLs.
+   Next's production server only serves public/ files that existed at build
+   time, so a freshly uploaded image 404s on the internal fetch that
+   /_next/image performs — the image then fails with a 400. Returning an
+   absolute URL makes next/image treat it as a remote image and fetch it
+   over HTTP, where Nginx serves it from disk. Requires a matching entry in
+   `images.remotePatterns` (see next.config.ts). */
+const PUBLIC_ORIGIN = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(
+  /\/+$/,
+  "",
+);
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const MAX_FILES = 10;
 const ALLOWED_TYPES = [
@@ -125,8 +137,10 @@ export async function POST(req: NextRequest) {
       const buffer = Buffer.from(await file.arrayBuffer());
       await writeFile(path.join(destDir, uniqueName), buffer);
 
-      /* Public URL path */
-      urls.push(`${PUBLIC_PREFIX}/${UPLOAD_SUBDIR}/${uniqueName}`);
+      /* Public URL — absolute when the app URL is known, relative otherwise */
+      urls.push(
+        `${PUBLIC_ORIGIN}${PUBLIC_PREFIX}/${UPLOAD_SUBDIR}/${uniqueName}`,
+      );
     }
 
     return NextResponse.json(

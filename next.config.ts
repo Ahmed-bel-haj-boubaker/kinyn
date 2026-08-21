@@ -28,6 +28,14 @@ const nextConfig: NextConfig = {
   /* ── Server external packages (mongoose uses native deps) ── */
   serverExternalPackages: ["mongoose"],
 
+  /* ── Upload body size ──
+     Request bodies pass through middleware, which caps them at 10 MB by
+     default — too small for a multi-image product upload. Keep this in sync
+     with `client_max_body_size` in the Nginx config. */
+  experimental: {
+    proxyClientMaxBodySize: "30mb",
+  },
+
   /* ── Compress responses (gzip/brotli) ── */
   compress: true,
 

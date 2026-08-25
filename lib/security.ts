@@ -159,21 +159,79 @@ export function withSecurityHeaders(res: NextResponse): NextResponse {
 
 /* ──────────────── 4. CORS Helper ──────────────── */
 
-const ALLOWED_ORIGINS = [
-  process.env.NEXT_PUBLIC_APP_URL,
-  "http://localhost:3000",
-  "http://localhost:3001",
-].filter(Boolean) as string[];
+/** `https://Kinyn.Online/` → `https://kinyn.online` (empty string if unparseable) */
+function normalizeOrigin(value: string): string {
+  try {
+    const url = new URL(value.trim());
+    return `${url.protocol}//${url.host}`.toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+/** An origin and its apex ⇄ www twin — the site answers on both hostnames. */
+function withHostVariants(origin: string): string[] {
+  if (!origin) return [];
+  const { protocol, host } = new URL(origin);
+  const twin = host.startsWith("www.") ? host.slice(4) : `www.${host}`;
+  return [origin, `${protocol}//${twin}`];
+}
+
+/* Read at call time, not module load: NEXT_PUBLIC_* is inlined at build time,
+   so a value changed in .env after `npm run build` would otherwise be ignored.
+   APP_ORIGINS (comma-separated) is a plain runtime var for extra origins. */
+function allowedOrigins(): string[] {
+  const configured = [
+    process.env.APP_ORIGINS,
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.NEXT_PUBLIC_SITE_URL,
+  ]
+    .filter(Boolean)
+    .join(",")
+    .split(",")
+    .map(normalizeOrigin)
+    .filter(Boolean)
+    .flatMap(withHostVariants);
+
+  if (process.env.NODE_ENV !== "production") {
+    configured.push("http://localhost:3000", "http://localhost:3001");
+  }
+
+  return [...new Set(configured)];
+}
+
+/* The origin the browser actually reached us on, taken from the proxy headers
+   Nginx sets. This is what makes a request same-origin regardless of which
+   hostname (apex or www) the visitor used. */
+function selfOrigin(req: NextRequest): string {
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+  if (!host) return "";
+  const proto =
+    req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ??
+    req.nextUrl.protocol.replace(":", "");
+  return normalizeOrigin(`${proto}://${host}`);
+}
+
+/** True if `value` (an Origin or Referer header) may call this API. */
+function isAllowedOrigin(req: NextRequest, value: string): boolean {
+  const origin = normalizeOrigin(value);
+  if (!origin) return false;
+
+  const self = selfOrigin(req);
+  if (self && withHostVariants(self).includes(origin)) return true;
+
+  return allowedOrigins().includes(origin);
+}
 
 export function validateCORS(req: NextRequest): boolean {
   const origin = req.headers.get("origin");
   if (!origin) return true; // same-origin
-  return ALLOWED_ORIGINS.includes(origin);
+  return isAllowedOrigin(req, origin);
 }
 
 export function corsHeaders(req: NextRequest): Record<string, string> {
   const origin = req.headers.get("origin") ?? "";
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : "";
+  const allowed = origin && isAllowedOrigin(req, origin) ? origin : "";
   return {
     "Access-Control-Allow-Origin": allowed,
     "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
@@ -204,8 +262,7 @@ export function csrfProtection(req: NextRequest): NextResponse | null {
     );
   }
 
-  const isAllowed = ALLOWED_ORIGINS.some((o) => check.startsWith(o));
-  if (!isAllowed) {
+  if (!isAllowedOrigin(req, check)) {
     return NextResponse.json(
       { error: "Requête refusée : origine non autorisée." },
       { status: 403 },

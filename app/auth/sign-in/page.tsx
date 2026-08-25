@@ -128,7 +128,7 @@ function SignInPageInner() {
       {/* ───────── Left — Brand Image (desktop only) ───────── */}
       <div className="relative hidden w-1/3 lg:block">
         <Image
-          src="/images/aa.jpg"
+          src="/images/image00005.jpg"
           alt="KINYN — Mode de luxe"
           width={1000}
           height={1000}
@@ -136,23 +136,6 @@ function SignInPageInner() {
         />
         {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-dark/70 via-dark/30 to-transparent" />
-
-        {/* Brand logo over image */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-12 text-center">
-          <Link href="/" aria-label="Retour à l'accueil">
-            <Image
-              src="/images/logo.png"
-              alt="KINYN"
-              width={200}
-              height={60}
-              className="h-auto w-48 xl:w-56"
-            />
-          </Link>
-          <p className="mt-4 max-w-md font-poppins text-sm leading-relaxed text-white/80">
-            Connectez-vous pour accéder à votre espace personnel et découvrir
-            nos collections exclusives.
-          </p>
-        </div>
       </div>
 
       {/* ───────── Right — Sign-in Form ───────── */}

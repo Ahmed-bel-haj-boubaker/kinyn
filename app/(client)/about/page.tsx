@@ -106,7 +106,7 @@ export default function AboutPage() {
 
           <div className="relative aspect-4/5 overflow-hidden rounded-2xl">
             <Image
-              src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80"
+              src="/images/image00028.jpg"
               alt="L'artisanat Kinyn"
               fill
               className="object-cover transition-transform duration-700 hover:scale-105"
@@ -154,7 +154,7 @@ export default function AboutPage() {
         <div className="mx-auto grid max-w-6xl items-center gap-12 md:grid-cols-2 md:gap-16 lg:gap-24">
           <div className="relative aspect-4/5 overflow-hidden rounded-2xl md:order-1">
             <Image
-              src="https://images.unsplash.com/photo-1558171813-4c088753af8f?w=800&q=80"
+              src="/images/image00061.JPG"
               alt="Détail de confection Kinyn"
               fill
               className="object-cover transition-transform duration-700 hover:scale-105"

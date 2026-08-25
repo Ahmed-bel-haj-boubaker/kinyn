@@ -99,7 +99,7 @@ export default function KinynSection() {
             {/* main lifestyle frame */}
             <div className="relative rounded-3xl overflow-hidden shadow-2xl aspect-[4/5] sm:aspect-[3/4] lg:aspect-[4/5]">
               <Image
-                src="/images/kyninimg2.jpg"
+                src="/images/image00054.jpg"
                 alt="Collection Kinyn — Lifestyle"
                 fill
                 sizes="(max-width:1024px)100vw,50vw"

@@ -7,6 +7,11 @@ import JsonLd, {
   webSiteJsonLd,
 } from "./component/shared/JsonLd";
 
+/* Always re-query Mongo so collections added/deleted in the admin
+   show up on the home page immediately instead of being baked in
+   at build time. */
+export const dynamic = "force-dynamic";
+
 interface LeanCollection {
   _id: string;
   name: string;

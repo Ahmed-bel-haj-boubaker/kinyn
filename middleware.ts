@@ -102,13 +102,17 @@ export function middleware(req: NextRequest) {
     "Content-Security-Policy",
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+      /* connect.facebook.net hosts the Meta Pixel loader (fbevents.js) */
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://connect.facebook.net",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://images.unsplash.com",
+      /* facebook.com/tr is the pixel's tracking beacon (also the <noscript> img) */
+      "img-src 'self' data: blob: https://images.unsplash.com https://www.facebook.com https://connect.facebook.net",
       "font-src 'self' data:",
       process.env.NODE_ENV === "development"
-        ? "connect-src 'self' ws://127.0.0.1:* ws://localhost:*"
-        : "connect-src 'self'",
+        ? "connect-src 'self' ws://127.0.0.1:* ws://localhost:* https://www.facebook.com https://connect.facebook.net"
+        : "connect-src 'self' https://www.facebook.com https://connect.facebook.net",
+      /* Meta Pixel injects a hidden iframe for cross-domain matching */
+      "frame-src 'self' https://www.facebook.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self'",

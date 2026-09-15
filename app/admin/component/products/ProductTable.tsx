@@ -26,7 +26,7 @@ export interface Product {
   categoryFinale: string | null;
   categoryFinaleName: string | null;
   price: number;
-  promoPrice?: number;
+  promoPrice?: number | null;
   sizeStock: ProductSizeStock[];
   stock: number;
   status: ProductStatus;

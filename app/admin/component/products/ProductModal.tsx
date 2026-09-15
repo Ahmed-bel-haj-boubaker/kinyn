@@ -301,7 +301,7 @@ function ProductFormInner({
       categoryFinale: categoryFinale || null,
       categoryFinaleName: finaleName || null,
       price: Number(price),
-      promoPrice: promoPrice ? Number(promoPrice) : undefined,
+      promoPrice: promoPrice.trim() ? Number(promoPrice) : null,
       sizeStock,
       stock: sizeStock.reduce((sum, s) => sum + s.stock, 0),
       sizes: sizeStock.map((s) => s.size),
